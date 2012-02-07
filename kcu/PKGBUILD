@@ -1,0 +1,22 @@
+# Maintainer: jjacky
+
+pkgname=kcu
+pkgver=0.1.2
+pkgrel=1
+pkgdesc="kernel config updater - to easily re-apply changes to a kernel .config file"
+arch=('i686' 'x86_64')
+url="https://bitbucket.org/jjacky/kcu"
+license=('GPL3')
+source=(https://bitbucket.org/jjacky/kcu/get/$pkgver.tar.gz)
+md5sums=('35c9d2b361ef59d7fd30b322cd3c864e')
+
+build() {
+  cd "$srcdir/jjacky-$pkgname-$pkgver"
+  make
+}
+
+package() {
+  cd "$srcdir/jjacky-$pkgname-$pkgver"
+  make DESTDIR="$pkgdir/" install
+}
+

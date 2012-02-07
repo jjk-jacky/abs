@@ -1,0 +1,10 @@
+# mkinitcpio preset file for the 'linux-jjk' package
+
+ALL_config="/etc/mkinitcpio-jjk.conf"
+ALL_kver="/boot/vmlinuz-linux-jjk"
+
+PRESETS=('default')
+
+#default_config="/etc/mkinitcpio.conf"
+default_image="/boot/initramfs-linux-jjk.img"
+#default_options=""

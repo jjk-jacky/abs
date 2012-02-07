@@ -1,0 +1,16 @@
+pkgname=xfce-theme-jjk
+pkgver=0.1
+pkgrel=1
+pkgdesc="Xfce theme w/ slightly adjusted colors (for (in)active windows titlebar)"
+arch=(any)
+license=('GPL2')
+url="http://www.xfce.org/"
+depends=('xfwm4')
+source=(${pkgname}-${pkgver}.tar.gz)
+md5sums=('fadcf496a96565db9d9427ce55d8ccb6')
+sha1sums=('b5700de5b453d1dda2fb47503343da25caf22b42')
+
+build() {
+  mkdir -p ${pkgdir}/usr/share/themes
+  cp -R ${srcdir}/Xfce-jjk ${pkgdir}/usr/share/themes/
+}

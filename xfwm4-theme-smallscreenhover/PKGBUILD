@@ -1,0 +1,16 @@
+pkgname=xfwm4-theme-smallscreenhover
+pkgver=0.1
+pkgrel=1
+pkgdesc="Xfce theme: Smallscreen w/support for hover effect"
+arch=(any)
+license=('GPL2')
+url="http://www.xfce.org/"
+depends=('xfwm4')
+source=(${pkgname}-${pkgver}.tar.gz)
+md5sums=('eb3f3052929030875c7d7ceafb6024dd')
+sha1sums=('77f4a5617f417e514f7dac42559f9cd9f26963f0')
+
+build() {
+  mkdir -p ${pkgdir}/usr/share/themes
+  cp -R ${srcdir}/SmallscreenHover ${pkgdir}/usr/share/themes/
+}

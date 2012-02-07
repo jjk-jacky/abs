@@ -1,0 +1,27 @@
+pkgname=xdm-jjk
+pkgver=0.1
+pkgrel=1
+pkgdesc="An XDM setup that looks better than the defaults"
+arch=(any)
+license=('GPL')
+url="http://xorg.freedesktop.org"
+depends=('xorg-xdm' 'bash'
+	 'xorg-xmessage' 'xorg-xsetroot' 'xorg-xwininfo' 'xorg-xkill')
+source=(${pkgname}-${pkgver}.tar.gz)
+md5sums=('b154c7d4521563daf7f7e4bf2f9490d9')
+
+build() {
+  mkdir -p ${pkgdir}/etc/X11/xdm/jjk
+  cp -R ${srcdir}/jjk ${pkgdir}/etc/X11/xdm/
+}
+
+post_install() {
+  cat << EOF
+
+  The XDM theme was installed to /etc/X11/xdm/jjk
+
+  To use it, make the xdm line near the end of /etc/inittab reads:
+    x:5:respawn:/usr/bin/xdm -nodaemon -config /etc/X11/xdm/jjk/xdm-config
+
+EOF
+}
