@@ -49,7 +49,7 @@ pkgname=linux-jjk
 true && pkgname=(linux-jjk linux-jjk-headers)
 _kernelname=-jjk
 _basekernel=3.2
-pkgver=${_basekernel}.4
+pkgver=${_basekernel}.5
 pkgrel=1
 arch=('i686' 'x86_64')
 url="https://wiki.archlinux.org/index.php/linux-ck"
@@ -429,14 +429,14 @@ rm -rf "${pkgdir}"/usr/src/linux-${_kernver}/arch/{alpha,arm,arm26,avr32,blackfi
 pkgdesc='Linux Kernel and modules with Brain Fuck Scheduler v0.415 and all the goodies in the ck2 patch set.'
 
 md5sums=('7ceb61f87c097fc17509844b71268935'
-         '79a65f0f753153111a75dd15a169efbd'
+         '9fc2c9708b86cc5fcee6e5b3f3707b10'
          'ca14fff2785d37e55eeb80c4e646c28f'
          '9d3c56a4b999c8bfbd4018089a62f662'
          '263725f20c0b9eb9c353040792d644e5'
          'e787ef4bc66e2d9a7883eaece7a915b9'
-         '12af08869d1b86d297a093cc93482630'
-         '6dc4c081ffd71ae4f85aed7d627412e9'
-         '9c5793abeb32bfab41dbe0b29aec887b'
+         'cbd469a1ba0bc8caa765caa42d429ea9'
+         '875b121a32a619e0ee262c541f330427'
+         '4639c99082967e9d67c9880ba8e75495'
          '24fd1d38cd31fcee40ac19bd2705cdd8'
          '8e8a772ad7f16ea9cd8d42c5cc8dbcf3'
          '04004473d27209cc0112073a32cd318b'

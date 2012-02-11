@@ -1,5 +1,5 @@
 KERNEL_NAME=-jjk
-KERNEL_VERSION=3.2.4-1-jjk
+KERNEL_VERSION=3.2.5-1-jjk
 
 post_install () {
 	# updating module dependencies
