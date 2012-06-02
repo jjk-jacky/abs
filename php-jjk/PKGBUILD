@@ -1,0 +1,201 @@
+# $Id: PKGBUILD 158788 2012-05-09 18:48:29Z pierre $
+# Maintainer: Pierre Schmitz <pierre@archlinux.de>
+
+pkgbase=php
+pkgname=('php-jjk'
+         'php-fpm-jjk'
+         'php-pear-jjk'
+         'php-mcrypt-jjk')
+pkgver=5.4.3
+pkgrel=2
+arch=('i686' 'x86_64')
+license=('PHP')
+url='http://www.php.net'
+makedepends=('file' 'libmcrypt' 'libltdl' 'libpng' 'libjpeg'
+             'curl' 'openssl' 'bzip2' 'db' 'gmp' 'freetype2')
+source=("http://www.php.net/distributions/${pkgbase}-${pkgver}.tar.bz2"
+        'php.ini.patch' 'apache.conf' 'rc.d.php-fpm' 'php-fpm.conf.in.patch'
+        'logrotate.d.php-fpm'
+        '0001-CGI-FPM-process-could-crash-when-using-libxml-fixes-.patch')
+md5sums=('51f9488bf8682399b802c48656315cac'
+         '0b0bc7a917fc592bdf11dcd3c5c255e9'
+         'dec2cbaad64e3abf4f0ec70e1de4e8e9'
+         'b01be5f816988fcee7e78225836e5e27'
+         '59b3a25f9eb3afc02f1adf9ee699808c'
+         '07c4e412909ac65a44ec90e7a2c4bade'
+         '92879c5e9a81bdf5b99930a2de205c83')
+
+build() {
+	phpconfig="--srcdir=../${pkgbase}-${pkgver} \
+		--config-cache \
+		--prefix=/usr \
+		--sysconfdir=/etc/php \
+		--localstatedir=/var \
+		--with-layout=GNU \
+		--with-config-file-path=/etc/php \
+		--with-config-file-scan-dir=/etc/php/conf.d \
+		--disable-rpath \
+		--mandir=/usr/share/man \
+		--without-pear \
+		"
+
+	phpextensions="--enable-bcmath=shared \
+		--enable-calendar=shared \
+		--enable-dba=shared \
+		--enable-exif=shared \
+		--enable-ftp=shared \
+		--enable-gd-native-ttf \
+		--enable-mbstring \
+		--enable-phar=shared \
+		--enable-posix=shared \
+		--enable-shmop=shared \
+		--enable-soap=shared \
+		--enable-sockets=shared \
+		--enable-sysvmsg=shared \
+		--enable-sysvsem=shared \
+		--enable-sysvshm=shared \
+		--enable-zip=shared \
+		--with-bz2=shared \
+		--with-curl=shared \
+		--with-db4=/usr \
+		--with-freetype-dir=/usr \
+		--with-gd=shared \
+		--with-gdbm \
+		--with-gettext=shared \
+		--with-gmp=shared \
+		--with-iconv=shared \
+		--with-jpeg-dir=/usr \
+		--with-mcrypt=shared \
+		--with-mhash \
+		--with-mysql-sock=/var/run/mysqld/mysqld.sock \
+		--with-mysql=shared,mysqlnd \
+		--with-mysqli=shared,mysqlnd \
+		--with-openssl=shared \
+		--with-pcre-regex=/usr \
+		--with-pdo-mysql=shared,mysqlnd \
+		--with-pdo-sqlite=shared,/usr \
+		--with-png-dir=/usr \
+		--with-sqlite3=shared,/usr \
+		--with-unixODBC=shared,/usr \
+		--with-xmlrpc=shared \
+		--with-zlib \
+		"
+
+	EXTENSION_DIR=/usr/lib/php/modules
+	export EXTENSION_DIR
+	PEAR_INSTALLDIR=/usr/share/pear
+	export PEAR_INSTALLDIR
+
+	cd ${srcdir}/${pkgbase}-${pkgver}
+
+	# adjust paths
+	patch -p0 -i ${srcdir}/php.ini.patch
+	patch -p0 -i ${srcdir}/php-fpm.conf.in.patch
+
+	# fix #61557
+	patch -p1 -i ${srcdir}/0001-CGI-FPM-process-could-crash-when-using-libxml-fixes-.patch
+
+	# php
+	mkdir ${srcdir}/build-php
+	cd ${srcdir}/build-php
+	ln -s ../${pkgbase}-${pkgver}/configure
+	./configure ${phpconfig} \
+		--disable-cgi \
+		--with-readline \
+		--enable-pcntl \
+		${phpextensions}
+	make
+
+	# cgi and fcgi
+	# reuse the previous run; this will save us a lot of time
+	cp -a ${srcdir}/build-php ${srcdir}/build-cgi
+	cd ${srcdir}/build-cgi
+	./configure ${phpconfig} \
+		--disable-cli \
+		--enable-cgi \
+		${phpextensions}
+	make
+
+	# fpm
+	cp -a ${srcdir}/build-php ${srcdir}/build-fpm
+	cd ${srcdir}/build-fpm
+	./configure ${phpconfig} \
+		--disable-cli \
+		--enable-fpm \
+		--with-fpm-user=http \
+		--with-fpm-group=http \
+		${phpextensions}
+	make
+
+	# pear
+	cp -a ${srcdir}/build-php ${srcdir}/build-pear
+	cd ${srcdir}/build-pear
+	./configure ${phpconfig} \
+		--disable-cgi \
+		--with-readline \
+		--enable-pcntl \
+		--with-pear \
+		${phpextensions}
+	make
+}
+
+# check() {
+# 	cd ${srcdir}/build-php
+# 	make test
+# }
+
+package_php-jjk() {
+	pkgdesc='An HTML-embedded scripting language'
+	depends=('pcre' 'libxml2' 'bzip2' 'curl')
+	replaces=('php-fileinfo' 'php-gmp' 'php-curl')
+	provides=('php-fileinfo' 'php-gmp' 'php-curl' 'php')
+	conflicts=('php-fileinfo' 'php-gmp' 'php-curl' 'php')
+	backup=('etc/php/php.ini')
+
+	cd ${srcdir}/build-php
+	make -j1 INSTALL_ROOT=${pkgdir} install
+	install -d -m755 ${pkgdir}/usr/share/pear
+	# install php.ini
+	install -D -m644 ${srcdir}/${pkgbase}-${pkgver}/php.ini-production ${pkgdir}/etc/php/php.ini
+	install -d -m755 ${pkgdir}/etc/php/conf.d/
+
+	# remove static modules
+	rm -f ${pkgdir}/usr/lib/php/modules/*.a
+	# remove modules provided by sub packages
+	rm -f ${pkgdir}/usr/lib/php/modules/{enchant,gd,intl,ldap,mcrypt,mssql,odbc,pdo_odbc,pgsql,pdo_pgsql,pspell,snmp,sqlite3,pdo_sqlite,tidy,xsl}.so
+	# remove empty directory
+	rmdir ${pkgdir}/usr/include/php/include
+}
+
+package_php-fpm-jjk() {
+	pkgdesc='FastCGI Process Manager for PHP'
+	depends=('php')
+	conflicts=('php-fpm')
+	backup=('etc/php/php-fpm.conf')
+
+	install -D -m755 ${srcdir}/build-fpm/sapi/fpm/php-fpm ${pkgdir}/usr/sbin/php-fpm
+	install -D -m644 ${srcdir}/build-fpm/sapi/fpm/php-fpm.8 ${pkgdir}/usr/share/man/man8/php-fpm.8
+	install -D -m644 ${srcdir}/build-fpm/sapi/fpm/php-fpm.conf ${pkgdir}/etc/php/php-fpm.conf
+	install -D -m755 ${srcdir}/rc.d.php-fpm ${pkgdir}/etc/rc.d/php-fpm
+	install -D -m644 ${srcdir}/logrotate.d.php-fpm ${pkgdir}/etc/logrotate.d/php-fpm
+	install -d -m755 ${pkgdir}/etc/php/fpm.d
+}
+
+package_php-pear-jjk() {
+	pkgdesc='PHP Extension and Application Repository'
+	depends=('php')
+	conflicts=('php-pear')
+	backup=('etc/php/pear.conf')
+
+	cd ${srcdir}/build-pear
+	make install-pear INSTALL_ROOT=${pkgdir}
+	rm -rf ${pkgdir}/usr/share/pear/.{channels,depdb,depdblock,filemap,lock,registry}
+}
+
+package_php-mcrypt-jjk() {
+	depends=('php' 'libmcrypt' 'libltdl')
+	conflicts=('php-mcrypt')
+	pkgdesc='mcrypt module for PHP'
+	install -D -m755 ${srcdir}/build-php/modules/mcrypt.so ${pkgdir}/usr/lib/php/modules/mcrypt.so
+}
+
