@@ -6,8 +6,8 @@ pkgname=('php-jjk'
          'php-fpm-jjk'
          'php-pear-jjk'
          'php-mcrypt-jjk')
-pkgver=5.4.3
-pkgrel=2
+pkgver=5.4.4
+pkgrel=1
 arch=('i686' 'x86_64')
 license=('PHP')
 url='http://www.php.net'
@@ -15,14 +15,16 @@ makedepends=('file' 'libmcrypt' 'libltdl' 'libpng' 'libjpeg'
              'curl' 'openssl' 'bzip2' 'db' 'gmp' 'freetype2')
 source=("http://www.php.net/distributions/${pkgbase}-${pkgver}.tar.bz2"
         'php.ini.patch' 'apache.conf' 'rc.d.php-fpm' 'php-fpm.conf.in.patch'
-        'logrotate.d.php-fpm'
+        'logrotate.d.php-fpm' 'php-fpm.service' 'php-fpm.tmpfiles'
         '0001-CGI-FPM-process-could-crash-when-using-libxml-fixes-.patch')
-md5sums=('51f9488bf8682399b802c48656315cac'
+md5sums=('1fd98dc3f6f3805cd67bff12a26ed77f'
          '0b0bc7a917fc592bdf11dcd3c5c255e9'
          'dec2cbaad64e3abf4f0ec70e1de4e8e9'
-         'b01be5f816988fcee7e78225836e5e27'
-         '59b3a25f9eb3afc02f1adf9ee699808c'
-         '07c4e412909ac65a44ec90e7a2c4bade'
+         'aabda9f3f2f8b9d8fdc9558c31c718db'
+         '825e580dd5708d959b50944afa1b12b6'
+         'bdd5af3d16b946bb10f298c5af2ff33e'
+         '86c73d481f3099e740e602869bacf637'
+         'c60343df74f8e1afb13b084d5c0e47ed'
          '92879c5e9a81bdf5b99930a2de205c83')
 
 build() {
@@ -172,6 +174,7 @@ package_php-fpm-jjk() {
 	depends=('php')
 	conflicts=('php-fpm')
 	backup=('etc/php/php-fpm.conf')
+	install='php-fpm.install'
 
 	install -D -m755 ${srcdir}/build-fpm/sapi/fpm/php-fpm ${pkgdir}/usr/sbin/php-fpm
 	install -D -m644 ${srcdir}/build-fpm/sapi/fpm/php-fpm.8 ${pkgdir}/usr/share/man/man8/php-fpm.8
@@ -179,6 +182,8 @@ package_php-fpm-jjk() {
 	install -D -m755 ${srcdir}/rc.d.php-fpm ${pkgdir}/etc/rc.d/php-fpm
 	install -D -m644 ${srcdir}/logrotate.d.php-fpm ${pkgdir}/etc/logrotate.d/php-fpm
 	install -d -m755 ${pkgdir}/etc/php/fpm.d
+	install -D -m644 ${srcdir}/php-fpm.tmpfiles ${pkgdir}/usr/lib/tmpfiles.d/php-fpm.conf
+	install -D -m644 ${srcdir}/php-fpm.service ${pkgdir}/usr/lib/systemd/system/php-fpm.service
 }
 
 package_php-pear-jjk() {
