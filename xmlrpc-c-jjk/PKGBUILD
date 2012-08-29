@@ -1,0 +1,53 @@
+# $Id$
+# Maintainer: Alexander Rødseth <rodseth@gmail.com>
+# Contributor: Daenyth <Daenyth+Arch [at] gmail [dot] com>
+# Contributor: Pierre Schmitz <pierre@archlinux.de>
+# Contributor: Vitaliy Berdinskikh <skipper13@root.ua>
+
+_pkgname=xmlrpc-c
+pkgname=$_pkgname-jjk
+pkgver=1.31.04
+pkgrel=1
+pkgdesc='XML-RPC for C and C++'
+arch=('x86_64' 'i686')
+url='http://xmlrpc-c.sourceforge.net/'
+license=('custom')
+provides=($_pkgname)
+conflicts=($_pkgname)
+depends=('curl' 'libxml2')
+makedepends=('libtool' 'setconf')
+options=('!makeflags' '!libtool' '!emptydirs')
+source=("$_pkgname-advanced-$pkgver.tar.gz::http://xmlrpc-c.svn.sourceforge.net/viewvc/xmlrpc-c/advanced.tar.gz")
+sha256sums=('be1a2cdc32e7a4075f4229c123bba4851f701f415365d02a33ce5e30dcb30a83')
+
+build() {
+  cd "$srcdir/advanced"
+
+  [ "$CARCH" != "i686" ] && export CFLAGS="$CFLAGS -fPIC"
+  ./configure --prefix=/usr \
+    --mandir=/usr/share/man \
+    --enable-libxml2-backend \
+    --disable-cgi-server \
+    --disable-abyss-server \
+    --disable-libwww-client \
+    --disable-wininet-client
+  mkdir include/curl
+  touch include/curl/types.h
+  make CFLAGS_PERSONAL="$CFLAGS"
+  # build the xmlrpc binary as well
+  make CFLAGS_PERSONAL="$CFLAGS" -C tools/xmlrpc
+}
+
+package() {
+  cd "$srcdir/advanced"
+
+  make DESTDIR="$pkgdir" install
+  install -Dm644 doc/COPYING "$pkgdir/usr/share/licenses/$_pkgname/LICENSE"
+  # Remove references to build directory
+  setconf "$pkgdir/usr/bin/xmlrpc-c-config" BLDDIR ""
+  setconf "$pkgdir/usr/bin/xmlrpc-c-config" ABS_SRCDIR ""
+  # install the xmlrpc binary
+  install -Dm755 tools/xmlrpc/xmlrpc "$pkgdir/usr/bin/xmlrpc"
+}
+
+# vim:set ts=2 sw=2 et:
