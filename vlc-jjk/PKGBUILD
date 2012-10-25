@@ -5,7 +5,7 @@
 
 _pkgname=vlc
 pkgname=$_pkgname-jjk
-pkgver=2.0.3
+pkgver=2.0.4
 pkgrel=1
 pkgdesc="A multi-platform MPEG, VCD/DVD, and DivX player"
 arch=('i686' 'x86_64')
@@ -15,7 +15,7 @@ depends=('a52dec' 'libdvbpsi' 'libxpm' 'libdca' 'qt' 'libproxy'
          'sdl_image' 'libdvdnav' 'libtiger' 'lua' 'libmatroska' 
          'zvbi' 'taglib' 'libmpcdec' 'ffmpeg' 'faad2' 'libupnp' 
          'libshout' 'libmad' 'libmpeg2' 'libmodplug' 'libass' 
-         'xcb-util-keysyms' 'ttf-freefont')
+         'xcb-util-keysyms')
 makedepends=('libnotify')
 _makedepends=('live-media' 'libnotify' 'libbluray' 'flac' 'kdelibs'
              'fluidsynth' 'libdc1394' 'libavc1394' 'lirc-utils'
@@ -48,7 +48,10 @@ optdepends=('avahi: for service discovery using bonjour protocol'
             'aalib: for ASCII art plugin'
             'libmtp: for MTP devices support'
             'fluidsynth: for synthesizer MIDI FluidSynth'
-            'smbclient: for SMB access plugin')
+            'smbclient: for SMB access plugin'
+	    'libcdio: for audio CD playback support'
+	    'ttf-freefont: for subtitle font'
+	    'ttf-dejavu: for subtitle font')
 conflicts=('vlc-plugin' 'vlc')
 replaces=('vlc-plugin' 'vlc')
 backup=('usr/share/vlc/lua/http/.hosts'
@@ -57,7 +60,7 @@ options=('!libtool' '!emptydirs')
 install=vlc.install
 source=("http://download.videolan.org/pub/videolan/${_pkgname}/${pkgver}/${_pkgname}-${pkgver}.tar.xz"
 	'inhibit.c')
-md5sums=('a7e79565e3df07dcf9abc6cad3ac26bb'
+md5sums=('f36dab8f126922c56b372388b7fade47'
          '924afaeb7ba8d2f486a5536bf512d294')
 
 build() {
