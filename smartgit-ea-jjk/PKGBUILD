@@ -1,0 +1,31 @@
+#Maintainer: Alexey Stukalov <astukalov@gmail.com>
+pkgname=smartgit-ea-jjk
+pkgver=4_preview_3
+pkgrel=1
+pkgdesc="A Git GUI client written in Java. Early Access Series"
+arch=("any")
+url="http://www.syntevo.com/smartgit/index.html"
+license=('custom')
+depends=("java-runtime" "desktop-file-utils" "sh" "git" "gtk2")
+optdepends=("mercurial: hg repositiories support")
+provides=(smartgit=$pkgver)
+# package version as it appears in the name of tar.gz archive file
+_pkgver=${pkgver//_/-}
+_pkgname=${pkgname//-ea*/}
+# folder within tar.gz archive
+_pkgfolder="$_pkgname-$_pkgver"
+source=(http://www.syntevo.com/download/${_pkgname}/${_pkgname}-generic-${_pkgver}.tar.gz
+        smartgit-ea.desktop)
+install="smartgit-ea.install"
+md5sums=('882c970d7099f2f56cb9f20490bd040a'
+         '2f86911767bcf7a67417a3bd99b93ae0')
+
+package() {
+    cd "$srcdir"
+
+    #install -D -m644 "${_pkgfolder}"/licenses/* "${pkgdir}/usr/share/licenses/${_pkgname}"
+    mkdir -p "${pkgdir}"/opt
+    mv "${_pkgfolder}" ${pkgdir}/opt/${pkgname//-jjk/} || return 1
+
+    install -D -m644 smartgit-ea.desktop "${pkgdir}"/usr/share/applications/smartgit-ea.desktop
+}
