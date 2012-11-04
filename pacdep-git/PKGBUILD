@@ -1,0 +1,48 @@
+# Maintainer: jjacky
+pkgname=pacdep-git
+pkgver=20121102
+pkgrel=1
+pkgdesc="Package Dependencies listing"
+arch=('i686' 'x86_64')
+url="https://github.com/jjk-jacky/pacdep"
+license=('GPL3+')
+depends=('pacman>=4.0.1' 'pacman<4.1')
+makedepends=('perl' 'groff' 'git' 'autoconf')
+provides=('pacdep')
+conflicts=('pacdep')
+
+_gitroot=https://github.com/jjk-jacky/pacdep.git
+_gitname=pacdep
+
+build() {
+  cd "$srcdir"
+  msg "Connecting to GIT server...."
+
+  if [[ -d "$_gitname" ]]; then
+    cd "$_gitname" && git pull origin next
+    msg "The local files are updated."
+  else
+    git clone -b next "$_gitroot" "$_gitname"
+  fi
+
+  msg "GIT checkout done or server timeout"
+  msg "Starting build..."
+
+  rm -rf "$srcdir/$_gitname-build"
+  git clone "$srcdir/$_gitname" "$srcdir/$_gitname-build"
+  cd "$srcdir/$_gitname-build"
+
+  #
+  # BUILD HERE
+  #
+  ./autogen.sh
+  ./configure --prefix=/usr --enable-git-version
+  make
+}
+
+package() {
+  cd "$srcdir/$_gitname-build"
+  make DESTDIR="$pkgdir/" install
+}
+
+# vim:set ts=2 sw=2 et:
