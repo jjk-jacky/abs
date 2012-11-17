@@ -1,0 +1,33 @@
+# $Id: PKGBUILD 75297 2012-08-18 10:08:06Z lfleischer $
+# Maintainer: Lukas Fleischer <archlinux at cryptocrack dot de>
+# Contributor: Geoffrey Teale <tealeg@stop-squark>
+# Contributor: Mark, Huo Mian <markhuomian[at]gmail[dot]com>
+# Contributor: Biginoz <biginoz a free dot fr>
+
+_pkgname=redshift
+pkgname=$_pkgname-jjk
+pkgver=1.7
+pkgrel=1
+pkgdesc='Adjusts the color temperature of your screen according to your surroundings.'
+arch=('i686' 'x86_64')
+url='http://jonls.dk/redshift/'
+license=('GPL3')
+depends=('gconf' 'libxxf86vm')
+makedepends=('python2')
+provides=('redshift')
+conflicts=('redshift')
+install='redshift.install'
+source=("http://launchpad.net/${_pkgname}/trunk/${pkgver}/+download/${_pkgname}-${pkgver}.tar.bz2")
+md5sums=('c56512afa292b5a94b715ed4a1841d4c')
+
+build() {
+  cd "${srcdir}/${_pkgname}-${pkgver}"
+
+  PYTHON=/usr/bin/python2 ./configure --prefix=/usr --disable-gui
+  make
+}
+
+package() {
+  cd "${srcdir}/${_pkgname}-${pkgver}"
+  make DESTDIR="${pkgdir}" install
+}
