@@ -1,0 +1,37 @@
+# Contributor: David Rosenstrauch <darose@darose.net>
+# Contributor: Erik Mank <erik@braindisorder.org>
+# Contributor: Clément Démoulins <clement@archivel.fr>
+
+_pkgname=tt-rss
+pkgname=$_pkgname-jjk
+pkgver=1.6.1
+pkgrel=1
+pkgdesc="Open source web-based news feed (RSS/Atom) aggregator"
+arch=('any')
+url="http://tt-rss.org/redmine/"
+license=('GPL')
+depends=('php')
+optdepends=('mysql' 'postgresql' 'php-curl')
+options=('!strip')
+
+source=(http://tt-rss.org/download/$_pkgname-$pkgver.tar.gz
+        tt-rss.service)
+md5sums=('0552a49388efc296591dbc2520bf8a48'
+         '8759215453bbc6d80ccce238a12ca06f')
+
+package() {
+    cd "$srcdir/$_pkgname-$pkgver"
+    _instdir=${pkgdir}/usr/share/webapps/${_pkgname}
+
+    # install tt-rss
+    mkdir -p ${_instdir}
+    cp -ra * ${_instdir}/
+    rm -rf ${_instdir}/debian
+
+    # add a daemon
+    install -D -m644 ${srcdir}/tt-rss.service ${pkgdir}/usr/lib/systemd/system/tt-rss.service
+
+    # make several directories writable by http user
+    chown -R http:root ${_instdir}/{lock,feed-icons,cache}
+}
+
