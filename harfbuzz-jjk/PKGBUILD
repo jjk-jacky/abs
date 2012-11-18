@@ -1,0 +1,33 @@
+# $Id: PKGBUILD 169943 2012-10-30 22:46:13Z heftig $
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+
+_pkgname=harfbuzz
+pkgname=$_pkgname-jjk
+pkgver=0.9.5
+pkgrel=1
+pkgdesc="OpenType text shaping engine."
+arch=('i686' 'x86_64')
+url="http://www.freedesktop.org/wiki/Software/HarfBuzz"
+license=('MIT')
+depends=('glib2' 'freetype2')
+makedepends=('cairo' 'glib2' 'freetype2')
+optdepends=('cairo: hb-view program')
+provides=('harfbuzz')
+conflicts=('harfbuzz')
+options=(!libtool)
+source=(http://www.freedesktop.org/software/harfbuzz/release/${_pkgname}-${pkgver}.tar.bz2)
+sha256sums=('57aa645606b7220fa202871b2acd9062243a5c212a2b55ab6493eeaaca1c6a7a')
+
+build() {
+  cd "${srcdir}/${_pkgname}-${pkgver}"
+
+  ./configure --prefix=/usr
+  make
+}
+
+package() {
+  cd "${srcdir}/${_pkgname}-${pkgver}"
+
+  make DESTDIR="${pkgdir}" install
+  install -Dm644 COPYING "${pkgdir}/usr/share/licenses/harfbuzz/COPYING"
+}
