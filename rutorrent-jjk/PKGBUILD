@@ -1,0 +1,43 @@
+# Maintainer: Jaroslav Lichtblau <dragonlord@aur.archlinux.org>
+# Contributor: Sergei Lebedev <superbobry at gmail dot com>
+
+_pkgname=rutorrent
+pkgname=$_pkgname-jjk
+pkgver=3.4
+pkgrel=1
+pkgdesc="Yet another web front-end for rTorrent"
+arch=('any')
+url="http://code.google.com/p/rutorrent/"
+license=('GPL')
+depends=(php curl gzip coreutils)
+optdepends=('mod_scgi: for SCGI protocol')
+provides=('rutorrent')
+conflicts=('rutorrent')
+source=(http://rutorrent.googlecode.com/files/$_pkgname-$pkgver.tar.gz)
+backup=(
+etc/webapps/rutorrent/conf/config.php
+etc/webapps/rutorrent/conf/plugins.ini
+etc/webapps/rutorrent/conf/access.ini
+)
+options=(emptydirs)
+md5sums=('160a1e625cf37c984ba761d610577b82')
+
+package() {
+  cd $srcdir
+
+  install -d $pkgdir/usr/share/webapps
+  install -d $pkgdir/etc/webapps/$_pkgname
+
+  mv $_pkgname/conf $pkgdir/etc/webapps/$_pkgname/
+  cp -r $_pkgname $pkgdir/usr/share/webapps
+
+  pushd $pkgdir/usr/share/webapps/$_pkgname
+  ln -s /etc/webapps/$_pkgname/conf
+  popd
+
+  #fix perms
+  #chown http\: $pkgdir/usr/share/webapps/$pkgname/share/{settings,torrents,users}
+  chmod 0777 $pkgdir/usr/share/webapps/$_pkgname/share/{settings,torrents,users}
+
+} 
+
