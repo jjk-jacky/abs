@@ -1,0 +1,19 @@
+# Maintainer: jjk
+pkgname=vim-vi
+pkgver=1
+pkgrel=1
+pkgdesc="Symlinks vi to vim"
+arch=('any')
+license=('GPL')
+depends=('vim')
+conflicts=('vi')
+replaces=('vi')
+options=('!strip' '!zipman' '!purge')
+
+package() {
+  cd "$pkgdir"
+  mkdir -p usr/bin
+  ln -s vim usr/bin/vi
+}
+
+# vim:set ts=2 sw=2 et:
