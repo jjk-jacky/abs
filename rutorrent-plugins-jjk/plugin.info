@@ -1,0 +1,3 @@
+plugin.description: This plugin allows to delete torrent data along with .torrent file.
+plugin.author: jjk
+plugin.version: 0.1
