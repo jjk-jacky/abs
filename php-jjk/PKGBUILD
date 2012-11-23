@@ -6,7 +6,7 @@ pkgname=('php-jjk'
          'php-fpm-jjk'
          'php-pear-jjk'
          'php-mcrypt-jjk')
-pkgver=5.4.8
+pkgver=5.4.9
 pkgrel=1
 arch=('i686' 'x86_64')
 license=('PHP')
@@ -17,13 +17,13 @@ source=("http://www.php.net/distributions/${pkgbase}-${pkgver}.tar.bz2"
         'php.ini.patch' 'apache.conf' 'rc.d.php-fpm' 'php-fpm.conf.in.patch'
         'logrotate.d.php-fpm' 'php-fpm.service' 'php-fpm.tmpfiles'
         '0001-CGI-FPM-process-could-crash-when-using-libxml-fixes-.patch')
-md5sums=('bb8c816a9299be8995255ef70c63b800'
+md5sums=('076a9f84d861d3f664a2878d5773ba78'
          '0b0bc7a917fc592bdf11dcd3c5c255e9'
          'dec2cbaad64e3abf4f0ec70e1de4e8e9'
          '3cfde0cc4ed09b55f1ce531437a4eb88'
          '825e580dd5708d959b50944afa1b12b6'
          'bdd5af3d16b946bb10f298c5af2ff33e'
-         '7d2f76628aae9ecbeba99a859f101d5c'
+         'f8b206cb8fecb05cb1ded8bee45633ff'
          'c60343df74f8e1afb13b084d5c0e47ed'
          '92879c5e9a81bdf5b99930a2de205c83')
 
