@@ -5,7 +5,7 @@
 _pkgname=tt-rss
 pkgname=$_pkgname-jjk
 pkgver=1.6.1
-pkgrel=1
+pkgrel=2
 pkgdesc="Open source web-based news feed (RSS/Atom) aggregator"
 arch=('any')
 url="http://tt-rss.org/redmine/"
@@ -17,7 +17,7 @@ options=('!strip')
 source=(http://tt-rss.org/download/$_pkgname-$pkgver.tar.gz
         tt-rss.service)
 md5sums=('0552a49388efc296591dbc2520bf8a48'
-         '8759215453bbc6d80ccce238a12ca06f')
+         '416ce8d7ad64bb43c75dd88879e88aa0')
 
 package() {
     cd "$srcdir/$_pkgname-$pkgver"

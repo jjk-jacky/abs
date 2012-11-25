@@ -1,6 +1,7 @@
 [Unit]
 Description=TinyTinyRSS feed updater daemon
-After=network.target
+Requires=mysqld.service
+After=network.target mysqld.service
 
 [Service]
 ExecStart=/usr/bin/php -d open_basedir=none /usr/share/webapps/tt-rss/update.php -daemon
