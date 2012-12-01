@@ -3,40 +3,33 @@
 
 pkgbase=systemd
 pkgname=('systemd-jjk' 'systemd-sysvcompat-jjk')
-pkgver=195
+pkgver=196
 pkgrel=1
 arch=('i686' 'x86_64')
 url="http://www.freedesktop.org/wiki/Software/systemd"
 license=('GPL2' 'LGPL2.1' 'MIT')
 makedepends=('acl' 'cryptsetup' 'dbus-core' 'docbook-xsl' 'gobject-introspection' 'gperf'
-             'gtk-doc' 'intltool' 'kmod' 'libcap' 'libgcrypt' 'libxslt' 'linux-api-headers'
-             'pam' 'python' 'quota-tools' 'xz')
+             'gtk-doc' 'intltool' 'kmod' 'libcap' 'libgcrypt' 'libxslt'
+             'linux-api-headers' 'pam' 'python' 'quota-tools' 'xz')
 options=('!libtool')
 source=("http://www.freedesktop.org/software/$pkgbase/$pkgbase-$pkgver.tar.xz"
         'initcpio-hook-udev'
         'initcpio-install-udev'
         'initcpio-install-timestamp'
-        '0001-Reinstate-TIMEOUT-handling.patch'
         'use-split-usr-path.patch'
         '0001-swap-fix-swap-behaviour-with-symlinks.patch'
         '0002-Make-swap-unit-follow-device-node-when-swap-is-off.patch'
-        '0003-Highlight-ordering-cycle-deletions.patch'
         )
-md5sums=('38e8c8144e7e6e5bc3ce32eb4260e680'
+md5sums=('05ebd7f108e420e2b4e4810ea4b3c810'
          'e99e9189aa2f6084ac28b8ddf605aeb8'
          'fb37e34ea006c79be1c54cbb0f803414'
          'df69615503ad293c9ddf9d8b7755282d'
-         '5543be25f205f853a21fa5ee68e03f0d'
          'fd5b5f04ab0a847373d357555129d4c0'
-         '820d79a47a1309c04c1405dae8bd8688'
-         '8d070e8a994ad1fb77147564d7b7eb5e'
-         '25d06dae487b0a633b0b4ec547517614')
+         '05456c77879b8aa36af4b8a4487a67ab'
+         'f3fde247db35fcf1747b3dc33da26362')
 
 build() {
   cd "$pkgbase-$pkgver"
-
-  # still waiting on ipw2x00, et al to get fixed...
-  patch -Np1 <"$srcdir/0001-Reinstate-TIMEOUT-handling.patch"
 
   # hang onto this until we do the /{,s}bin merge
   patch -Np1 <"$srcdir/use-split-usr-path.patch"
@@ -47,9 +40,6 @@ build() {
   # makes sure starting always work even in odd cases
   patch -Np1 <"$srcdir/0002-Make-swap-unit-follow-device-node-when-swap-is-off.patch"
 
-  # to notice when some unit is auto-skipped
-  patch -Np1 <"$srcdir/0003-Highlight-ordering-cycle-deletions.patch"
-
   ./configure \
       --libexecdir=/usr/lib \
       --localstatedir=/var \
@@ -58,9 +48,7 @@ build() {
       --enable-gtk-doc \
       --disable-audit \
       --disable-ima \
-      --with-distro=arch \
-      --with-usb-ids-path=/usr/share/hwdata/usb.ids \
-      --with-pci-ids-path=/usr/share/hwdata/pci.ids
+      --with-distro=arch
 
   make
 }
@@ -76,13 +64,12 @@ package_systemd-jjk() {
   provides=("systemd=$pkgver" "libsystemd=$pkgver" "systemd-tools=$pkgver" "udev=$pkgver")
   replaces=('systemd' 'libsystemd' 'systemd-tools' 'udev')
   conflicts=('systemd' 'libsystemd' 'systemd-tools' 'udev')
-  optdepends=('initscripts: legacy support for /etc/rc.conf'
+  optdepends=('cryptsetup: required for encrypted block devices'
+              'quota-tools: kernel-level quota management'
               'python: systemd library bindings'
               'python2-cairo: systemd-analyze'
-              'python2-dbus: systemd-analyze'
-              'systemd-sysvcompat: symlink package to provide sysvinit binaries'
-              'cryptsetup: required for encrypted block devices'
-              'quota-tools: kernel-level quota management')
+#              'python2-dbus: systemd-analyze'
+              'systemd-sysvcompat: symlink package to provide sysvinit binaries')
   backup=(etc/dbus-1/system.d/org.freedesktop.systemd1.conf
           etc/dbus-1/system.d/org.freedesktop.hostname1.conf
           etc/dbus-1/system.d/org.freedesktop.login1.conf
@@ -105,10 +92,14 @@ package_systemd-jjk() {
   # move bash-completion and symlink for *ctl's
   install -Dm644 "$pkgdir/etc/bash_completion.d/systemd-bash-completion.sh" \
     "$pkgdir/usr/share/bash-completion/completions/systemctl"
-  for ctl in {login,journal,timedate,locale,hostname}ctl; do
+  for ctl in {login,journal,timedate,locale,hostname,systemd-coredump}ctl udevadm; do
     ln -s systemctl "$pkgdir/usr/share/bash-completion/completions/$ctl"
   done
   rm -rf "$pkgdir/etc/bash_completion.d"
+
+  # zsh completion...
+  install -Dm644 "$pkgbase-$pkgver/shell-completion/systemd-zsh-completion.zsh" \
+      "$pkgdir/usr/share/zsh/site-functions/_systemd"
 
   # don't write units to /etc by default -- we'll enable this on post_install
   # as a sane default
@@ -141,9 +132,6 @@ package_systemd-jjk() {
   install -Dm644 "$srcdir/initcpio-install-udev" "$pkgdir/usr/lib/initcpio/install/udev"
   install -Dm644 "$srcdir/initcpio-hook-udev" "$pkgdir/usr/lib/initcpio/hooks/udev"
   install -Dm644 "$srcdir/initcpio-install-timestamp" "$pkgdir/usr/lib/initcpio/install/timestamp"
-
-  # XXX: kill off coredump rule until the journal can recover coredumps
-  rm "$pkgdir/usr/lib/sysctl.d/coredump.conf"
 
   ### split out manpages for sysvcompat
   rm -rf "$srcdir/_sysvcompat"
