@@ -6,15 +6,15 @@
 _pkgname=vlc
 pkgname=$_pkgname-jjk
 pkgver=2.0.4
-pkgrel=2
+pkgrel=3
 pkgdesc="A multi-platform MPEG, VCD/DVD, and DivX player"
 arch=('i686' 'x86_64')
 url="http://www.videolan.org/vlc/"
 license=('LGPL2.1' 'GPL2')
-depends=('a52dec' 'libdvbpsi' 'libxpm' 'libdca' 'qt' 'libproxy' 
-         'sdl_image' 'libdvdnav' 'libtiger' 'lua' 'libmatroska' 
-         'zvbi' 'taglib' 'libmpcdec' 'ffmpeg' 'faad2' 'libupnp' 
-         'libshout' 'libmad' 'libmpeg2' 'libmodplug' 'libass' 
+depends=('a52dec' 'libdvbpsi' 'libxpm' 'libdca' 'qt' 'libproxy'
+         'sdl_image' 'libdvdnav' 'libtiger' 'libmatroska'
+         'zvbi' 'taglib' 'libmpcdec' 'ffmpeg' 'faad2' 'libupnp'
+         'libshout' 'libmad' 'libmpeg2' 'libmodplug' 'libass'
          'xcb-util-keysyms')
 makedepends=('libnotify')
 _makedepends=('live-media' 'libnotify' 'libbluray' 'flac' 'kdelibs'
@@ -49,17 +49,15 @@ optdepends=('avahi: for service discovery using bonjour protocol'
             'libmtp: for MTP devices support'
             'fluidsynth: for synthesizer MIDI FluidSynth'
             'smbclient: for SMB access plugin'
-	    'libcdio: for audio CD playback support'
-	    'ttf-freefont: for subtitle font'
-	    'ttf-dejavu: for subtitle font')
+            'libcdio: for audio CD playback support'
+            'ttf-freefont: for subtitle font'
+            'ttf-dejavu: for subtitle font')
 conflicts=('vlc-plugin' 'vlc')
 replaces=('vlc-plugin' 'vlc')
-backup=('usr/share/vlc/lua/http/.hosts'
-        'usr/share/vlc/lua/http/dialogs/.hosts')
 options=('!libtool' '!emptydirs')
 install=vlc.install
 source=("http://download.videolan.org/pub/videolan/${_pkgname}/${pkgver}/${_pkgname}-${pkgver}.tar.xz"
-	'inhibit.c')
+        'inhibit.c')
 md5sums=('f36dab8f126922c56b372388b7fade47'
          '924afaeb7ba8d2f486a5536bf512d294')
 
@@ -75,7 +73,8 @@ build() {
               --enable-faad \
               --enable-nls \
               --enable-realrtsp \
-              --disable-glx
+              --disable-glx \
+              --disable-lua
   make
 }
 
