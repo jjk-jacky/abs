@@ -1,0 +1,26 @@
+# $Id: PKGBUILD 79923 2012-11-14 19:40:49Z jlichtblau $
+# Maintainer: Jaroslav Lichtblau <dragonlord@aur.archlinux.org>
+# Contributor: Geoffroy Carrier <geoffroy@archlinux.org>
+# Contributor: Joël Schaerer <joel.schaerer@laposte.net>
+# Contributor: Daniel J Griffiths <ghost1227@archlinux.us>
+
+pkgname=autojump
+pkgver=21.0.3
+pkgrel=1
+pkgdesc="A faster way to navigate your filesystem from the command line"
+arch=('any')
+url="http://wiki.github.com/joelthelion/autojump"
+license=('GPL3')
+depends=('bash' 'python')
+optdepends=('python2: needed for jumpapplet')
+install=$pkgname.install
+source=(https://github.com/downloads/joelthelion/${pkgname}/${pkgname}_v${pkgver}.tar.gz)
+sha256sums=('d4d44e8413773f0d67d41f37bb02e9082de9e61275b3222dfa6be01a86ff50be')
+
+package() {
+  cd ${pkgname}_v${pkgver}
+
+  sed -i "s:/env python:/python3:g" bin/$pkgname
+
+  ./install.sh --local --prefix ${pkgdir}/usr
+}
