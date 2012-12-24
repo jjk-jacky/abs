@@ -4,8 +4,9 @@
 # Contributor: Joël Schaerer <joel.schaerer@laposte.net>
 # Contributor: Daniel J Griffiths <ghost1227@archlinux.us>
 
-pkgname=autojump
-pkgver=21.0.3
+_pkgname=autojump
+pkgname=$_pkgname-jjk
+pkgver=21.2.1
 pkgrel=1
 pkgdesc="A faster way to navigate your filesystem from the command line"
 arch=('any')
@@ -13,14 +14,15 @@ url="http://wiki.github.com/joelthelion/autojump"
 license=('GPL3')
 depends=('bash' 'python')
 optdepends=('python2: needed for jumpapplet')
-install=$pkgname.install
-source=(https://github.com/downloads/joelthelion/${pkgname}/${pkgname}_v${pkgver}.tar.gz)
-sha256sums=('d4d44e8413773f0d67d41f37bb02e9082de9e61275b3222dfa6be01a86ff50be')
+conflicts=($_pkgname)
+provides=($_pkgname)
+source=(https://github.com/joelthelion/${_pkgname}/archive/release-v${pkgver}.tar.gz)
+sha256sums=('67a055b8ad10da43f2c862b43469793dd3e2101a92c23e4cc66816b572f1872f')
 
 package() {
-  cd ${pkgname}_v${pkgver}
+  cd ${_pkgname}-release-v${pkgver}
 
-  sed -i "s:/env python:/python3:g" bin/$pkgname
+  sed -i "s:/env python:/python3:g" bin/${_pkgname}
 
-  ./install.sh --local --prefix ${pkgdir}/usr
+  ./install.sh --global --destdir "${pkgdir}"
 }
