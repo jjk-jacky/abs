@@ -2,5 +2,6 @@
 *.tar.bz2
 *.tar.xz
 *.zip
+*.tgz
 *.gem
 xlsh-without-x/master
