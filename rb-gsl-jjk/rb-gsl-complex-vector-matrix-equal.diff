@@ -1,0 +1,107 @@
+diff -ru ext-orig//extconf.rb ext/extconf.rb
+--- ext-orig//extconf.rb	2011-08-12 18:11:39.111672827 +0200
++++ ext/extconf.rb	2011-08-12 18:05:29.458341797 +0200
+@@ -128,6 +128,10 @@
+       configfile.printf("#ifndef GSL_1_14_LATER\n#define GSL_1_14_LATER\n#endif\n")
+     end    
+     
++    if ver >= "1.15"
++      configfile.printf("#ifndef GSL_1_15_LATER\n#define GSL_1_15_LATER\n#endif\n")
++    end    
++    
+   end
+ end
+ 
+diff -ru ext-orig//matrix_complex.c ext/matrix_complex.c
+--- ext-orig//matrix_complex.c	2011-08-12 18:11:39.078339491 +0200
++++ ext/matrix_complex.c	2011-08-12 18:09:29.688340294 +0200
+@@ -1520,6 +1520,33 @@
+ }
+ 
+ 
++#ifdef GSL_1_15_LATER
++
++/* GSL 1.15 and later already have a gsl_matrix_complex_equal function. */
++
++static VALUE rb_gsl_matrix_complex_equal(int argc, VALUE *argv, VALUE obj)
++{
++  gsl_matrix_complex *m1, *m2;
++  int ret;
++  switch (argc) {
++  case 1:
++    break;
++  default:
++    rb_raise(rb_eArgError, "Wrong number of arguments (%d for 1)\n", argc);
++  }
++  Data_Get_Struct(obj, gsl_matrix_complex, m1);
++  CHECK_MATRIX_COMPLEX(argv[0]);
++  Data_Get_Struct(argv[0], gsl_matrix_complex, m2);
++  ret = gsl_matrix_complex_equal(m1, m2);
++  if (ret == 1) return Qtrue;
++  else return Qfalse;
++}
++
++#else
++
++/* GSL 1.14 and earlier do not have a gsl_matrix_complex_equal function. We need
++ * to provide our own implementation for it. */
++
+ static int gsl_matrix_complex_equal(const gsl_matrix_complex *m1,
+   const gsl_matrix_complex *m2, double eps)
+ {
+@@ -1560,6 +1587,8 @@
+   else return Qfalse;
+ }
+ 
++#endif
++
+ static VALUE rb_gsl_matrix_complex_not_equal(int argc, VALUE *argv, VALUE obj)
+ {
+   VALUE ret;
+diff -ru ext-orig//vector_complex.c ext/vector_complex.c
+--- ext-orig//vector_complex.c	2011-08-12 18:11:39.078339491 +0200
++++ ext/vector_complex.c	2011-08-12 18:09:45.648340198 +0200
+@@ -1986,6 +1986,34 @@
+   return ary;
+ }
+ 
++
++#ifdef GSL_1_15_LATER
++
++/* GSL 1.15 and later already have a gsl_vector_complex_equal function. */
++
++static VALUE rb_gsl_vector_complex_equal(int argc, VALUE *argv, VALUE obj)
++{
++  gsl_vector_complex *v1, *v2;
++  int ret;
++  switch (argc) {
++  case 1:
++    break;
++  default:
++    rb_raise(rb_eArgError, "Wrong number of arguments (%d for 1)\n", argc);
++  }
++  Data_Get_Struct(obj, gsl_vector_complex, v1);
++  CHECK_VECTOR_COMPLEX(argv[0]);
++  Data_Get_Struct(argv[0], gsl_vector_complex, v2);
++  ret = gsl_vector_complex_equal(v1, v2);
++  if (ret == 1) return Qtrue;
++  else return Qfalse;
++}
++
++#else
++
++/* GSL 1.14 and earlier do not have a gsl_vector_complex_equal function. We need
++ * to provide our own implementation for it. */
++
+ static int gsl_vector_complex_equal(const gsl_vector_complex *v1,
+   const gsl_vector_complex *v2, double eps)
+ {
+@@ -2024,6 +2052,8 @@
+   else return Qfalse;
+ }
+ 
++#endif
++
+ static VALUE rb_gsl_vector_complex_not_equal(int argc, VALUE *argv, VALUE obj)
+ {
+   VALUE ret;
