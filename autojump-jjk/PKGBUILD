@@ -6,7 +6,7 @@
 
 _pkgname=autojump
 pkgname=$_pkgname-jjk
-pkgver=21.2.1
+pkgver=21.3.0
 pkgrel=1
 pkgdesc="A faster way to navigate your filesystem from the command line"
 arch=('any')
@@ -17,7 +17,7 @@ optdepends=('python2: needed for jumpapplet')
 conflicts=($_pkgname)
 provides=($_pkgname)
 source=(https://github.com/joelthelion/${_pkgname}/archive/release-v${pkgver}.tar.gz)
-sha256sums=('67a055b8ad10da43f2c862b43469793dd3e2101a92c23e4cc66816b572f1872f')
+sha256sums=('217398c3135647f223356e055a1b84adb470385584d743baf7fe4d519fd78252')
 
 package() {
   cd ${_pkgname}-release-v${pkgver}
