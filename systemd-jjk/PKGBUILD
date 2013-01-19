@@ -3,7 +3,7 @@
 
 pkgbase=systemd
 pkgname=('systemd-jjk' 'systemd-sysvcompat-jjk')
-pkgver=196
+pkgver=197
 pkgrel=1
 arch=('i686' 'x86_64')
 url="http://www.freedesktop.org/wiki/Software/systemd"
@@ -17,22 +17,28 @@ source=("http://www.freedesktop.org/software/$pkgbase/$pkgbase-$pkgver.tar.xz"
         'initcpio-install-udev'
         'initcpio-install-timestamp'
         'use-split-usr-path.patch'
+        '0001-dbus-fix-serialization-of-calendar-timers.patch'
         '0001-swap-fix-swap-behaviour-with-symlinks.patch'
         '0002-Make-swap-unit-follow-device-node-when-swap-is-off.patch'
         )
-md5sums=('05ebd7f108e420e2b4e4810ea4b3c810'
+md5sums=('56a860dceadfafe59f40141eb5223743'
          'e99e9189aa2f6084ac28b8ddf605aeb8'
          'fb37e34ea006c79be1c54cbb0f803414'
          'df69615503ad293c9ddf9d8b7755282d'
          'fd5b5f04ab0a847373d357555129d4c0'
-         '05456c77879b8aa36af4b8a4487a67ab'
-         'f3fde247db35fcf1747b3dc33da26362')
+         'da0b969955e1bab0e73b38cf0f7a0a1c'
+         '2b46e68dae95525599815a82ff1e5e3a'
+         '329cb290fc3f0c9a215974de87733267')
 
 build() {
   cd "$pkgbase-$pkgver"
 
   # hang onto this until we do the /{,s}bin merge
   patch -Np1 <"$srcdir/use-split-usr-path.patch"
+
+  # fix assertion failure when using calendar timers
+  # upstream 3761902e2e120849c283106fd4b78b6adec7367e
+  patch -Np1 <"$srcdir/0001-dbus-fix-serialization-of-calendar-timers.patch"
 
   # so swap can be stopped properly (e.g. on reboot)
   patch -Np1 <"$srcdir/0001-swap-fix-swap-behaviour-with-symlinks.patch"
@@ -41,6 +47,8 @@ build() {
   patch -Np1 <"$srcdir/0002-Make-swap-unit-follow-device-node-when-swap-is-off.patch"
 
   ./configure \
+      PYTHON=python2 \
+      PYTHON_CONFIG=python2-config \
       --libexecdir=/usr/lib \
       --localstatedir=/var \
       --sysconfdir=/etc \
@@ -48,7 +56,11 @@ build() {
       --enable-gtk-doc \
       --disable-audit \
       --disable-ima \
-      --with-distro=arch
+      --with-sysvinit-path= \
+      --with-sysvrcnd-path=
+
+  # can't use py3k yet with systemd-analyze -- the 'plot' verb will not work.
+  # https://pokersource.info/show_bug.cgi?id=50989
 
   make
 }
@@ -61,9 +73,10 @@ package_systemd-jjk() {
   pkgdesc="system and service manager"
   depends=('acl' 'bash' 'dbus-core' 'glib2' 'kbd' 'kmod' 'hwids' 'libcap' 'libgcrypt'
            'pam' 'util-linux' 'xz')
-  provides=("systemd=$pkgver" "libsystemd=$pkgver" "systemd-tools=$pkgver" "udev=$pkgver")
-  replaces=('systemd' 'libsystemd' 'systemd-tools' 'udev')
-  conflicts=('systemd' 'libsystemd' 'systemd-tools' 'udev')
+  provides=("systemd=$pkgver" "libsystemd=$pkgver" "systemd-tools=$pkgver"
+            "udev=$pkgver" 'nss-hostname')
+  replaces=('systemd' 'libsystemd' 'systemd-tools' 'udev' 'nss-hostname')
+  conflicts=('systemd' 'libsystemd' 'systemd-tools' 'udev' 'nss-hostname')
   optdepends=('cryptsetup: required for encrypted block devices'
               'quota-tools: kernel-level quota management'
               'python: systemd library bindings'
@@ -97,10 +110,6 @@ package_systemd-jjk() {
   done
   rm -rf "$pkgdir/etc/bash_completion.d"
 
-  # zsh completion...
-  install -Dm644 "$pkgbase-$pkgver/shell-completion/systemd-zsh-completion.zsh" \
-      "$pkgdir/usr/share/zsh/site-functions/_systemd"
-
   # don't write units to /etc by default -- we'll enable this on post_install
   # as a sane default
   rm "$pkgdir/etc/systemd/system/getty.target.wants/getty@tty1.service"
@@ -108,10 +117,6 @@ package_systemd-jjk() {
 
   # get rid of RPM macros
   rm -r "$pkgdir/etc/rpm"
-
-  # can't use py3k yet with systemd-analyze -- the 'plot' verb will not work.
-  # https://pokersource.info/show_bug.cgi?id=50989
-  sed -i '1s/python$/python2/' "$pkgdir/usr/bin/systemd-analyze"
 
   # the path to udevadm is hardcoded in some places
   install -d "$pkgdir/sbin"
