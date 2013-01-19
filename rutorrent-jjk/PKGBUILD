@@ -3,7 +3,7 @@
 
 _pkgname=rutorrent
 pkgname=$_pkgname-jjk
-pkgver=3.4
+pkgver=3.5
 pkgrel=1
 pkgdesc="Yet another web front-end for rTorrent"
 arch=('any')
@@ -20,7 +20,7 @@ etc/webapps/rutorrent/conf/plugins.ini
 etc/webapps/rutorrent/conf/access.ini
 )
 options=(emptydirs)
-md5sums=('160a1e625cf37c984ba761d610577b82')
+md5sums=('210cbabe0ead88c865c654bab2109e92')
 
 package() {
   cd $srcdir
