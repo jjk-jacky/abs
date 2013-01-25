@@ -3,6 +3,6 @@
 	sharedscripts
 	compress
 	postrotate
-		test -r /var/run/nginx.pid && kill -USR1 `cat /var/run/nginx.pid`
+	systemctl reload nginx.service || true
 	endscript
 }
