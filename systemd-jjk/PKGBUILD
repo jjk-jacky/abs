@@ -74,9 +74,9 @@ package_systemd-jjk() {
   depends=('acl' 'bash' 'dbus-core' 'glib2' 'kbd' 'kmod' 'hwids' 'libcap' 'libgcrypt'
            'pam' 'util-linux' 'xz')
   provides=("systemd=$pkgver" "libsystemd=$pkgver" "systemd-tools=$pkgver"
-            "udev=$pkgver" 'nss-hostname')
-  replaces=('systemd' 'libsystemd' 'systemd-tools' 'udev' 'nss-hostname')
-  conflicts=('systemd' 'libsystemd' 'systemd-tools' 'udev' 'nss-hostname')
+            "udev=$pkgver" 'nss-myhostname')
+  replaces=('systemd' 'libsystemd' 'systemd-tools' 'udev' 'nss-myhostname')
+  conflicts=('systemd' 'libsystemd' 'systemd-tools' 'udev' 'nss-myhostname')
   optdepends=('cryptsetup: required for encrypted block devices'
               'quota-tools: kernel-level quota management'
               'python: systemd library bindings'
