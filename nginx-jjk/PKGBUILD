@@ -8,7 +8,7 @@ _tmpdir=/var/lib/nginx
 
 _pkgname=nginx
 pkgname=$_pkgname-jjk
-pkgver=1.2.6
+pkgver=1.2.7
 pkgrel=1
 pkgdesc="lightweight HTTP server and IMAP/POP3 proxy server"
 arch=('i686' 'x86_64')
@@ -31,10 +31,10 @@ source=(http://nginx.org/download/nginx-$pkgver.tar.gz
         rc.d
 		service
 		nginx.logrotate)
-md5sums=('1350d26eb9b66364d9143fb3c4366ab6'
+md5sums=('d252f5c689a14a668e241c744ccf5f06'
          'f62c7c9b5a53471d4666a4c49ad363fb'
          '62d494d23aef31d0b867161f9fffa6eb'
-         'b38744739022876554a0444d92e6603b')
+         '44011ad537479ede4ff6b35ae6ec22bc')
 
 build() {
 	cd "$srcdir"/$_pkgname-$pkgver
