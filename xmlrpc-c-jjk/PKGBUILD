@@ -6,7 +6,7 @@
 
 _pkgname=xmlrpc-c
 pkgname=$_pkgname-jjk
-pkgver=1.32.2
+pkgver=1.33.01
 pkgrel=1
 pkgdesc='XML-RPC for C and C++'
 arch=('x86_64' 'i686')
@@ -18,7 +18,7 @@ depends=('curl' 'libxml2')
 makedepends=('libtool' 'setconf')
 options=('!makeflags' '!libtool' '!emptydirs')
 source=("$_pkgname-advanced-$pkgver.tar.gz::http://xmlrpc-c.svn.sourceforge.net/viewvc/xmlrpc-c/advanced.tar.gz")
-sha256sums=('52e11b27e5c273d2d06eb4dd4e40019756abb51ab099aa3b35a2094944488df3')
+sha256sums=('eba6d5a7628f3ca4a94b19453aaebb58d52f61b8380601a268597dea83ba772b')
 
 build() {
   cd "$srcdir/advanced"
