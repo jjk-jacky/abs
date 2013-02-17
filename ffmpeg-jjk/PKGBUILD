@@ -3,26 +3,28 @@
 # Contributor: Tom Newsom <Jeepster@gmx.co.uk>
 # Contributor: Paul Mattal <paul@archlinux.org>
 
-pkgname=ffmpeg
+_pkgname=ffmpeg
+pkgname=$_pkgname-jjk
 pkgver=1.1.2
-pkgrel=2
-epoch=1
+pkgrel=1
 pkgdesc="Complete and free Internet live audio and video broadcasting solution for Linux/Unix"
 arch=('i686' 'x86_64')
 url="http://ffmpeg.org/"
 license=('GPL')
 depends=(
-      'alsa-lib' 'bzip2' 'fontconfig' 'gsm' 'lame' 'libass'
-      'libbluray' 'libmodplug' 'libpulse' 'libtheora' 'libva' 'libvorbis' 'libvpx'
-      'opencore-amr' 'openjpeg' 'opus' 'rtmpdump' 'schroedinger' 'sdl' 'speex'
+      'alsa-lib' 'bzip2' 'fontconfig' 'lame' 'libass'
+      'libmodplug' 'libpulse' 'libva' 'libvorbis' 'libvpx'
+      'openjpeg' 'rtmpdump' 'sdl'
       'v4l-utils' 'x264' 'xvidcore' 'zlib'
       )
 makedepends=('libvdpau' 'yasm')
-source=(http://ffmpeg.org/releases/$pkgname-$pkgver.tar.bz2)
+provides=($_pkgname)
+conflicts=($_pkgname)
+source=(http://ffmpeg.org/releases/$_pkgname-$pkgver.tar.bz2)
 sha256sums=('dc91e4a2499b05740cfddc2b679694e5c0f2ca20c94191de82d7eb200e8c48ce')
 
 build() {
-  cd $pkgname-$pkgver
+  cd $_pkgname-$pkgver
 
   ./configure \
     --prefix=/usr \
@@ -32,20 +34,12 @@ build() {
     --enable-fontconfig \
     --enable-gpl \
     --enable-libass \
-    --enable-libbluray \
     --enable-libfreetype \
-    --enable-libgsm \
     --enable-libmodplug \
     --enable-libmp3lame \
-    --enable-libopencore_amrnb \
-    --enable-libopencore_amrwb \
     --enable-libopenjpeg \
-    --enable-libopus \
     --enable-libpulse \
     --enable-librtmp \
-    --enable-libschroedinger \
-    --enable-libspeex \
-    --enable-libtheora \
     --enable-libv4l2 \
     --enable-libvorbis \
     --enable-libvpx \
@@ -64,7 +58,7 @@ build() {
 }
 
 package() {
-  cd $pkgname-$pkgver
+  cd $_pkgname-$pkgver
   make DESTDIR="$pkgdir" install install-man
   install -D -m755 tools/qt-faststart "$pkgdir/usr/bin/qt-faststart"
 }
