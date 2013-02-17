@@ -9,12 +9,12 @@ pkgbase=$_pkgbase-jjk
 pkgname=(pulseaudio-jjk libpulse-jjk)
 pkgdesc="A featureful, general-purpose sound server"
 pkgver=3.0
-pkgrel=1
+pkgrel=2
 arch=(i686 x86_64)
 url="http://www.freedesktop.org/wiki/Software/PulseAudio"
 license=(GPL LGPL)
 makedepends=(libasyncns libcap attr libxtst libsm libsamplerate libtool rtkit
-             speex gdbm udev dbus-core avahi bluez gconf intltool
+             gdbm udev dbus-core avahi bluez gconf intltool
              openssl orc json-c gtk2
              systemd)
 options=(!emptydirs !libtool)
@@ -41,7 +41,8 @@ build() {
     --disable-oss-wrapper \
     --without-fftw \
     --disable-lirc \
-    --disable-webrtc-aec
+    --disable-webrtc-aec \
+    --without-speex
 
   # fight unused direct deps
   sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
@@ -50,7 +51,7 @@ build() {
 }
 
 package_pulseaudio-jjk() {
-  depends=("libpulse=$pkgver-$pkgrel" rtkit libltdl speex gdbm udev orc
+  depends=("libpulse=$pkgver-$pkgrel" rtkit libltdl gdbm udev orc
            libsamplerate systemd)
   optdepends=('avahi: zeroconf support'
               'bluez: bluetooth support'
