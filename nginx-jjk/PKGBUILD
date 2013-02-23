@@ -9,7 +9,7 @@ _tmpdir=/var/lib/nginx
 _pkgname=nginx
 pkgname=$_pkgname-jjk
 pkgver=1.2.7
-pkgrel=1
+pkgrel=2
 pkgdesc="lightweight HTTP server and IMAP/POP3 proxy server"
 arch=('i686' 'x86_64')
 depends=('pcre' 'zlib' 'openssl')
@@ -18,28 +18,27 @@ conflicts=('nginx')
 url="http://nginx.org"
 license=('custom')
 backup=(${_cfgdir:1}/fastcgi.conf
-		${_cfgdir:1}/fastcgi_params
-		${_cfgdir:1}/koi-win
-		${_cfgdir:1}/koi-utf
-		${_cfgdir:1}/mime.types
-		${_cfgdir:1}/nginx.conf
-		${_cfgdir:1}/scgi_params
-		${_cfgdir:1}/uwsgi_params
-		${_cfgdir:1}/win-utf
-		etc/logrotate.d/nginx)
+        ${_cfgdir:1}/fastcgi_params
+        ${_cfgdir:1}/koi-win
+        ${_cfgdir:1}/koi-utf
+        ${_cfgdir:1}/mime.types
+        ${_cfgdir:1}/nginx.conf
+        ${_cfgdir:1}/scgi_params
+        ${_cfgdir:1}/uwsgi_params
+        ${_cfgdir:1}/win-utf
+        etc/logrotate.d/nginx)
 source=(http://nginx.org/download/nginx-$pkgver.tar.gz
-        rc.d
-		service
-		nginx.logrotate)
+        service
+        logrotate)
+install=install
 md5sums=('d252f5c689a14a668e241c744ccf5f06'
-         'f62c7c9b5a53471d4666a4c49ad363fb'
          '62d494d23aef31d0b867161f9fffa6eb'
-         '44011ad537479ede4ff6b35ae6ec22bc')
+         '7711fc234ef2f35151885c1994f8fe73')
 
 build() {
-	cd "$srcdir"/$_pkgname-$pkgver
+    cd "$srcdir"/$_pkgname-$pkgver
 
-	./configure \
+    ./configure \
         --prefix=$_cfgdir \
         --conf-path=$_cfgdir/nginx.conf \
         --sbin-path=/usr/sbin/nginx \
@@ -75,29 +74,27 @@ build() {
         #--with-http_degradation_module \
         #--with-http_perl_module \
 
-	make
+    make
 }
 
 package() {
-	cd "$srcdir"/$_pkgname-$pkgver
-	make DESTDIR="$pkgdir" install
+    cd "$srcdir"/$_pkgname-$pkgver
+    make DESTDIR="$pkgdir" install
 
-	install -d "$pkgdir"/etc/logrotate.d
-	install -m644 "$srcdir"/nginx.logrotate "$pkgdir"/etc/logrotate.d/nginx
+    sed -e 's|\<user\s\+\w\+;|user html;|g' \
+        -e '44s|html|/usr/share/nginx/html|' \
+        -e '54s|html|/usr/share/nginx/html|' \
+        -i "$pkgdir"/etc/nginx/nginx.conf
+    rm "$pkgdir"/etc/nginx/*.default
 
-	sed -e 's|\<user\s\+\w\+;|user html;|g' \
-		-e '44s|html|/usr/share/nginx/html|' \
-		-e '54s|html|/usr/share/nginx/html|' \
-		-i "$pkgdir"/etc/nginx/nginx.conf
-	rm "$pkgdir"/etc/nginx/*.default
+    install -d "$pkgdir"/$_tmpdir
 
-	install -d "$pkgdir"/$_tmpdir
+    install -d "$pkgdir"/usr/share/nginx
+    mv "$pkgdir"/etc/nginx/html/ "$pkgdir"/usr/share/nginx
 
-	install -d "$pkgdir"/usr/share/nginx
-	mv "$pkgdir"/etc/nginx/html/ "$pkgdir"/usr/share/nginx
-
-	install -D -m755 "$srcdir"/rc.d "$pkgdir"/etc/rc.d/nginx
-	install -Dm644 "$srcdir"/service "$pkgdir"/usr/lib/systemd/system/nginx.service
-	install -D -m644 LICENSE "$pkgdir"/usr/share/licenses/nginx/LICENSE
-	rm -rf "$pkgdir"/var/run
+    install -Dm644 "$srcdir"/logrotate "$pkgdir"/etc/logrotate.d/nginx
+    install -Dm644 "$srcdir"/service "$pkgdir"/usr/lib/systemd/system/nginx.service
+    install -Dm644 LICENSE "$pkgdir"/usr/share/licenses/nginx/LICENSE
+    rm -rf "$pkgdir"/var/run
+    chmod 750 "$pkgdir"/var/log/nginx
 }
