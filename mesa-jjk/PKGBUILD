@@ -5,7 +5,7 @@
 pkgbase=mesa-jjk
 pkgname=('libgl-jjk' 'ati-dri-jjk')
 pkgver=9.1
-pkgrel=1
+pkgrel=2
 arch=('i686' 'x86_64')
 makedepends=('glproto' 'libdrm' 'libxxf86vm' 'libxdamage' 'libx11' 'dri2proto'
              'python2' 'libxml2')
@@ -63,6 +63,9 @@ package_libgl-jjk() {
     make -C ${srcdir}/?esa-*/src/mesa/libdricore DESTDIR="${pkgdir}" install
     make -C ${srcdir}/?esa-*/src/gallium/targets/dri-swrast DESTDIR="${pkgdir}" install
     make -C ${srcdir}/?esa-*/src/gallium/targets/egl-static DESTDIR="${pkgdir}" install
+
+    install -m755 -d "${pkgdir}/usr/lib/pkgconfig"
+    install -m644 ${srcdir}/?esa-*/src/mesa/gl.pc "${pkgdir}/usr/lib/pkgconfig/"
 
     install -m755 -d "${pkgdir}/usr/include/KHR"
     install -m644 ${srcdir}/?esa-*/include/KHR/khrplatform.h "${pkgdir}/usr/include/KHR/"
