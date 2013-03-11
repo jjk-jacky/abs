@@ -1,7 +1,8 @@
 # $Id$
 # Maintainer: Jan de Groot <jgc@archlinux.org>
 
-pkgname=glib2
+_pkgname=glib2
+pkgname=$_pkgname-jjk
 pkgver=2.34.3
 pkgrel=1
 pkgdesc="Common C routines used by GTK+ and other libs"
@@ -11,7 +12,9 @@ license=('LGPL')
 depends=('pcre' 'libffi')
 makedepends=('pkg-config' 'python2' 'libxslt' 'docbook-xml')
 optdepends=('python2: for gdbus-codegen')
-options=('!libtool' '!docs' '!emptydirs')
+provides=($_pkgname)
+conflicts=($_pkgname)
+options=('!libtool' '!emptydirs' '!strip' 'debug')
 source=(http://ftp.gnome.org/pub/GNOME/sources/glib/${pkgver%.*}/glib-$pkgver.tar.xz
         revert-warn-glib-compile-schemas.patch)
 sha256sums=('855fcbf87cb93065b488358e351774d8a39177281023bae58c286f41612658a7'
