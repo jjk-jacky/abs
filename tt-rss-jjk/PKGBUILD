@@ -4,7 +4,7 @@
 
 _pkgname=tt-rss
 pkgname=$_pkgname-jjk
-pkgver=1.7.1
+pkgver=1.7.4
 pkgrel=1
 pkgdesc="Open source web-based news feed (RSS/Atom) aggregator"
 arch=('any')
@@ -16,7 +16,7 @@ options=('!strip')
 
 source=(http://tt-rss.org/download/$_pkgname-$pkgver.tar.gz
         tt-rss.service)
-md5sums=('57865d27e3dfd8d1422c583406acee3d'
+md5sums=('9ce5af16274fd79ab66cc145834a1845'
          '416ce8d7ad64bb43c75dd88879e88aa0')
 
 package() {
