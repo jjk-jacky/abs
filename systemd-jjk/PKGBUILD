@@ -3,7 +3,7 @@
 
 pkgbase=systemd
 pkgname=('systemd-jjk' 'systemd-sysvcompat-jjk')
-pkgver=197
+pkgver=198
 pkgrel=1
 arch=('i686' 'x86_64')
 url="http://www.freedesktop.org/wiki/Software/systemd"
@@ -17,16 +17,14 @@ source=("http://www.freedesktop.org/software/$pkgbase/$pkgbase-$pkgver.tar.xz"
         'initcpio-install-udev'
         'initcpio-install-timestamp'
         'use-split-usr-path.patch'
-        '0001-dbus-fix-serialization-of-calendar-timers.patch'
         '0001-swap-fix-swap-behaviour-with-symlinks.patch'
         '0002-Make-swap-unit-follow-device-node-when-swap-is-off.patch'
         )
-md5sums=('56a860dceadfafe59f40141eb5223743'
+md5sums=('26a75e2a310f8c1c1ea9ec26ddb171c5'
          'e99e9189aa2f6084ac28b8ddf605aeb8'
          'fb37e34ea006c79be1c54cbb0f803414'
          'df69615503ad293c9ddf9d8b7755282d'
          'fd5b5f04ab0a847373d357555129d4c0'
-         'da0b969955e1bab0e73b38cf0f7a0a1c'
          '2b46e68dae95525599815a82ff1e5e3a'
          '329cb290fc3f0c9a215974de87733267')
 
@@ -36,10 +34,6 @@ build() {
   # hang onto this until we do the /{,s}bin merge
   patch -Np1 <"$srcdir/use-split-usr-path.patch"
 
-  # fix assertion failure when using calendar timers
-  # upstream 3761902e2e120849c283106fd4b78b6adec7367e
-  patch -Np1 <"$srcdir/0001-dbus-fix-serialization-of-calendar-timers.patch"
-
   # so swap can be stopped properly (e.g. on reboot)
   patch -Np1 <"$srcdir/0001-swap-fix-swap-behaviour-with-symlinks.patch"
 
@@ -47,8 +41,7 @@ build() {
   patch -Np1 <"$srcdir/0002-Make-swap-unit-follow-device-node-when-swap-is-off.patch"
 
   ./configure \
-      PYTHON=python2 \
-      PYTHON_CONFIG=python2-config \
+      --enable-static \
       --libexecdir=/usr/lib \
       --localstatedir=/var \
       --sysconfdir=/etc \
@@ -58,9 +51,6 @@ build() {
       --disable-ima \
       --with-sysvinit-path= \
       --with-sysvrcnd-path=
-
-  # can't use py3k yet with systemd-analyze -- the 'plot' verb will not work.
-  # https://pokersource.info/show_bug.cgi?id=50989
 
   make
 }
@@ -80,8 +70,6 @@ package_systemd-jjk() {
   optdepends=('cryptsetup: required for encrypted block devices'
               'quota-tools: kernel-level quota management'
               'python: systemd library bindings'
-              'python2-cairo: systemd-analyze'
-#              'python2-dbus: systemd-analyze'
               'systemd-sysvcompat: symlink package to provide sysvinit binaries')
   backup=(etc/dbus-1/system.d/org.freedesktop.systemd1.conf
           etc/dbus-1/system.d/org.freedesktop.hostname1.conf
@@ -101,14 +89,6 @@ package_systemd-jjk() {
 
   install -dm755 "$pkgdir/bin"
   ln -s ../usr/lib/systemd/systemd "$pkgdir/bin/systemd"
-
-  # move bash-completion and symlink for *ctl's
-  install -Dm644 "$pkgdir/etc/bash_completion.d/systemd-bash-completion.sh" \
-    "$pkgdir/usr/share/bash-completion/completions/systemctl"
-  for ctl in {login,journal,timedate,locale,hostname,systemd-coredump}ctl udevadm; do
-    ln -s systemctl "$pkgdir/usr/share/bash-completion/completions/$ctl"
-  done
-  rm -rf "$pkgdir/etc/bash_completion.d"
 
   # don't write units to /etc by default -- we'll enable this on post_install
   # as a sane default
