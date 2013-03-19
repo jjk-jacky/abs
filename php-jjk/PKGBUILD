@@ -7,7 +7,7 @@ pkgname=('php-jjk'
          'php-pear-jjk'
          'php-mcrypt-jjk')
 pkgver=5.4.13
-pkgrel=1
+pkgrel=2
 arch=('i686' 'x86_64')
 license=('PHP')
 url='http://www.php.net'
@@ -164,7 +164,7 @@ package_php-jjk() {
 
 package_php-fpm-jjk() {
 	pkgdesc='FastCGI Process Manager for PHP'
-	depends=('php')
+	depends=('php' 'systemd')
 	conflicts=('php-fpm')
 	backup=('etc/php/php-fpm.conf')
 	install='php-fpm.install'
