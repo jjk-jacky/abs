@@ -5,7 +5,7 @@
 _pkgname=tt-rss
 pkgname=$_pkgname-jjk
 pkgver=1.7.4
-pkgrel=1
+pkgrel=2
 pkgdesc="Open source web-based news feed (RSS/Atom) aggregator"
 arch=('any')
 url="http://tt-rss.org/redmine/"
@@ -15,9 +15,16 @@ optdepends=('mysql' 'postgresql' 'php-curl')
 options=('!strip')
 
 source=(http://tt-rss.org/download/$_pkgname-$pkgver.tar.gz
-        tt-rss.service)
+        tt-rss.service
+        0001-Remove-open_basedir-limitation.patch)
 md5sums=('9ce5af16274fd79ab66cc145834a1845'
-         '416ce8d7ad64bb43c75dd88879e88aa0')
+         '8ac0d34c0bcfef0f7c1205d169ee8415'
+         '175de37c2b42cb78372adf795f5b5b35')
+
+build() {
+    cd "$srcdir/$_pkgname-$pkgver"
+    patch -p1 -i ../0001-Remove-open_basedir-limitation.patch
+}
 
 package() {
     cd "$srcdir/$_pkgname-$pkgver"
