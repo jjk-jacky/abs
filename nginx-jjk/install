@@ -1,7 +1,7 @@
 post_install() {
     if [[ -d var/log/nginx ]]; then
         chmod 750 var/log/nginx
-        chown root:log var/log/nginx
+        chown http:log var/log/nginx
         chmod 640 var/log/nginx/*
         chown http:log var/log/nginx/*
     fi

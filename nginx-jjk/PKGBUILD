@@ -9,7 +9,7 @@ _tmpdir=/var/lib/nginx
 _pkgname=nginx
 pkgname=$_pkgname-jjk
 pkgver=1.2.7
-pkgrel=2
+pkgrel=3
 pkgdesc="lightweight HTTP server and IMAP/POP3 proxy server"
 arch=('i686' 'x86_64')
 depends=('pcre' 'zlib' 'openssl')
@@ -97,4 +97,5 @@ package() {
     install -Dm644 LICENSE "$pkgdir"/usr/share/licenses/nginx/LICENSE
     rm -rf "$pkgdir"/var/run
     chmod 750 "$pkgdir"/var/log/nginx
+    chown http:log "$pkgdir" /var/log/nginx
 }
