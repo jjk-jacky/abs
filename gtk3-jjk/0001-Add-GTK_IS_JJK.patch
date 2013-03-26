@@ -1,0 +1,26 @@
+From dd2c67bfb4af0d0c4738be24eeb35d1cacfbe68f Mon Sep 17 00:00:00 2001
+From: jjacky <i.am.jack.mail@gmail.com>
+Date: Thu, 7 Mar 2013 15:03:34 +0100
+Subject: [PATCH] Add GTK_IS_JJK
+
+
+Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+---
+ gtk/gtk.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/gtk/gtk.h b/gtk/gtk.h
+index bd9d5f4..8754e99 100644
+--- a/gtk/gtk.h
++++ b/gtk/gtk.h
+@@ -26,6 +26,7 @@
+ #define __GTK_H__
+ 
+ #define __GTK_H_INSIDE__
++#define GTK_IS_JJK
+ 
+ #include <gdk/gdk.h>
+ #include <gtk/gtkaboutdialog.h>
+-- 
+1.8.1.5
+

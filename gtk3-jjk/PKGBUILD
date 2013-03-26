@@ -4,7 +4,7 @@
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
 pkgver=3.6.4
-pkgrel=1
+pkgrel=2
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -14,15 +14,28 @@ depends=(atk cairo gtk-update-icon-cache libxcursor libxinerama libxrandr
 makedepends=(gobject-introspection mesa)
 provides=($_pkgname)
 conflicts=($_pkgname)
-options=('!libtool')
+options=('!libtool' '!strip' 'debug')
 backup=(etc/gtk-3.0/settings.ini)
 license=(LGPL)
 source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.tar.xz
-        settings.ini)
+        settings.ini
+        0001-Fix-673243-accelerators-not-visible-on-GtkRadioMenu.patch
+        0001-gtkcellareabox-Fix-renderer-not-always-drawn-when-vi.patch
+        0001-Add-gtk_tree_view_is_blank_at_pos_full.patch
+        0001-Add-GTK_IS_JJK.patch)
 sha256sums=('dbda37986f934f986c0bb20f2b0c59f2717a2e5c098370ad69677ff89295f1a1'
-            'c214d3dcdcadda3d642112287524ab3e526ad592b70895c9f3e3733c23701621')
+            'c214d3dcdcadda3d642112287524ab3e526ad592b70895c9f3e3733c23701621'
+            'ee9a7af226e19023d9c3fc6c711b4e07eb16e5ff59ebe857d63f1e4f542f5072'
+            '74446346437ca6b8638a60adc704ee938aa2188aeb1cd9b0f5a97853b9f8c20e'
+            '78ce7cdff911572cf5bbd2d0db6c387b3f2b07a78c48134459470e07b571090f'
+            'db075165970bcd8e74b384dfdd7e0cab49cf03e8a1789cc99644077fb0cd6b3a')
 build() {
     cd "gtk+-$pkgver"
+
+    patch -p1 -i ../0001-Add-GTK_IS_JJK.patch
+    patch -p1 -i ../0001-Fix-673243-accelerators-not-visible-on-GtkRadioMenu.patch
+    patch -p1 -i ../0001-gtkcellareabox-Fix-renderer-not-always-drawn-when-vi.patch
+    patch -p1 -i ../0001-Add-gtk_tree_view_is_blank_at_pos_full.patch
 
     CXX=/bin/false ./configure --prefix=/usr \
         --sysconfdir=/etc \

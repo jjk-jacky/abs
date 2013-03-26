@@ -1,0 +1,49 @@
+From 4535fbf98decc7434cc520d2cd6ed415481db4bb Mon Sep 17 00:00:00 2001
+From: jjacky <i.am.jack.mail@gmail.com>
+Date: Thu, 7 Mar 2013 11:26:02 +0100
+Subject: [PATCH] gtkcellareabox: Fix renderer not always drawn when visible
+
+When a renderer was not originally visible, its natural size would be set to 0.
+After that if would not be drawn even if visible, because of it.
+
+Recalculing sizes for visible groups with no natural size will ensure we have
+the correct size, most likely making sure all visible renderers are drawn as
+expected.
+
+Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+---
+ gtk/gtkcellareabox.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/gtk/gtkcellareabox.c b/gtk/gtkcellareabox.c
+index aa05220..37a445c 100644
+--- a/gtk/gtkcellareabox.c
++++ b/gtk/gtkcellareabox.c
+@@ -827,6 +827,24 @@ get_allocated_cells (GtkCellAreaBox        *box,
+   gint                      for_size, full_size;
+   gboolean                  rtl;
+ 
++  for (i = 0; i < priv->groups->len; ++i)
++  {
++      CellGroup *group = &g_array_index (priv->groups, CellGroup, i);
++
++      if (group->visible)
++      {
++          gint nat;
++
++          _gtk_cell_area_box_context_get_group_width (context, i, NULL, &nat);
++          /* a visible group with no natural size is probably due to previous
++           * size calculations being done with it was not visible, so let's make
++           * sure we have the correct size */
++          if (nat == 0)
++              gtk_cell_area_box_get_preferred_width (GTK_CELL_AREA (box),
++                      GTK_CELL_AREA_CONTEXT (context), widget, NULL, NULL);
++      }
++  }
++
+   group_allocs = _gtk_cell_area_box_context_get_orientation_allocs (context, &n_allocs);
+   if (!group_allocs)
+     return allocate_cells_manually (box, widget, width, height);
+-- 
+1.8.1.5
+
