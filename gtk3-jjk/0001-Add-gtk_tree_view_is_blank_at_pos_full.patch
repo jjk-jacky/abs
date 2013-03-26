@@ -1,4 +1,4 @@
-From 7fa004d41a06c3c55008e0f89255f3d5b60b2ea0 Mon Sep 17 00:00:00 2001
+From 2b8b6dc60bf6361c9bb1a36e8cdf89b7a019e599 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Thu, 7 Mar 2013 14:35:47 +0100
 Subject: [PATCH] Add gtk_tree_view_is_blank_at_pos_full()
@@ -25,10 +25,10 @@ Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
  5 files changed, 148 insertions(+), 8 deletions(-)
 
 diff --git a/gtk/gtk.symbols b/gtk/gtk.symbols
-index 1289b17..ff618c1 100644
+index 030a06c..a37d262 100644
 --- a/gtk/gtk.symbols
 +++ b/gtk/gtk.symbols
-@@ -3503,6 +3503,7 @@ gtk_tree_view_insert_column
+@@ -3577,6 +3577,7 @@ gtk_tree_view_insert_column
  gtk_tree_view_insert_column_with_attributes
  gtk_tree_view_insert_column_with_data_func
  gtk_tree_view_is_blank_at_pos
@@ -37,10 +37,10 @@ index 1289b17..ff618c1 100644
  gtk_tree_view_map_expanded_rows
  gtk_tree_view_move_column_after
 diff --git a/gtk/gtktreeprivate.h b/gtk/gtktreeprivate.h
-index de4e2ad..25e6a60 100644
+index fcdcf81..fe57f8d 100644
 --- a/gtk/gtktreeprivate.h
 +++ b/gtk/gtktreeprivate.h
-@@ -131,7 +131,8 @@ gboolean          _gtk_tree_view_column_is_blank_at_pos  (GtkTreeViewColumn  *co
+@@ -133,7 +133,8 @@ gboolean          _gtk_tree_view_column_is_blank_at_pos  (GtkTreeViewColumn  *co
                                                            GdkRectangle       *cell_area,
                                                            GdkRectangle       *background_area,
                                                            gint                x,
@@ -51,10 +51,10 @@ index de4e2ad..25e6a60 100644
  void		  _gtk_tree_view_column_cell_render      (GtkTreeViewColumn  *tree_column,
  							  cairo_t            *cr,
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index b1528da..a954a70 100644
+index cf9eb67..7bf9434 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -14059,6 +14059,9 @@ gtk_tree_view_get_visible_range (GtkTreeView  *tree_view,
+@@ -14062,6 +14062,9 @@ gtk_tree_view_get_visible_range (GtkTreeView  *tree_view,
   * likewise as for gtk_tree_view_get_path_at_pos().  Please see
   * gtk_tree_view_get_path_at_pos() for more information.
   *
@@ -64,7 +64,7 @@ index b1528da..a954a70 100644
   * Return value: %TRUE if the area at the given coordinates is blank,
   * %FALSE otherwise.
   *
-@@ -14085,12 +14088,134 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
+@@ -14088,12 +14091,134 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
    if (!gtk_tree_view_get_path_at_pos (tree_view, x, y,
                                        &real_path, &real_column,
                                        cell_x, cell_y))
@@ -114,7 +114,7 @@ index b1528da..a954a70 100644
 +                                     &background_area);
 +  gtk_tree_view_get_cell_area (tree_view, real_path, real_column,
 +                               &cell_area);
- 
++
 +  if (!path)
 +    gtk_tree_path_free (real_path);
 +
@@ -180,7 +180,7 @@ index b1528da..a954a70 100644
 +  GdkRectangle cell_area, background_area;
 +
 +  g_return_val_if_fail (GTK_IS_TREE_VIEW (tree_view), FALSE);
-+
+ 
 +  if (renderer)
 +    *renderer = NULL;
 +
@@ -201,7 +201,7 @@ index b1528da..a954a70 100644
    if (column)
      *column = real_column;
  
-@@ -14098,8 +14223,8 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
+@@ -14101,8 +14226,8 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
    _gtk_tree_view_find_node (tree_view, real_path, &tree, &node);
  
    /* Check if there's an expander arrow at (x, y) */
@@ -212,7 +212,7 @@ index b1528da..a954a70 100644
      {
        gboolean over_arrow;
  
-@@ -14131,7 +14256,8 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
+@@ -14134,7 +14259,8 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
    return _gtk_tree_view_column_is_blank_at_pos (real_column,
                                                  &cell_area,
                                                  &background_area,
@@ -223,10 +223,10 @@ index b1528da..a954a70 100644
  
  static void
 diff --git a/gtk/gtktreeview.h b/gtk/gtktreeview.h
-index 8bab066..b372379 100644
+index cdd94f0..b5d9eac 100644
 --- a/gtk/gtktreeview.h
 +++ b/gtk/gtktreeview.h
-@@ -345,6 +345,14 @@ gboolean               gtk_tree_view_is_blank_at_pos               (GtkTreeView
+@@ -350,6 +350,14 @@ gboolean               gtk_tree_view_is_blank_at_pos               (GtkTreeView
                                                                      GtkTreeViewColumn        **column,
                                                                      gint                      *cell_x,
                                                                      gint                      *cell_y);
@@ -242,10 +242,10 @@ index 8bab066..b372379 100644
  /* Drag-and-Drop support */
  void                   gtk_tree_view_enable_model_drag_source      (GtkTreeView               *tree_view,
 diff --git a/gtk/gtktreeviewcolumn.c b/gtk/gtktreeviewcolumn.c
-index c9c0be5..1060313 100644
+index af2317c..8f44d49 100644
 --- a/gtk/gtktreeviewcolumn.c
 +++ b/gtk/gtktreeviewcolumn.c
-@@ -1572,7 +1572,8 @@ _gtk_tree_view_column_is_blank_at_pos (GtkTreeViewColumn *column,
+@@ -1570,7 +1570,8 @@ _gtk_tree_view_column_is_blank_at_pos (GtkTreeViewColumn *column,
                                         GdkRectangle      *cell_area,
                                         GdkRectangle      *background_area,
                                         gint               x,
@@ -255,7 +255,7 @@ index c9c0be5..1060313 100644
  {
    GtkCellRenderer *match;
    GdkRectangle cell_alloc, aligned_area, inner_area;
-@@ -1582,8 +1583,11 @@ _gtk_tree_view_column_is_blank_at_pos (GtkTreeViewColumn *column,
+@@ -1580,8 +1581,11 @@ _gtk_tree_view_column_is_blank_at_pos (GtkTreeViewColumn *column,
                                                   cell_area,
                                                   background_area,
                                                   x, y);
@@ -269,5 +269,5 @@ index c9c0be5..1060313 100644
    gtk_cell_area_get_cell_allocation (priv->cell_area,
                                       priv->cell_area_context,
 -- 
-1.8.1.5
+1.8.2
 
