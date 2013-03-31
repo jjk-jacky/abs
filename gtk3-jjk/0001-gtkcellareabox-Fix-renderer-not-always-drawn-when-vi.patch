@@ -1,4 +1,4 @@
-From 9d73c27738eaff628303e1ba50e9d633c9aa78c0 Mon Sep 17 00:00:00 2001
+From 2bf020c82fd1e92bbca50eecb74255fada66380c Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Thu, 7 Mar 2013 11:26:02 +0100
 Subject: [PATCH] gtkcellareabox: Fix renderer not always drawn when visible
@@ -12,14 +12,14 @@ expected.
 
 Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
 ---
- gtk/gtkcellareabox.c | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ gtk/gtkcellareabox.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
 diff --git a/gtk/gtkcellareabox.c b/gtk/gtkcellareabox.c
-index aa05220..37a445c 100644
+index aa05220..405ef61 100644
 --- a/gtk/gtkcellareabox.c
 +++ b/gtk/gtkcellareabox.c
-@@ -827,6 +827,24 @@ get_allocated_cells (GtkCellAreaBox        *box,
+@@ -827,6 +827,27 @@ get_allocated_cells (GtkCellAreaBox        *box,
    gint                      for_size, full_size;
    gboolean                  rtl;
  
@@ -36,8 +36,11 @@ index aa05220..37a445c 100644
 +           * size calculations being done with it was not visible, so let's make
 +           * sure we have the correct size */
 +          if (nat == 0)
++          {
 +              gtk_cell_area_box_get_preferred_width (GTK_CELL_AREA (box),
 +                      GTK_CELL_AREA_CONTEXT (context), widget, NULL, NULL);
++              break;
++          }
 +      }
 +  }
 +
