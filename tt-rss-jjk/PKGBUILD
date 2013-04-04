@@ -4,7 +4,7 @@
 
 _pkgname=tt-rss
 pkgname=$_pkgname-jjk
-pkgver=1.7.5
+pkgver=1.7.8
 pkgrel=1
 pkgdesc="Open source web-based news feed (RSS/Atom) aggregator"
 arch=('any')
@@ -14,20 +14,20 @@ depends=('php')
 optdepends=('mysql' 'postgresql' 'php-curl')
 options=('!strip')
 
-source=(http://tt-rss.org/download/$_pkgname-$pkgver.tar.gz
+source=(http://github.com/gothfox/Tiny-Tiny-RSS/archive/$pkgver.tar.gz
         tt-rss.service
         0001-Remove-open_basedir-limitation.patch)
-md5sums=('5b89ea9a7f2eb0001ee8343517d1678f'
+md5sums=('efd7eec1629db379896fb7e74bba400e'
          'a7da2abadf4bbbc51d78f34cf4b7d4d5'
          '175de37c2b42cb78372adf795f5b5b35')
 
 build() {
-    cd "$srcdir/$_pkgname-$pkgver"
+    cd "$srcdir/Tiny-Tiny-RSS-$pkgver"
     patch -p1 -i ../0001-Remove-open_basedir-limitation.patch
 }
 
 package() {
-    cd "$srcdir/$_pkgname-$pkgver"
+    cd "$srcdir/Tiny-Tiny-RSS-$pkgver"
     _instdir=${pkgdir}/usr/share/webapps/${_pkgname}
 
     # install tt-rss
