@@ -1,0 +1,65 @@
+diff -r c7e59386ff22 src/client.c
+--- a/src/client.c	Mon Apr 30 10:18:03 2012 +0200
++++ b/src/client.c	Mon Apr 30 10:52:33 2012 +0200
+@@ -3851,6 +3851,12 @@
+ int
+ clientGetButtonState (Client *c, int button, int state)
+ {
++    if ((c->button_status[button] == BUTTON_STATE_PRELIGHT) &&
++         clientGetButtonPixmap (c, button, PRELIGHT))
++    {
++        return (PRELIGHT);
++    }
++
+     if (state == INACTIVE)
+     {
+         return (state);
+@@ -3862,12 +3868,6 @@
+         return (PRESSED);
+     }
+ 
+-    if ((c->button_status[button] == BUTTON_STATE_PRELIGHT) &&
+-        clientGetButtonPixmap (c, button, PRELIGHT))
+-    {
+-        return (PRELIGHT);
+-    }
+-
+     return (ACTIVE);
+ }
+ 
+diff -r c7e59386ff22 src/events.c
+--- a/src/events.c	Mon Apr 30 10:18:03 2012 +0200
++++ b/src/events.c	Mon Apr 30 10:52:33 2012 +0200
+@@ -1394,23 +1394,20 @@
+                 clientClearDelayedFocus ();
+             }
+         }
+-        if (c == clientGetFocus ())
++        for (b = 0; b < BUTTON_COUNT; b++)
+         {
+-            for (b = 0; b < BUTTON_COUNT; b++)
++            if (MYWINDOW_XWINDOW(c->buttons[b]) == ev->window)
+             {
+-                if (MYWINDOW_XWINDOW(c->buttons[b]) == ev->window)
++                if (!xfwmPixmapNone(clientGetButtonPixmap(c, b, PRELIGHT)))
+                 {
+-                    if (!xfwmPixmapNone(clientGetButtonPixmap(c, b, PRELIGHT)))
+-                    {
+-                        c->button_status[b] = BUTTON_STATE_PRELIGHT;
+-                        need_redraw = TRUE;
+-                    }
++                    c->button_status[b] = BUTTON_STATE_PRELIGHT;
++                    need_redraw = TRUE;
+                 }
+             }
+-            if (need_redraw)
+-            {
+-                frameQueueDraw (c, FALSE);
+-            }
++        }
++        if (need_redraw)
++        {
++            frameQueueDraw (c, FALSE);
+         }
+ 
+         /* No need to process the event any further */
