@@ -5,8 +5,8 @@
 
 _pkgname=vlc
 pkgname=$_pkgname-jjk
-pkgver=2.0.5
-pkgrel=3
+pkgver=2.0.6
+pkgrel=1
 pkgdesc="A multi-platform MPEG, VCD/DVD, and DivX player"
 arch=('i686' 'x86_64')
 url="http://www.videolan.org/vlc/"
@@ -58,7 +58,7 @@ options=('!libtool' '!emptydirs')
 install=vlc.install
 source=("http://download.videolan.org/pub/videolan/${_pkgname}/${pkgver}/${_pkgname}-${pkgver}.tar.xz"
         'inhibit.c')
-md5sums=('4f959c0766ada8cea5a72c65fce94ebe'
+md5sums=('b45be633c71dca04ca7d6c3d64dd728b'
          '924afaeb7ba8d2f486a5536bf512d294')
 
 build() {
@@ -74,7 +74,8 @@ build() {
               --enable-nls \
               --enable-realrtsp \
               --disable-glx \
-              --disable-lua
+              --disable-lua \
+              RCC=/usr/bin/rcc-qt4
   make
 }
 
