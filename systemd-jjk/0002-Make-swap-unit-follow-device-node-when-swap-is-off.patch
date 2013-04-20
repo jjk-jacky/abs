@@ -1,4 +1,4 @@
-From f0a4b3352d352ba8a065d63778f571a203eb8c67 Mon Sep 17 00:00:00 2001
+From 51c89af441459474e3c93a3a39fee8c0d2df8aef Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <i.am.jack.mail@gmail.com>
 Date: Mon, 29 Oct 2012 16:44:30 +0100
 Subject: [PATCH 2/2] Make swap unit follow device node when swap is off
@@ -20,10 +20,10 @@ Signed-off-by: Olivier Brunel <i.am.jack.mail@gmail.com>
  1 file changed, 44 insertions(+)
 
 diff --git a/src/core/swap.c b/src/core/swap.c
-index 0184122..b52ad8b 100644
+index 1cd5072..000f832 100644
 --- a/src/core/swap.c
 +++ b/src/core/swap.c
-@@ -1195,6 +1195,7 @@ int swap_fd_event(Manager *m, int events) {
+@@ -1176,6 +1176,7 @@ int swap_fd_event(Manager *m, int events) {
  static Unit *swap_following(Unit *u) {
          Swap *s = SWAP(u);
          Swap *other, *first = NULL;
@@ -31,7 +31,7 @@ index 0184122..b52ad8b 100644
  
          assert(s);
  
-@@ -1215,6 +1216,49 @@ static Unit *swap_following(Unit *u) {
+@@ -1196,6 +1197,49 @@ static Unit *swap_following(Unit *u) {
                  first = other;
          }
  
@@ -82,5 +82,5 @@ index 0184122..b52ad8b 100644
  }
  
 -- 
-1.8.1.1
+1.8.2.1
 
