@@ -1,0 +1,26 @@
+From 062436bb188046862dfa4d697d45ddc73ceaf54a Mon Sep 17 00:00:00 2001
+From: Kunal Shah <me@kunalashah.com>
+Date: Tue, 26 Feb 2013 10:49:03 -0500
+Subject: [PATCH] Gem#searcher is deprecated and removed in newer versions of
+ Gem. Use Gem::Specification
+
+---
+ ext/extconf.rb | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/extconf.rb b/ext/extconf.rb
+index f5033be..4154461 100644
+--- a/ext/extconf.rb
++++ b/ext/extconf.rb
+@@ -242,7 +242,7 @@ def check_version(configfile)
+ # Try to find narray with RubyGems
+ begin
+   require 'rubygems'
+-  na_gemspec=Gem.searcher.find('narray.h')
++  na_gemspec=Gem::Specification.find_all {|spec| spec.contains_requirable_file? "narray.h"}.first
+   if na_gemspec
+     narray_config = File.join(na_gemspec.full_gem_path, na_gemspec.require_path)
+     $CPPFLAGS = " -I#{narray_config} "+$CPPFLAGS
+-- 
+1.8.1.6
+
