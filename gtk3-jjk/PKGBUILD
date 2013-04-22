@@ -3,8 +3,8 @@
 
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
-pkgver=3.8.0
-pkgrel=3
+pkgver=3.8.1
+pkgrel=1
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -19,26 +19,24 @@ backup=(etc/gtk-3.0/settings.ini)
 license=(LGPL)
 source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.tar.xz
         settings.ini
-        0001-Unreferencing-a-GtkPlug-could-cause-abort-Fix-697427.patch
-        0001-Fix-696882-window-would-revert-to-minimum-size-after.patch
         0001-gtkcellareabox-Fix-renderer-not-always-drawn-when-vi.patch
         0001-Add-gtk_tree_view_is_blank_at_pos_full.patch
         0001-Add-GTK_IS_JJK.patch)
-sha256sums=('db1345d89d6b5f5bad411b4b2a3b1a18a2a8f98d2ab1b40d43a0197a6e6c252e'
+sha256sums=('f43e7c7d7a0e2417225509e88f67799534c69abfbb6f615fc7a895bf15e31255'
             'c214d3dcdcadda3d642112287524ab3e526ad592b70895c9f3e3733c23701621'
-            'c600dc18df6cb8773e4c0ff7619f6a5a41f3c419f23bcd7af2ea3554cbd29bd7'
-            '7fc6c5e61eb03e1e4ec3e2e820be3b42bc30ce324fff12c0c59b6c06ac69099e'
-            '474e828c3c6b53c3ee0a442713eb0fa507ce141872240bf23fd539febe32a8e7'
-            'c2dd7646287227d70e711841641446c454cab9165a9fa553dd94b16f81ee9f55'
-            '644098a937d6065d99cef5ce442480db3ba85394170632df02ceceadf6844ac8')
-build() {
+            '59757cc89469444956d029a510e394c86ea148f3e299b8bf5c2731ac8c4d7d9b'
+            '25aede6a172bd641e7775cd08cebc9b2e17cf82c8e2ab5e73714d2959d87851a'
+            'e78abd8173761eb23e1733619fb332c20665b7be0d60243d0f3a1cbb07522f3c')
+prepare() {
     cd "gtk+-$pkgver"
 
     patch -p1 -i ../0001-Add-GTK_IS_JJK.patch
     patch -p1 -i ../0001-gtkcellareabox-Fix-renderer-not-always-drawn-when-vi.patch
     patch -p1 -i ../0001-Add-gtk_tree_view_is_blank_at_pos_full.patch
-    patch -p1 -i ../0001-Fix-696882-window-would-revert-to-minimum-size-after.patch
-    patch -p1 -i ../0001-Unreferencing-a-GtkPlug-could-cause-abort-Fix-697427.patch
+}
+
+build() {
+    cd "gtk+-$pkgver"
 
     CXX=/bin/false ./configure --prefix=/usr \
         --sysconfdir=/etc \

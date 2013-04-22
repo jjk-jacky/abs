@@ -1,4 +1,4 @@
-From 2b8b6dc60bf6361c9bb1a36e8cdf89b7a019e599 Mon Sep 17 00:00:00 2001
+From d969183aad8c305d607c1bbe71cd91f5927f0075 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Thu, 7 Mar 2013 14:35:47 +0100
 Subject: [PATCH] Add gtk_tree_view_is_blank_at_pos_full()
@@ -51,7 +51,7 @@ index fcdcf81..fe57f8d 100644
  void		  _gtk_tree_view_column_cell_render      (GtkTreeViewColumn  *tree_column,
  							  cairo_t            *cr,
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index cf9eb67..7bf9434 100644
+index cb43c7f..3df8235 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -14062,6 +14062,9 @@ gtk_tree_view_get_visible_range (GtkTreeView  *tree_view,
@@ -269,5 +269,5 @@ index af2317c..8f44d49 100644
    gtk_cell_area_get_cell_allocation (priv->cell_area,
                                       priv->cell_area_context,
 -- 
-1.8.2
+1.8.2.1
 

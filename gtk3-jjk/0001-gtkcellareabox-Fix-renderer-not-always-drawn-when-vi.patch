@@ -1,4 +1,4 @@
-From 2bf020c82fd1e92bbca50eecb74255fada66380c Mon Sep 17 00:00:00 2001
+From 689ac484e0d8f5f260e4ff46f7696187b2f1969e Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Thu, 7 Mar 2013 11:26:02 +0100
 Subject: [PATCH] gtkcellareabox: Fix renderer not always drawn when visible
@@ -48,5 +48,5 @@ index aa05220..405ef61 100644
    if (!group_allocs)
      return allocate_cells_manually (box, widget, width, height);
 -- 
-1.8.2
+1.8.2.1
 
