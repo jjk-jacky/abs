@@ -1,20 +1,30 @@
 # Maintainer: Ced <cedl38@gmail.com>
 
-pkgname=zen-gtk-themes
+_pkgname=zen-gtk-themes
+pkgname=zen-blua-jjk
 pkgver=0.10.3
 pkgrel=1
-pkgdesc="A gtk2/gtk3 theme for Xfce and gnome that attempt to keep it simple, consistent and being visually appealing."
+pkgdesc="A GTK2/GTK3 theme that attempt to keep it simple, consistent and being visually appealing."
 arch=('any')
 url="http://opendesktop.org/content/show.php/Zen+suite?content=149883"
 license=('GPL3')
 depends=('gtk-engines' 'gtk-engine-murrine')
 optdepends=('alinea-themes' 'mini-xfwm4-theme' 'xfce4-notifyd' 'gtk3>=3.4.1' 'libreoffice-patch.sh: script to increase sheet tabs for LibreOffice. See README.md or http://opendesktop.org/content/show.php/Zen+suite?content=149883 for more infos')
 
-source=("$pkgname-$pkgver.tar.gz::https://github.com/cedl38/$pkgname/archive/v$pkgver.tar.gz")
-sha256sums=('05f89ba7731d309c76ef702cbdbc18461e2b672532055325e52370e67b2168c6')
+source=("$_pkgname-$pkgver.tar.gz::https://github.com/cedl38/$_pkgname/archive/v$pkgver.tar.gz"
+        jjk-tweak-titlebar-colors.patch)
+sha256sums=('05f89ba7731d309c76ef702cbdbc18461e2b672532055325e52370e67b2168c6'
+            'a1a4a0a2c32d14caf6b5b1c7265f268c90810e6b79ada7532e6db86fd0b11f48')
 
-build() {
-  cd $srcdir/$pkgname'-'$pkgver
-  install -d -m755 $pkgdir/usr/share/themes
-  cp -r Zen* $pkgdir/usr/share/themes || return 1
+prepare() {
+    cd "$srcdir/$_pkgname-$pkgver"
+
+    patch -Np0 -i ../jjk-tweak-titlebar-colors.patch
+}
+
+package() {
+  cd "$srcdir/$_pkgname-$pkgver"
+
+  install -d -m755 "$pkgdir/usr/share/themes/$pkgname"
+  cp -r Zen-blua/* "$pkgdir/usr/share/themes/$pkgname"
 }
