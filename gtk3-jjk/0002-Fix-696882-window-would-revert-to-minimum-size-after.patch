@@ -1,0 +1,77 @@
+From 755c0121e46e520aebbd4232a72b248a012e5b86 Mon Sep 17 00:00:00 2001
+From: jjacky <i.am.jack.mail@gmail.com>
+Date: Sun, 31 Mar 2013 14:07:55 +0200
+Subject: [PATCH 2/2] Fix #696882: window would revert to minimum size after
+ hide/show
+
+Since b495ce5446a0 after a hide/show cycle the allocated size of a GtkWindow
+would get lost, thus reverting to its minimum size.
+
+This fixes it by not overwriting the allocated size, but simply returning
+{ -1, -1, 1, 1 } when asking for the allocated size of a non-visible widget, as
+seems to have been the intent of the original commit.
+
+Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+---
+ gtk/gtkwidget.c | 24 ++++++++++--------------
+ 1 file changed, 10 insertions(+), 14 deletions(-)
+
+diff --git a/gtk/gtkwidget.c b/gtk/gtkwidget.c
+index a1085fe..1eeccf9 100644
+--- a/gtk/gtkwidget.c
++++ b/gtk/gtkwidget.c
+@@ -7901,17 +7901,7 @@ void
+ _gtk_widget_set_visible_flag (GtkWidget *widget,
+                               gboolean   visible)
+ {
+-  GtkWidgetPrivate *priv = widget->priv;
+-
+-  priv->visible = visible;
+-
+-  if (!visible)
+-    {
+-      priv->allocation.x = -1;
+-      priv->allocation.y = -1;
+-      priv->allocation.width = 1;
+-      priv->allocation.height = 1;
+-    }
++  widget->priv->visible = visible;
+ }
+ 
+ /**
+@@ -13924,7 +13914,13 @@ gtk_widget_get_allocation (GtkWidget     *widget,
+ 
+   priv = widget->priv;
+ 
+-  *allocation = priv->allocation;
++  if (priv->visible)
++    *allocation = priv->allocation;
++  else
++    {
++      GtkAllocation alloc = { -1, -1, 1, 1 };
++      *allocation = alloc;
++    }
+ }
+ 
+ /**
+@@ -13974,7 +13970,7 @@ gtk_widget_get_allocated_width (GtkWidget *widget)
+ {
+   g_return_val_if_fail (GTK_IS_WIDGET (widget), 0);
+ 
+-  return widget->priv->allocation.width;
++  return (widget->priv->visible) ? widget->priv->allocation.width : 1;
+ }
+ 
+ /**
+@@ -13992,7 +13988,7 @@ gtk_widget_get_allocated_height (GtkWidget *widget)
+ {
+   g_return_val_if_fail (GTK_IS_WIDGET (widget), 0);
+ 
+-  return widget->priv->allocation.height;
++  return (widget->priv->visible) ? widget->priv->allocation.height : 1;
+ }
+ 
+ /**
+-- 
+1.8.2.1
+
