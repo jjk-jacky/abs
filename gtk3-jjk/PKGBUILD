@@ -4,7 +4,7 @@
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
 pkgver=3.8.1
-pkgrel=3
+pkgrel=4
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -21,6 +21,7 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         settings.ini
         0001-Revert-window-restore-size-after-hide-show-properly.patch
         0002-Fix-696882-window-would-revert-to-minimum-size-after.patch
+        0001-cellrenderertext-Fix-possible-overwriting-of-markup.patch
         0001-treestore-Fix-segfault-when-reordering-non-existing-.patch
         0001-tooltip-Fix-possible-wrong-placement.patch
         0001-gtkcellareabox-Fix-renderer-not-always-drawn-when-vi.patch
@@ -30,6 +31,7 @@ sha256sums=('f43e7c7d7a0e2417225509e88f67799534c69abfbb6f615fc7a895bf15e31255'
             'c214d3dcdcadda3d642112287524ab3e526ad592b70895c9f3e3733c23701621'
             '669c39baeb765fb9a99daf0fb8d08358d1a2baf3f66f8c45c46ec9b75839f3e4'
             '43eb3775c935052541300adf550f41fdf2a25e46e2612fdb357cf1ec1ebd02f4'
+            '1954fc7a24591776a482069c6b379916f78de83832f9e825cd8695640fc09d26'
             'fcd6ce586910fba9fd670cac9540bb44fd25d904f040bf16c3254fe0748b22f3'
             '19b8d290cda0fa3210f6db495e13998b53a345054e67c22e8af31c92507003c1'
             '59757cc89469444956d029a510e394c86ea148f3e299b8bf5c2731ac8c4d7d9b'
@@ -43,6 +45,7 @@ prepare() {
     patch -p1 -i ../0001-Add-gtk_tree_view_is_blank_at_pos_full.patch
     patch -p1 -i ../0001-treestore-Fix-segfault-when-reordering-non-existing-.patch
     patch -p1 -i ../0001-tooltip-Fix-possible-wrong-placement.patch
+    patch -p1 -i ../0001-cellrenderertext-Fix-possible-overwriting-of-markup.patch
 
     # official fix is actually buggy, as seen in original report:
     # https://bugzilla.gnome.org/show_bug.cgi?id=696882

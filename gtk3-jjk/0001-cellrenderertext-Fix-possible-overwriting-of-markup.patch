@@ -1,0 +1,35 @@
+From 35dcf9978d2fae0b3fe3746d8afbdfd80b57cc53 Mon Sep 17 00:00:00 2001
+From: jjacky <i.am.jack.mail@gmail.com>
+Date: Sat, 27 Apr 2013 21:02:32 +0200
+Subject: [PATCH] cellrenderertext: Fix possible overwriting of markup
+
+When creating the layout, attributes were inserted after existing attributes
+with a matching start_index; this could result in some attributes from markup
+being ignored/overwritten.
+
+For example, if the markup started with a span setting a color, it would be
+overwritten by the foreground property for that section.
+
+Inserting attributes before will ensure markup attributes are preserved.
+
+Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+---
+ gtk/gtkcellrenderertext.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gtk/gtkcellrenderertext.c b/gtk/gtkcellrenderertext.c
+index 3399bb2..8ec9092 100644
+--- a/gtk/gtkcellrenderertext.c
++++ b/gtk/gtkcellrenderertext.c
+@@ -1581,7 +1581,7 @@ add_attr (PangoAttrList  *attr_list,
+   attr->start_index = 0;
+   attr->end_index = G_MAXINT;
+   
+-  pango_attr_list_insert (attr_list, attr);
++  pango_attr_list_insert_before (attr_list, attr);
+ }
+ 
+ static PangoLayout*
+-- 
+1.8.2.1
+
