@@ -1,4 +1,4 @@
-From 51ac526036c4c7be64c09734f25ed1f0101abce6 Mon Sep 17 00:00:00 2001
+From 84dc4b5840bca226f95d236d1bb49cba7dbe2dc3 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Thu, 2 May 2013 16:39:23 +0200
 Subject: [PATCH] Allow to disable full row highlight on selection
@@ -16,18 +16,18 @@ Subject: [PATCH] Allow to disable full row highlight on selection
 
 Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
 ---
- gtk/gtkcellarea.c       | 121 ++++++++++++++++++++++++---
+ gtk/gtkcellarea.c       | 127 +++++++++++++++++++++++++---
  gtk/gtkcellarea.h       |  18 ++++
  gtk/gtkcellview.c       |   4 +-
  gtk/gtkiconview.c       |   6 +-
  gtk/gtktreeprivate.h    |  11 +--
- gtk/gtktreeview.c       | 212 ++++++++++++++++++++++++++++++++++++++++++++++--
+ gtk/gtktreeview.c       | 215 ++++++++++++++++++++++++++++++++++++++++++++++--
  gtk/gtktreeview.h       |   6 ++
  gtk/gtktreeviewcolumn.c |  21 +++--
- 8 files changed, 359 insertions(+), 40 deletions(-)
+ 8 files changed, 368 insertions(+), 40 deletions(-)
 
 diff --git a/gtk/gtkcellarea.c b/gtk/gtkcellarea.c
-index 715e4ae..99d2b27 100644
+index 715e4ae..89088ad 100644
 --- a/gtk/gtkcellarea.c
 +++ b/gtk/gtkcellarea.c
 @@ -215,8 +215,8 @@
@@ -98,7 +98,7 @@ index 715e4ae..99d2b27 100644
      {
        gint focus_line_width;
        GdkRectangle cell_focus;
-@@ -1160,14 +1173,30 @@ render_cell (GtkCellRenderer        *renderer,
+@@ -1160,14 +1173,36 @@ render_cell (GtkCellRenderer        *renderer,
        cell_focus.width += 2 * focus_line_width;
        cell_focus.height += 2 * focus_line_width;
  
@@ -129,12 +129,18 @@ index 715e4ae..99d2b27 100644
 +          renderer_state = gtk_cell_renderer_get_state (NULL, data->widget, flags);
 +          gtk_style_context_set_state (style_context, renderer_state);
 +          gtk_render_background (style_context, data->cr,
-+            cell_focus.x, cell_focus.y, cell_focus.width, cell_focus.height);
++            /* we want the highlight to be over all renderers, but not the full
++             * column, so we use cell_area for x but cell_focus for width.
++             * (cell_background for x would get ugly with expanders)
++             * To try and cover the full height of the row, so a selection of
++             * rows make a consistent block, so we use cell_background for y &
++             * height */
++            cell_area->x, cell_background->y, cell_focus.width, cell_background->height);
 +          gtk_style_context_restore (style_context);
          }
      }
  
-@@ -1187,6 +1216,21 @@ gtk_cell_area_real_render (GtkCellArea          *area,
+@@ -1187,6 +1222,21 @@ gtk_cell_area_real_render (GtkCellArea          *area,
                             GtkCellRendererState  flags,
                             gboolean              paint_focus)
  {
@@ -156,7 +162,7 @@ index 715e4ae..99d2b27 100644
    CellRenderData render_data =
      {
        area,
-@@ -1195,6 +1239,7 @@ gtk_cell_area_real_render (GtkCellArea          *area,
+@@ -1195,6 +1245,7 @@ gtk_cell_area_real_render (GtkCellArea          *area,
        { 0, },
        flags,
        paint_focus,
@@ -164,7 +170,7 @@ index 715e4ae..99d2b27 100644
        FALSE, TRUE
      };
  
-@@ -1847,6 +1892,10 @@ gtk_cell_area_event (GtkCellArea          *area,
+@@ -1847,6 +1898,10 @@ gtk_cell_area_event (GtkCellArea          *area,
   * the given coordinates.
   *
   * Since: 3.0
@@ -175,7 +181,7 @@ index 715e4ae..99d2b27 100644
   */
  void
  gtk_cell_area_render (GtkCellArea          *area,
-@@ -1876,6 +1925,54 @@ gtk_cell_area_render (GtkCellArea          *area,
+@@ -1876,6 +1931,54 @@ gtk_cell_area_render (GtkCellArea          *area,
                 g_type_name (G_TYPE_FROM_INSTANCE (area)));
  }
  
@@ -321,7 +327,7 @@ index fcdcf81..ad16a8e 100644
  							  gboolean            install_handler);
  gboolean          _gtk_tree_view_column_cell_get_dirty   (GtkTreeViewColumn  *tree_column);
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index cb43c7f..c68397f 100644
+index cb43c7f..add49fa 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -329,6 +329,11 @@ struct _GtkTreeViewPrivate
@@ -437,7 +443,7 @@ index cb43c7f..c68397f 100644
  
  	  if (!gtk_tree_view_column_get_visible (column))
              continue;
-@@ -5041,6 +5089,36 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5041,6 +5089,11 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
                                   background_area.width,
                                   background_area.height);
  
@@ -446,35 +452,10 @@ index cb43c7f..c68397f 100644
 +          draw_select_highlight = tree_view->priv->select_highlight_column == column
 +              && GTK_RBNODE_FLAG_SET (node, GTK_RBNODE_IS_SELECTED);
 +
-+          /* should we draw an underline for the full row? */
-+          if (tree_view->priv->select_highlight_column
-+              && tree_view->priv->select_row_underline
-+              && GTK_RBNODE_FLAG_SET (node, GTK_RBNODE_IS_SELECTED))
-+            {
-+              flags |= GTK_CELL_RENDERER_SELECTED;
-+
-+              gtk_style_context_save (context);
-+              state = gtk_cell_renderer_get_state (NULL, widget, flags);
-+              gtk_style_context_set_state (context, state);
-+              gtk_style_context_add_class (context, GTK_STYLE_CLASS_CELL);
-+              gtk_style_context_add_region (context, GTK_STYLE_REGION_ROW, row_flags);
-+              gtk_style_context_add_region (context, GTK_STYLE_REGION_COLUMN, column_flags);
-+
-+              gtk_render_background (context, cr,
-+                                     background_area.x,
-+                                     background_area.y + background_area.height
-+                                     - tree_view->priv->select_row_underline_height,
-+                                     background_area.width,
-+                                     tree_view->priv->select_row_underline_height);
-+
-+              flags ^= GTK_CELL_RENDERER_SELECTED;
-+              gtk_style_context_restore (context);
-+          }
-+
            /* Draw frame */
            gtk_render_frame (context, cr,
                              background_area.x,
-@@ -5084,12 +5162,19 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5084,12 +5137,19 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
                  }
  	      else
                  {
@@ -495,7 +476,7 @@ index cb43c7f..c68397f 100644
                  }
  
  	      if (gtk_tree_view_draw_expanders (tree_view)
-@@ -5117,12 +5202,21 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5117,14 +5177,51 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
                    gtk_style_context_restore (context);
                  }
  	      else
@@ -522,8 +503,38 @@ index cb43c7f..c68397f 100644
 +          }
  	    }
  
++          /* should we draw an underline for the full row? */
++          if (tree_view->priv->select_highlight_column
++              && tree_view->priv->select_row_underline
++              && GTK_RBNODE_FLAG_SET (node, GTK_RBNODE_IS_SELECTED))
++            {
++              flags |= GTK_CELL_RENDERER_SELECTED;
++
++              gtk_style_context_save (context);
++              state = gtk_cell_renderer_get_state (NULL, widget, flags);
++              gtk_style_context_set_state (context, state);
++              gtk_style_context_add_class (context, GTK_STYLE_CLASS_CELL);
++              /* special class, so it is possible to e.g. define a different
++               * color (than selected background) for this underline only */
++              gtk_style_context_add_class (context, "select-row-underline");
++              gtk_style_context_add_region (context, GTK_STYLE_REGION_ROW, row_flags);
++              gtk_style_context_add_region (context, GTK_STYLE_REGION_COLUMN, column_flags);
++
++              gtk_render_background (context, cr,
++                                     background_area.x,
++                                     background_area.y + background_area.height
++                                     - tree_view->priv->select_row_underline_height,
++                                     background_area.width,
++                                     tree_view->priv->select_row_underline_height);
++
++              flags ^= GTK_CELL_RENDERER_SELECTED;
++              gtk_style_context_restore (context);
++          }
++
  	  if (draw_hgrid_lines)
-@@ -12338,6 +12432,106 @@ gtk_tree_view_get_expander_column (GtkTreeView *tree_view)
+ 	    {
+ 	      if (background_area.y > 0)
+@@ -12338,6 +12435,106 @@ gtk_tree_view_get_expander_column (GtkTreeView *tree_view)
    return NULL;
  }
  
@@ -630,7 +641,7 @@ index cb43c7f..c68397f 100644
  
  /**
   * gtk_tree_view_set_column_drag_function:
-@@ -14658,7 +14852,7 @@ gtk_tree_view_create_row_drag_icon (GtkTreeView  *tree_view,
+@@ -14658,7 +14855,7 @@ gtk_tree_view_create_row_drag_icon (GtkTreeView  *tree_view,
                                                   cr,
                                                   &background_area,
                                                   &cell_area,
