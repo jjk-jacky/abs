@@ -1,0 +1,78 @@
+From 526ee3aa816dabc32f8411b0c2a5cc40a8470099 Mon Sep 17 00:00:00 2001
+From: jjacky <i.am.jack.mail@gmail.com>
+Date: Fri, 3 May 2013 10:51:18 +0200
+Subject: [PATCH] Add class "focused-row" to the focused row, regardless of
+ keyboard focus
+
+Unlike pseudo-class :focused this class will always be set on the focus row,
+thus allowing an highlight even when the widget/window doesn't have the focus.
+(Combining the two is of course possible.)
+
+Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+---
+ gtk/gtkiconview.c     |  9 ++++++++-
+ gtk/gtkstylecontext.h | 10 ++++++++++
+ gtk/gtktreeview.c     |  6 ++++++
+ 3 files changed, 24 insertions(+), 1 deletion(-)
+
+diff --git a/gtk/gtkiconview.c b/gtk/gtkiconview.c
+index 0c6dc03..1078271 100644
+--- a/gtk/gtkiconview.c
++++ b/gtk/gtkiconview.c
+@@ -3099,7 +3099,14 @@ gtk_icon_view_paint_item (GtkIconView     *icon_view,
+ 
+   if ((state & GTK_STATE_FLAG_FOCUSED) &&
+       item == icon_view->priv->cursor_item)
+-    flags |= GTK_CELL_RENDERER_FOCUSED;
++    {
++      flags |= GTK_CELL_RENDERER_FOCUSED;
++      /* the flag will set the pseudo-class :focused, but it will go away when
++       * the widget/window loses the focus. This one will not, thus allowing to
++       * always highlight the focused row.  (Combine the two for awesomeness.)
++       * */
++      gtk_style_context_add_class (style_context, GTK_STYLE_CLASS_FOCUSED_ROW);
++    }
+ 
+   if (item->selected)
+     {
+diff --git a/gtk/gtkstylecontext.h b/gtk/gtkstylecontext.h
+index 35655f2..76f6cc3 100644
+--- a/gtk/gtkstylecontext.h
++++ b/gtk/gtkstylecontext.h
+@@ -527,6 +527,16 @@ struct _GtkStyleContextClass
+ #define GTK_STYLE_CLASS_HIGHLIGHT "highlight"
+ 
+ /**
++ * GTK_STYLE_CLASS_FOCUSED_ROW:
++ *
++ * A CSS class to match the focused row. Unlike pseudo-class :focused it doesn't
++ * depend on the widget having the keyboard focus.
++ *
++ * This is used in #GtkIconView and #GtkTreeView.
++ */
++#define GTK_STYLE_CLASS_FOCUSED_ROW "focused-row"
++
++/**
+  * GTK_STYLE_CLASS_FRAME:
+  *
+  * A CSS class defining a frame delimiting content, such as
+diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
+index cb43c7f..8939960 100644
+--- a/gtk/gtktreeview.c
++++ b/gtk/gtktreeview.c
+@@ -5022,6 +5022,12 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+           gtk_style_context_set_state (context, state);
+ 
+           gtk_style_context_add_class (context, GTK_STYLE_CLASS_CELL);
++          if (tree_view->priv->cursor_node == node)
++            /* there's already a pseudo-class :focused for the focused row, but
++             * it will go away when the widget/window loses the focus. This one
++             * will not, thus allowing to always highlight the focused row.
++             * (Combine the two for awesomeness.) */
++            gtk_style_context_add_class (context, GTK_STYLE_CLASS_FOCUSED_ROW);
+           gtk_style_context_add_region (context, GTK_STYLE_REGION_ROW, row_flags);
+           gtk_style_context_add_region (context, GTK_STYLE_REGION_COLUMN, column_flags);
+ 
+-- 
+1.8.2.2
+
