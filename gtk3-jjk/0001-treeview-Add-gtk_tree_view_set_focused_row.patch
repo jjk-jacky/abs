@@ -1,0 +1,58 @@
+From 00b2f5b374d26a18873d6b1ecb837060a6a1aef9 Mon Sep 17 00:00:00 2001
+From: jjacky <i.am.jack.mail@gmail.com>
+Date: Sun, 5 May 2013 13:03:35 +0200
+Subject: [PATCH] treeview: Add gtk_tree_view_set_focused_row()
+
+Allows to set the cursor/focused row, but without any (other/visual) changes
+done on tree, specifically no change in the selection, nor any scrolling.
+
+Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+---
+ gtk/gtktreeview.c | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+
+diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
+index cb43c7f..5777eaf 100644
+--- a/gtk/gtktreeview.c
++++ b/gtk/gtktreeview.c
+@@ -13381,6 +13381,37 @@ gtk_tree_view_set_cursor_on_cell (GtkTreeView       *tree_view,
+ }
+ 
+ /**
++ * gtk_tree_view_set_focused_row:
++ * @tree_view: A #GtkTreeView
++ * @path: A #GtkTreePath
++ *
++ * Sets the current keyboard focus to be at @path, i.e. the row becomes the
++ * focused one. This will not select it, affect the selection, nor will it cause
++ * any scrolling.
++ *
++ * This can be useful when you want to change the focused row (which could
++ * affect behavior when e.g. collapsing an ancestor of the focused row) without
++ * causing any (other/visual) change on @tree_view.
++ *
++ * If @path is invalid for @model, the current cursor (if any) will be unset
++ * and the function will return without failing.
++ *
++ * Since: 3.10
++ **/
++void
++gtk_tree_view_set_focused_row (GtkTreeView  *tree_view,
++                               GtkTreePath  *path)
++{
++  g_return_if_fail (GTK_IS_TREE_VIEW (tree_view));
++  g_return_if_fail (path != NULL);
++
++  if (!tree_view->priv->model)
++    return;
++
++  gtk_tree_view_real_set_cursor (tree_view, path, 0);
++}
++
++/**
+  * gtk_tree_view_get_bin_window:
+  * @tree_view: A #GtkTreeView
+  *
+-- 
+1.8.2.2
+
