@@ -8,7 +8,7 @@ _tmpdir=/var/lib/nginx
 
 _pkgname=nginx
 pkgname=$_pkgname-jjk
-pkgver=1.4.0
+pkgver=1.4.1
 pkgrel=1
 pkgdesc="lightweight HTTP server and IMAP/POP3 proxy server"
 arch=('i686' 'x86_64')
@@ -31,7 +31,7 @@ source=(http://nginx.org/download/nginx-$pkgver.tar.gz
         service
         logrotate)
 install=install
-md5sums=('d496e58864ab10ed56278b7655b0d0b2'
+md5sums=('fea7dfab995545ce27fe4c49dc21a972'
          '62d494d23aef31d0b867161f9fffa6eb'
          '7711fc234ef2f35151885c1994f8fe73')
 
