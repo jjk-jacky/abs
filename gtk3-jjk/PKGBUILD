@@ -4,7 +4,7 @@
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
 pkgver=3.8.1
-pkgrel=9
+pkgrel=10
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -29,6 +29,7 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0001-Add-gtk_tree_view_is_blank_at_pos_full.patch
         0001-Add-class-focused-row-to-the-focused-row-regardless-.patch
         0001-treeview-Add-gtk_tree_view_set_focused_row.patch
+        0001-treeview-Add-gtk_tree_view_set_row_class_column.patch
         0001-Add-GTK_IS_JJK.patch)
 sha256sums=('f43e7c7d7a0e2417225509e88f67799534c69abfbb6f615fc7a895bf15e31255'
             'c214d3dcdcadda3d642112287524ab3e526ad592b70895c9f3e3733c23701621'
@@ -42,6 +43,7 @@ sha256sums=('f43e7c7d7a0e2417225509e88f67799534c69abfbb6f615fc7a895bf15e31255'
             '25aede6a172bd641e7775cd08cebc9b2e17cf82c8e2ab5e73714d2959d87851a'
             'c3702906daf8b30e7a1a82ee20149614aa750e80796d9b704d2f2514eae847cb'
             '1242e8b314726a736939d9eeb2f889a1b770369831d4059aacedd80c09330f1b'
+            '5c974f87735b9c0ffd4cd6aa8743e885183881fec588fd8f52d80563adf0a980'
             'e78abd8173761eb23e1733619fb332c20665b7be0d60243d0f3a1cbb07522f3c')
 prepare() {
     cd "gtk+-$pkgver"
@@ -55,6 +57,7 @@ prepare() {
     patch -p1 -i ../0001-cellrenderertext-Fix-possible-overwriting-of-markup.patch
     patch -p1 -i ../0001-Add-class-focused-row-to-the-focused-row-regardless-.patch
     patch -p1 -i ../0001-treeview-Add-gtk_tree_view_set_focused_row.patch
+    patch -p1 -i ../0001-treeview-Add-gtk_tree_view_set_row_class_column.patch
 
     # official fix is actually buggy, as seen in original report:
     # https://bugzilla.gnome.org/show_bug.cgi?id=696882

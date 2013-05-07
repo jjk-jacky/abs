@@ -1,0 +1,127 @@
+From 0d716eb1e6cfdbe1fbb99afd77f4fac79a0a24de Mon Sep 17 00:00:00 2001
+From: jjacky <i.am.jack.mail@gmail.com>
+Date: Tue, 7 May 2013 16:03:20 +0200
+Subject: [PATCH] treeview: Add gtk_tree_view_set_row_class_column
+
+This allows to define a column on the model holding class names, which will be
+applied to the rows when drawn. This can be useful to provide visual clues
+specific to sets of rows easily.
+
+Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+---
+ gtk/gtktreeview.c | 71 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 71 insertions(+)
+
+diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
+index 68d19ce..d7cfdc0 100644
+--- a/gtk/gtktreeview.c
++++ b/gtk/gtktreeview.c
+@@ -452,6 +452,9 @@ struct _GtkTreeViewPrivate
+   double tree_line_dashes[2];
+   int tree_line_width;
+ 
++  /* Column in model holding row's class */
++  gint row_class_column;
++
+   /* Row separators */
+   GtkTreeViewRowSeparatorFunc row_separator_func;
+   gpointer row_separator_data;
+@@ -4955,6 +4958,7 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+           gint width;
+           gboolean draw_focus;
+           gboolean draw_select_highlight;
++          gchar *row_class;
+ 
+ 	  if (!gtk_tree_view_column_get_visible (column))
+             continue;
+@@ -5073,6 +5077,18 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+           gtk_style_context_add_region (context, GTK_STYLE_REGION_ROW, row_flags);
+           gtk_style_context_add_region (context, GTK_STYLE_REGION_COLUMN, column_flags);
+ 
++          if (tree_view->priv->row_class_column > -1)
++            {
++              gtk_tree_model_get (tree_view->priv->model, &iter,
++                                  tree_view->priv->row_class_column, &row_class,
++                                  -1);
++              if (row_class)
++                {
++                  gtk_style_context_add_class (context, row_class);
++                  g_free (row_class);
++                }
++            }
++
+ 	  if (node == tree_view->priv->cursor_node && has_can_focus_cell
+               && ((column == tree_view->priv->focus_column
+                    && tree_view->priv->draw_keyfocus &&
+@@ -11470,6 +11486,7 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
+       g_object_unref (tree_view->priv->model);
+ 
+       tree_view->priv->search_column = -1;
++      tree_view->priv->row_class_column = -1;
+       tree_view->priv->fixed_height_check = 0;
+       tree_view->priv->fixed_height = -1;
+       tree_view->priv->dy = tree_view->priv->top_row_dy = 0;
+@@ -12535,6 +12552,60 @@ gtk_tree_view_get_select_row_underline (GtkTreeView *tree_view)
+   return tree_view->priv->select_row_underline;
+ }
+ 
++/**
++ * gtk_tree_view_set_row_class_column:
++ * @tree_view: A #GtkTreeView
++ * @column: the column of the model holding the rows class names
++ *
++ * Sets @column as the column where the name of a class must be applied when
++ * drawing the corresponding row.
++ *
++ * This can be used to provide visual clues specific to a given set of rows.
++ *
++ * Note that @column refers to a column of the current model, therefore you
++ * should not call this function if no model has been set. Obviously, the column
++ * must be holding class names, i.e. %G_TYPE_STRING
++ *
++ * Set @column to -1 to disable the feature. Note that this is done
++ * automatically when the model is changed.
++ *
++ * Since: 3.10
++ */
++void
++gtk_tree_view_set_row_class_column (GtkTreeView *tree_view,
++                                    gint         column)
++{
++  GType type;
++
++  g_return_if_fail (GTK_IS_TREE_VIEW (tree_view));
++  g_return_if_fail (tree_view->priv->model != NULL);
++
++  type = gtk_tree_model_get_column_type (tree_view->priv->model, column);
++  if (type != G_TYPE_STRING)
++  {
++    g_warning ("%s: Column %d cannot be row_class_column, type %s, must be %s",
++            G_STRLOC, column, g_type_name (type), g_type_name (G_TYPE_STRING));
++    return;
++  }
++
++  tree_view->priv->row_class_column = column;
++}
++
++/**
++ * gtk_tree_view_get_row_class_column:
++ * @tree_view: A #GtkTreeView
++ *
++ * Returns the id of the column of the model holding the rows class names
++ *
++ * Returns: the column holding class name to be applied to the rows
++ * Since: 3.10
++ */
++gint
++gtk_tree_view_get_row_class_column (GtkTreeView *tree_view)
++{
++  g_return_val_if_fail (GTK_IS_TREE_VIEW (tree_view), -1);
++  return tree_view->priv->row_class_column;
++}
+ 
+ /**
+  * gtk_tree_view_set_column_drag_function:
+-- 
+1.8.2.2
+
