@@ -1,6 +1,6 @@
-From daf9727ac0c57a9940e8281ad26c7b4a53d8914a Mon Sep 17 00:00:00 2001
+From a2ed0fe13302597f34f65b2fd60b4f789e245e49 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
-Date: Tue, 7 May 2013 17:50:38 +0200
+Date: Tue, 7 May 2013 00:28:40 +0200
 Subject: [PATCH] treeview: Add gtk_tree_view_set_row_class_column
 
 This allows to define a column on the model holding class names, which will be
@@ -9,9 +9,31 @@ specific to sets of rows easily.
 
 Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
 ---
+ gtk/gtk.symbols   |  2 ++
  gtk/gtktreeview.c | 72 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 72 insertions(+)
+ gtk/gtktreeview.h |  3 +++
+ 3 files changed, 77 insertions(+)
 
+diff --git a/gtk/gtk.symbols b/gtk/gtk.symbols
+index 91e1e77..284f7ca 100644
+--- a/gtk/gtk.symbols
++++ b/gtk/gtk.symbols
+@@ -3547,6 +3547,7 @@ gtk_tree_view_get_enable_tree_lines
+ gtk_tree_view_get_expander_column
+ gtk_tree_view_get_select_highlight_column
+ gtk_tree_view_get_select_row_underline
++gtk_tree_view_get_row_class_column
+ gtk_tree_view_get_fixed_height_mode
+ gtk_tree_view_get_grid_lines
+ gtk_tree_view_get_hadjustment
+@@ -3600,6 +3601,7 @@ gtk_tree_view_set_enable_tree_lines
+ gtk_tree_view_set_expander_column
+ gtk_tree_view_set_select_highlight_column
+ gtk_tree_view_set_select_row_underline
++gtk_tree_view_set_row_class_column
+ gtk_tree_view_set_fixed_height_mode
+ gtk_tree_view_set_grid_lines
+ gtk_tree_view_set_hadjustment
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
 index 68d19ce..8ef095e 100644
 --- a/gtk/gtktreeview.c
@@ -130,6 +152,20 @@ index 68d19ce..8ef095e 100644
  
  /**
   * gtk_tree_view_set_column_drag_function:
+diff --git a/gtk/gtktreeview.h b/gtk/gtktreeview.h
+index 1baa505..ba8216e 100644
+--- a/gtk/gtktreeview.h
++++ b/gtk/gtktreeview.h
+@@ -278,6 +278,9 @@ GtkTreeViewColumn     *gtk_tree_view_get_select_highlight_column   (GtkTreeView
+ void                   gtk_tree_view_set_select_row_underline      (GtkTreeView               *tree_view,
+ 								    gboolean                   row_underline);
+ gboolean               gtk_tree_view_get_select_row_underline      (GtkTreeView               *tree_view);
++void                   gtk_tree_view_set_row_class_column          (GtkTreeView              *tree_view,
++                                                                    gint                      column);
++gint                   gtk_tree_view_get_row_class_column          (GtkTreeView               *tree_view);
+ void                   gtk_tree_view_set_column_drag_function      (GtkTreeView               *tree_view,
+ 								    GtkTreeViewColumnDropFunc  func,
+ 								    gpointer                   user_data,
 -- 
 1.8.2.2
 

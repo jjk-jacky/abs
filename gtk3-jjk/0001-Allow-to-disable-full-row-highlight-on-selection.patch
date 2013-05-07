@@ -1,4 +1,4 @@
-From 4c11bc5b69bde74da484753e4eca0f7ba8a65007 Mon Sep 17 00:00:00 2001
+From b3309fef6902d706de3d5fd5bd45776e53f1bb08 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Thu, 2 May 2013 16:39:23 +0200
 Subject: [PATCH] Allow to disable full row highlight on selection
@@ -16,6 +16,7 @@ Subject: [PATCH] Allow to disable full row highlight on selection
 
 Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
 ---
+ gtk/gtk.symbols         |   4 +
  gtk/gtkcellarea.c       | 134 +++++++++++++++++++++++++++---
  gtk/gtkcellarea.h       |  18 ++++
  gtk/gtkcellview.c       |   4 +-
@@ -24,8 +25,30 @@ Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
  gtk/gtktreeview.c       | 215 ++++++++++++++++++++++++++++++++++++++++++++++--
  gtk/gtktreeview.h       |   6 ++
  gtk/gtktreeviewcolumn.c |  21 +++--
- 8 files changed, 375 insertions(+), 40 deletions(-)
+ 9 files changed, 379 insertions(+), 40 deletions(-)
 
+diff --git a/gtk/gtk.symbols b/gtk/gtk.symbols
+index 030a06c..91e1e77 100644
+--- a/gtk/gtk.symbols
++++ b/gtk/gtk.symbols
+@@ -3545,6 +3545,8 @@ gtk_tree_view_get_drag_dest_row
+ gtk_tree_view_get_enable_search
+ gtk_tree_view_get_enable_tree_lines
+ gtk_tree_view_get_expander_column
++gtk_tree_view_get_select_highlight_column
++gtk_tree_view_get_select_row_underline
+ gtk_tree_view_get_fixed_height_mode
+ gtk_tree_view_get_grid_lines
+ gtk_tree_view_get_hadjustment
+@@ -3596,6 +3598,8 @@ gtk_tree_view_set_drag_dest_row
+ gtk_tree_view_set_enable_search
+ gtk_tree_view_set_enable_tree_lines
+ gtk_tree_view_set_expander_column
++gtk_tree_view_set_select_highlight_column
++gtk_tree_view_set_select_row_underline
+ gtk_tree_view_set_fixed_height_mode
+ gtk_tree_view_set_grid_lines
+ gtk_tree_view_set_hadjustment
 diff --git a/gtk/gtkcellarea.c b/gtk/gtkcellarea.c
 index 715e4ae..d3e2117 100644
 --- a/gtk/gtkcellarea.c
