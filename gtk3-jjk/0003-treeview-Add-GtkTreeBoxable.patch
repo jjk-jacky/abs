@@ -1,0 +1,1140 @@
+From 6300b3c17d89136b2a1c8b192f8801ff336b9190 Mon Sep 17 00:00:00 2001
+From: jjacky <i.am.jack.mail@gmail.com>
+Date: Fri, 10 May 2013 19:20:03 +0200
+Subject: [PATCH 3/3] treeview: Add GtkTreeBoxable
+
+When a model implements GtkTreeBoxable, the GtkTreeView will do some special
+drawing when rendering, to allow the creation of a "boxed branch" effect.
+
+That is, when a row is "boxed" a different background color will be used for the
+row & all its children (Note that the tree only adds classes, it's up to the CSS
+to set background colors).
+
+The boxed class is added on the expander column as well as those after. On the
+expander column, special handling is done on the expander area, so each box can
+be seen to represent the boxing effect.
+To help handling this even when focused/selected, the region "row" is replaced
+with a region "boxed" for those areas, so the colors can be shown event when
+focused/selected.
+
+Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+---
+ gtk/Makefile.am       |   2 +
+ gtk/gtk.symbols       |   7 ++
+ gtk/gtkstylecontext.h |  10 ++
+ gtk/gtktreeboxable.c  | 246 +++++++++++++++++++++++++++++++++++++++
+ gtk/gtktreeboxable.h  |  96 ++++++++++++++++
+ gtk/gtktreestore.c    | 311 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ gtk/gtktreestore.h    |   1 +
+ gtk/gtktreeview.c     | 131 ++++++++++++++++++++-
+ 8 files changed, 802 insertions(+), 2 deletions(-)
+ create mode 100644 gtk/gtktreeboxable.c
+ create mode 100644 gtk/gtktreeboxable.h
+
+diff --git a/gtk/Makefile.am b/gtk/Makefile.am
+index e164c90..97ccd4a 100644
+--- a/gtk/Makefile.am
++++ b/gtk/Makefile.am
+@@ -364,6 +364,7 @@ gtk_public_h_sources = 		\
+ 	gtktreemodelsort.h	\
+ 	gtktreeselection.h	\
+ 	gtktreesortable.h	\
++	gtktreeboxable.h	\
+ 	gtktreestore.h		\
+ 	gtktreeview.h		\
+ 	gtktreeviewcolumn.h	\
+@@ -870,6 +871,7 @@ gtk_base_c_sources = 		\
+ 	gtktreemodelsort.c	\
+ 	gtktreeselection.c	\
+ 	gtktreesortable.c	\
++	gtktreeboxable.c	\
+ 	gtktreestore.c		\
+ 	gtktreeview.c		\
+ 	gtktreeviewcolumn.c	\
+diff --git a/gtk/gtk.symbols b/gtk/gtk.symbols
+index 284f7ca..2740b77 100644
+--- a/gtk/gtk.symbols
++++ b/gtk/gtk.symbols
+@@ -3315,6 +3315,13 @@ gtk_toplevel_accessible_get_type
+ #ifdef GDK_WINDOWING_X11
+ gtk_tray_icon_get_type
+ #endif
++gtk_tree_boxable_get_type
++gtk_tree_boxable_box_column_changed
++gtk_tree_boxable_get_box_column
++gtk_tree_boxable_set_box_column
++gtk_tree_boxable_get_current_box_info
++gtk_tree_boxable_get_in_box_info
++gtk_tree_boxable_get_main_box_info
+ gtk_tree_drag_dest_drag_data_received
+ gtk_tree_drag_dest_get_type
+ gtk_tree_drag_dest_row_drop_possible
+diff --git a/gtk/gtkstylecontext.h b/gtk/gtkstylecontext.h
+index 35655f2..eb0ad77 100644
+--- a/gtk/gtkstylecontext.h
++++ b/gtk/gtkstylecontext.h
+@@ -728,6 +728,16 @@ struct _GtkStyleContextClass
+ #define GTK_STYLE_REGION_ROW "row"
+ 
+ /**
++ * GTK_STYLE_REGION_BOXED:
++ *
++ * A widget region name to define a treeview boxed area.
++ *
++ * This is the expander area (where expander & lines are drawn) that will be
++ * used to show the boxes (See #GtkTreeBoxable)
++ */
++#define GTK_STYLE_REGION_BOXED "boxed"
++
++/**
+  * GTK_STYLE_REGION_COLUMN:
+  *
+  * A widget region name to define a treeview column.
+diff --git a/gtk/gtktreeboxable.c b/gtk/gtktreeboxable.c
+new file mode 100644
+index 0000000..64ec64e
+--- /dev/null
++++ b/gtk/gtktreeboxable.c
+@@ -0,0 +1,246 @@
++/* gtktreeboxable.c
++ * Copyright (C) 2013 Olivier Brunel
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Library General Public
++ * License as published by the Free Software Foundation; either
++ * version 2 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Library General Public License for more details.
++ *
++ * You should have received a copy of the GNU Library General Public
++ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include "config.h"
++#include "gtktreeboxable.h"
++#include "gtkmarshalers.h"
++#include "gtkintl.h"
++
++enum
++{
++  BOX_COLUMN_CHANGED,
++  NB_SIGNALS
++};
++
++/**
++ * SECTION:gtktreeboxable
++ * @Short_description: The interface for boxable models used by GtkTreeView
++ * @Title: GtkTreeBoxable
++ * @See_also: #GtkTreeModel, #GtkTreeView
++ *
++ * #GtkTreeBoxable is an interface to be implemented by tree models which
++ * support "boxing" nodes. The #GtkTreeView uses the box name as class name (to
++ * change background colors) to show the boxing effect.
++ */
++
++static guint gtk_tree_boxable_signals[NB_SIGNALS] = { 0, };
++
++static void
++gtk_tree_boxable_default_init (GtkTreeBoxableInterface *iface)
++{
++  gtk_tree_boxable_signals[BOX_COLUMN_CHANGED] =
++    /**
++     * GtkTreeBoxable::box_column_changed:
++     * @boxable: the #GtkTreeBoxable model on which the signal is emitted
++     *
++     * The ::box_column_changed signal is emitted when the box column of
++     * @boxable is changed.
++     */
++    g_signal_new("box-column-changed",
++                 GTK_TYPE_TREE_BOXABLE,
++                 G_SIGNAL_RUN_LAST,
++                 G_STRUCT_OFFSET (GtkTreeBoxableInterface, box_column_changed),
++                 NULL,
++                 NULL,
++                 _gtk_marshal_VOID__VOID,
++                 G_TYPE_NONE,
++                 0);
++}
++
++G_DEFINE_INTERFACE (GtkTreeBoxable, gtk_tree_boxable, GTK_TYPE_TREE_MODEL)
++
++/* signals */
++
++/**
++ * gtk_tree_boxable_box_column_changed:
++ * @boxable: A #GtkTreeBoxable model
++ *
++ * Emits a ::box_column_changed signal on @boxable
++ */
++void
++gtk_tree_boxable_box_column_changed (GtkTreeBoxable *boxable)
++{
++  g_return_if_fail (GTK_IS_TREE_BOXABLE (boxable));
++  g_signal_emit (boxable, gtk_tree_boxable_signals[BOX_COLUMN_CHANGED], 0);
++}
++
++/* API */
++
++/**
++ * gtk_tree_boxable_get_box_column:
++ * @boxable: A #GtkTreeBoxable model
++ *
++ * Returns the column id used as box-column, i.e. storing class names to be used
++ * to create the box effect, or -1 if none set.
++ *
++ * Returns: The box column id
++ */
++gint
++gtk_tree_boxable_get_box_column (GtkTreeBoxable *boxable)
++{
++  GtkTreeBoxableInterface *iface;
++
++  g_return_val_if_fail (GTK_IS_TREE_BOXABLE (boxable), FALSE);
++
++  iface = GTK_TREE_BOXABLE_GET_IFACE (boxable);
++
++  g_return_val_if_fail (iface != NULL, FALSE);
++  g_return_val_if_fail (iface->get_box_column != NULL, FALSE);
++
++  return (*iface->get_box_column) (boxable);
++}
++
++/**
++ * gtk_tree_boxable_set_box_column:
++ * @boxable: A #GtkTreeBoxable model
++ * @column: The column id to set
++ *
++ * Sets the box column to be @column. It must hold class names, which will be
++ * used by #GtkTreeView when rendering to create the box effect.
++ *
++ * Returns: %TRUE is @column was set as the new box column, else %FALSE
++ */
++gboolean
++gtk_tree_boxable_set_box_column (GtkTreeBoxable *boxable, gint column)
++{
++  GtkTreeBoxableInterface *iface;
++
++  g_return_val_if_fail (GTK_IS_TREE_BOXABLE (boxable), FALSE);
++
++  iface = GTK_TREE_BOXABLE_GET_IFACE (boxable);
++
++  g_return_val_if_fail (iface != NULL, FALSE);
++  g_return_val_if_fail (iface->set_box_column != NULL, FALSE);
++
++  return (*iface->set_box_column) (boxable, column);
++}
++
++/**
++ * gtk_tree_boxable_get_current_box_info:
++ * @boxable: A #GtkTreeBoxable model
++ * @box: Return location of a pointer for the class name of the current box
++ * @depth: Return location for the depth of the current box
++ * @iter: #GtkTreeIter of the row to get current box of
++ *
++ * Fills in @box and @depth with the box/class name and depth of the row pointed
++ * to by @iter.
++ * If the row isn't a box itself, %FALSE will be returned. To get info about the
++ * box the row is in, whether the box is on the row itself or a parent, see
++ * gtk_tree_boxable_get_main_box_info()
++ *
++ * Returns: %TRUE if @iter is a boxed row, else %FALSE
++ */
++gboolean
++gtk_tree_boxable_get_current_box_info (GtkTreeBoxable *boxable,
++                                       gchar         **box,
++                                       gint           *depth,
++                                       GtkTreeIter    *iter)
++{
++  GtkTreeBoxableInterface *iface;
++
++  g_return_val_if_fail (GTK_IS_TREE_BOXABLE (boxable), FALSE);
++  g_return_val_if_fail (box != NULL, FALSE);
++  g_return_val_if_fail (depth != NULL, FALSE);
++  g_return_val_if_fail (iter != NULL, FALSE);
++
++  iface = GTK_TREE_BOXABLE_GET_IFACE (boxable);
++
++  g_return_val_if_fail (iface != NULL, FALSE);
++  g_return_val_if_fail (iface->get_current_box_info != NULL, FALSE);
++
++  return (*iface->get_current_box_info) (boxable, box, depth, iter);
++}
++
++/**
++ * gtk_tree_boxable_get_in_box_info:
++ * @boxable: A #GtkTreeBoxable model
++ * @iter_box: A #GtkTreeIter that will be set to the boxed row
++ * @box: Return location of a pointer for the class name of the box
++ * @depth: Return location for the depth of the boxed row
++ * @iter: #GtkTreeIter of the row to get info for
++ *
++ * Fills in @box and @depth with the box/class name and depth of the first boxed
++ * parent of @iter. Location of said parent is set in @iter_box.
++ *
++ * To get info about the box status of the row itself, see
++ * gtk_tree_boxable_get_current_box_info()
++ *
++ * Returns: %TRUE if @iter has a boxed parent, else %FALSE
++ */
++gboolean
++gtk_tree_boxable_get_in_box_info (GtkTreeBoxable *boxable,
++                                  GtkTreeIter    *iter_box,
++                                  gchar         **box,
++                                  gint           *depth,
++                                  GtkTreeIter    *iter)
++{
++  GtkTreeBoxableInterface *iface;
++
++  g_return_val_if_fail (GTK_IS_TREE_BOXABLE (boxable), FALSE);
++  g_return_val_if_fail (iter_box != NULL, FALSE);
++  g_return_val_if_fail (box != NULL, FALSE);
++  g_return_val_if_fail (depth != NULL, FALSE);
++  g_return_val_if_fail (iter != NULL, FALSE);
++
++  iface = GTK_TREE_BOXABLE_GET_IFACE (boxable);
++
++  g_return_val_if_fail (iface != NULL, FALSE);
++  g_return_val_if_fail (iface->get_in_box_info != NULL, FALSE);
++
++  return (*iface->get_in_box_info) (boxable, iter_box, box, depth, iter);
++}
++
++/**
++ * gtk_tree_boxable_get_main_box_info:
++ * @boxable: A #GtkTreeBoxable model
++ * @iter_box: A #GtkTreeIter that will be set to the boxed row
++ * @box: Return location of a pointer for the class name of the box
++ * @depth: Return location for the depth of the boxed row
++ * @iter: #GtkTreeIter of the row to get info for
++ *
++ * Fills in @box and @depth with the box/class name and depth of the boxed row.
++ * This will be @iter if it is boxed itself, else its first boxed parent.
++ * Location of the boxed row will be set in @iter_box.
++ *
++ * To get info on the row itself, or its first boxed parent, see
++ * gtk_tree_boxable_get_current_box_info() and
++ * gtk_tree_boxable_get_in_box_info() respectively.
++ *
++ * Returns: %TRUE if @iter is boxed or has a boxed parent, else %FALSE
++ */
++gboolean
++gtk_tree_boxable_get_main_box_info  (GtkTreeBoxable *boxable,
++                                     GtkTreeIter    *iter_box,
++                                     gchar         **box,
++                                     gint           *depth,
++                                     GtkTreeIter    *iter)
++{
++  GtkTreeBoxableInterface *iface;
++
++  g_return_val_if_fail (GTK_IS_TREE_BOXABLE (boxable), FALSE);
++  g_return_val_if_fail (iter_box != NULL, FALSE);
++  g_return_val_if_fail (box != NULL, FALSE);
++  g_return_val_if_fail (depth != NULL, FALSE);
++  g_return_val_if_fail (iter != NULL, FALSE);
++
++  iface = GTK_TREE_BOXABLE_GET_IFACE (boxable);
++
++  g_return_val_if_fail (iface != NULL, FALSE);
++  g_return_val_if_fail (iface->get_main_box_info != NULL, FALSE);
++
++  return (*iface->get_main_box_info) (boxable, iter_box, box, depth, iter);
++}
+diff --git a/gtk/gtktreeboxable.h b/gtk/gtktreeboxable.h
+new file mode 100644
+index 0000000..2c7a8fb
+--- /dev/null
++++ b/gtk/gtktreeboxable.h
+@@ -0,0 +1,96 @@
++/* gtktreeboxable.h
++ * Copyright (C) 2013 Olivier Brunel
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Library General Public
++ * License as published by the Free Software Foundation; either
++ * version 2 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Library General Public License for more details.
++ *
++ * You should have received a copy of the GNU Library General Public
++ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
++#error "Only <gtk/gtk.h> can be included directly."
++#endif
++
++#ifndef __GTK_TREE_BOXABLE_H__
++#define __GTK_TREE_BOXABLE_H__
++
++
++#include <gtk/gtkenums.h>
++#include <gtk/gtktreemodel.h>
++
++
++G_BEGIN_DECLS
++
++#define GTK_TYPE_TREE_BOXABLE           (gtk_tree_boxable_get_type ())
++#define GTK_TREE_BOXABLE(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj), GTK_TYPE_TREE_BOXABLE, GtkTreeBoxable))
++#define GTK_TREE_BOXABLE_CLASS(obj)     (G_TYPE_CHECK_CLASS_CAST ((obj), GTK_TYPE_TREE_BOXABLE, GtkTreeBoxableIface))
++#define GTK_IS_TREE_BOXABLE(obj)        (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GTK_TYPE_TREE_BOXABLE))
++#define GTK_TREE_BOXABLE_GET_IFACE(obj) (G_TYPE_INSTANCE_GET_INTERFACE ((obj), GTK_TYPE_TREE_BOXABLE, GtkTreeBoxableInterface))
++
++typedef struct _GtkTreeBoxable          GtkTreeBoxable; /* dummy typedef */
++typedef struct _GtkTreeBoxableInterface GtkTreeBoxableInterface;
++
++#define GTK_TREE_BOXABLE_NO_BOX_COLUMN  -1
++
++struct _GtkTreeBoxableInterface
++{
++    GTypeInterface iface;
++
++    /* signal */
++    void            (*box_column_changed)   (GtkTreeBoxable *boxable);
++    /* virtual table */
++    gint            (*get_box_column)       (GtkTreeBoxable *boxable);
++    gboolean        (*set_box_column)       (GtkTreeBoxable *boxable,
++                                             gint            column);
++    gboolean        (*get_current_box_info) (GtkTreeBoxable *boxable,
++                                             gchar         **box,
++                                             gint           *depth,
++                                             GtkTreeIter    *iter);
++    gboolean        (*get_in_box_info)      (GtkTreeBoxable *boxable,
++                                             GtkTreeIter    *iter_box,
++                                             gchar         **box,
++                                             gint           *depth,
++                                             GtkTreeIter    *iter);
++    gboolean        (*get_main_box_info)    (GtkTreeBoxable *boxable,
++                                             GtkTreeIter    *iter_box,
++                                             gchar         **box,
++                                             gint           *depth,
++                                             GtkTreeIter    *iter);
++};
++
++GType           gtk_tree_boxable_get_type           (void) G_GNUC_CONST;
++
++/* signals */
++void            gtk_tree_boxable_box_column_changed (GtkTreeBoxable *boxable);
++
++/* API */
++gint            gtk_tree_boxable_get_box_column     (GtkTreeBoxable *boxable);
++gboolean        gtk_tree_boxable_set_box_column     (GtkTreeBoxable *boxable,
++                                                     gint            column);
++gboolean        gtk_tree_boxable_get_current_box_info (
++                                                     GtkTreeBoxable *boxable,
++                                                     gchar         **box,
++                                                     gint           *depth,
++                                                     GtkTreeIter    *iter);
++gboolean        gtk_tree_boxable_get_in_box_info    (GtkTreeBoxable *boxable,
++                                                     GtkTreeIter    *iter_box,
++                                                     gchar         **box,
++                                                     gint           *depth,
++                                                     GtkTreeIter    *iter);
++gboolean        gtk_tree_boxable_get_main_box_info  (GtkTreeBoxable *boxable,
++                                                     GtkTreeIter    *iter_box,
++                                                     gchar         **box,
++                                                     gint           *depth,
++                                                     GtkTreeIter    *iter);
++
++G_END_DECLS
++
++#endif /* __GTK_TREE_BOXABLE_H__ */
+diff --git a/gtk/gtktreestore.c b/gtk/gtktreestore.c
+index 21e7a20..9fcd857 100644
+--- a/gtk/gtktreestore.c
++++ b/gtk/gtktreestore.c
+@@ -70,6 +70,8 @@ struct _GtkTreeStorePrivate
+   gint sort_column_id;
+   GList *sort_list;
+   GtkSortType order;
++  gint box_column;
++  GHashTable *box_htable;
+   GType *column_headers;
+   GtkTreeIterCompareFunc default_sort_func;
+   gpointer default_sort_data;
+@@ -86,6 +88,7 @@ static void         gtk_tree_store_tree_model_init (GtkTreeModelIface *iface);
+ static void         gtk_tree_store_drag_source_init(GtkTreeDragSourceIface *iface);
+ static void         gtk_tree_store_drag_dest_init  (GtkTreeDragDestIface   *iface);
+ static void         gtk_tree_store_sortable_init   (GtkTreeSortableIface   *iface);
++static void         gtk_tree_store_boxable_init    (GtkTreeBoxableInterface*iface);
+ static void         gtk_tree_store_buildable_init  (GtkBuildableIface      *iface);
+ static void         gtk_tree_store_finalize        (GObject           *object);
+ static GtkTreeModelFlags gtk_tree_store_get_flags  (GtkTreeModel      *tree_model);
+@@ -169,6 +172,29 @@ static void     gtk_tree_store_set_default_sort_func   (GtkTreeSortable        *
+ 							GDestroyNotify          destroy);
+ static gboolean gtk_tree_store_has_default_sort_func   (GtkTreeSortable        *sortable);
+ 
++/* Boxable Interface */
++static gint     gtk_tree_store_get_box_column          (GtkTreeBoxable         *boxable);
++static gboolean gtk_tree_store_set_box_column          (GtkTreeBoxable         *boxable,
++                                                        gint                    column);
++static gboolean gtk_tree_store_get_current_box_info    (GtkTreeBoxable         *boxable,
++                                                        gchar                 **box,
++                                                        gint                   *depth,
++                                                        GtkTreeIter            *iter);
++static gboolean gtk_tree_store_get_in_box_info         (GtkTreeBoxable         *boxable,
++                                                        GtkTreeIter            *iter_box,
++                                                        gchar                 **box,
++                                                        gint                   *depth,
++                                                        GtkTreeIter            *iter);
++static gboolean gtk_tree_store_get_main_box_info       (GtkTreeBoxable         *boxable,
++                                                        GtkTreeIter            *iter_box,
++                                                        gchar                 **box,
++                                                        gint                   *depth,
++                                                        GtkTreeIter            *iter);
++
++static void _box_process_new (GtkTreeModel *tree_model, GNode *node);
++static void _box_process_change (GtkTreeModel *tree_model, GtkTreeIter *iter);
++static void _box_set_children (GtkTreeModel *tree_model, GtkTreeIter  *parent,
++        GtkTreeIter *box, gboolean init);
+ 
+ /* buildable */
+ 
+@@ -212,6 +238,8 @@ G_DEFINE_TYPE_WITH_CODE (GtkTreeStore, gtk_tree_store, G_TYPE_OBJECT,
+ 						gtk_tree_store_drag_dest_init)
+ 			 G_IMPLEMENT_INTERFACE (GTK_TYPE_TREE_SORTABLE,
+ 						gtk_tree_store_sortable_init)
++			 G_IMPLEMENT_INTERFACE (GTK_TYPE_TREE_BOXABLE,
++			            gtk_tree_store_boxable_init)
+ 			 G_IMPLEMENT_INTERFACE (GTK_TYPE_BUILDABLE,
+ 						gtk_tree_store_buildable_init))
+ 
+@@ -270,6 +298,16 @@ gtk_tree_store_sortable_init (GtkTreeSortableIface *iface)
+   iface->has_default_sort_func = gtk_tree_store_has_default_sort_func;
+ }
+ 
++static void
++gtk_tree_store_boxable_init (GtkTreeBoxableInterface *iface)
++{
++    iface->get_box_column       = gtk_tree_store_get_box_column;
++    iface->set_box_column       = gtk_tree_store_set_box_column;
++    iface->get_current_box_info = gtk_tree_store_get_current_box_info;
++    iface->get_in_box_info      = gtk_tree_store_get_in_box_info;
++    iface->get_main_box_info    = gtk_tree_store_get_main_box_info;
++}
++
+ void
+ gtk_tree_store_buildable_init (GtkBuildableIface *iface)
+ {
+@@ -296,6 +334,7 @@ gtk_tree_store_init (GtkTreeStore *tree_store)
+ 
+   priv->sort_list = NULL;
+   priv->sort_column_id = GTK_TREE_SORTABLE_UNSORTED_SORT_COLUMN_ID;
++  priv->box_column = GTK_TREE_BOXABLE_NO_BOX_COLUMN;
+   priv->columns_dirty = FALSE;
+ }
+ 
+@@ -959,6 +998,8 @@ gtk_tree_store_set_value (GtkTreeStore *tree_store,
+     {
+       GtkTreePath *path;
+ 
++      _box_process_change (GTK_TREE_MODEL (tree_store), iter);
++
+       path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), iter);
+       gtk_tree_model_row_changed (GTK_TREE_MODEL (tree_store), path, iter);
+       gtk_tree_path_free (path);
+@@ -1119,6 +1160,8 @@ gtk_tree_store_set_valuesv (GtkTreeStore *tree_store,
+     {
+       GtkTreePath *path;
+ 
++      _box_process_change (GTK_TREE_MODEL (tree_store), iter);
++
+       path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), iter);
+       gtk_tree_model_row_changed (GTK_TREE_MODEL (tree_store), path, iter);
+       gtk_tree_path_free (path);
+@@ -1159,6 +1202,8 @@ gtk_tree_store_set_valist (GtkTreeStore *tree_store,
+     {
+       GtkTreePath *path;
+ 
++      _box_process_change (GTK_TREE_MODEL (tree_store), iter);
++
+       path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), iter);
+       gtk_tree_model_row_changed (GTK_TREE_MODEL (tree_store), path, iter);
+       gtk_tree_path_free (path);
+@@ -1229,6 +1274,9 @@ gtk_tree_store_remove (GtkTreeStore *tree_store,
+   path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), iter);
+   g_node_destroy (G_NODE (iter->user_data));
+ 
++  if (priv->box_htable)
++      g_hash_table_remove (priv->box_htable, iter->user_data);
++
+   gtk_tree_model_row_deleted (GTK_TREE_MODEL (tree_store), path);
+ 
+   if (parent != G_NODE (priv->root))
+@@ -1306,6 +1354,8 @@ gtk_tree_store_insert (GtkTreeStore *tree_store,
+   iter->user_data = new_node;
+   g_node_insert (parent_node, position, new_node);
+ 
++  _box_process_new (GTK_TREE_MODEL (tree_store), new_node);
++
+   path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), iter);
+   gtk_tree_model_row_inserted (GTK_TREE_MODEL (tree_store), path, iter);
+ 
+@@ -1382,6 +1432,8 @@ gtk_tree_store_insert_before (GtkTreeStore *tree_store,
+   iter->stamp = priv->stamp;
+   iter->user_data = new_node;
+ 
++  _box_process_new (GTK_TREE_MODEL (tree_store), new_node);
++
+   path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), iter);
+   gtk_tree_model_row_inserted (GTK_TREE_MODEL (tree_store), path, iter);
+ 
+@@ -1464,6 +1516,8 @@ gtk_tree_store_insert_after (GtkTreeStore *tree_store,
+   iter->stamp = priv->stamp;
+   iter->user_data = new_node;
+ 
++  _box_process_new (GTK_TREE_MODEL (tree_store), new_node);
++
+   path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), iter);
+   gtk_tree_model_row_inserted (GTK_TREE_MODEL (tree_store), path, iter);
+ 
+@@ -1552,6 +1606,8 @@ gtk_tree_store_insert_with_values (GtkTreeStore *tree_store,
+   iter->user_data = new_node;
+   g_node_insert (parent_node, position, new_node);
+ 
++  _box_process_new (GTK_TREE_MODEL (tree_store), new_node);
++
+   va_start (var_args, position);
+   gtk_tree_store_set_valist_internal (tree_store, iter,
+ 				      &changed, &maybe_need_sort,
+@@ -1633,6 +1689,8 @@ gtk_tree_store_insert_with_valuesv (GtkTreeStore *tree_store,
+   iter->user_data = new_node;
+   g_node_insert (parent_node, position, new_node);
+ 
++  _box_process_new (GTK_TREE_MODEL (tree_store), new_node);
++
+   gtk_tree_store_set_vector_internal (tree_store, iter,
+ 				      &changed, &maybe_need_sort,
+ 				      columns, values, n_values);
+@@ -1698,6 +1756,8 @@ gtk_tree_store_prepend (GtkTreeStore *tree_store,
+ 
+       g_node_prepend (parent_node, G_NODE (iter->user_data));
+ 
++      _box_process_new (GTK_TREE_MODEL (tree_store), G_NODE (iter->user_data));
++
+       path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), iter);
+       gtk_tree_model_row_inserted (GTK_TREE_MODEL (tree_store), path, iter);
+ 
+@@ -1757,6 +1817,8 @@ gtk_tree_store_append (GtkTreeStore *tree_store,
+ 
+       g_node_append (parent_node, G_NODE (iter->user_data));
+ 
++      _box_process_new (GTK_TREE_MODEL (tree_store), G_NODE (iter->user_data));
++
+       path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), iter);
+       gtk_tree_model_row_inserted (GTK_TREE_MODEL (tree_store), path, iter);
+ 
+@@ -2023,6 +2085,8 @@ copy_node_data (GtkTreeStore *tree_store,
+ 
+   G_NODE (dest_iter->user_data)->data = copy_head;
+ 
++  _box_process_change (GTK_TREE_MODEL (tree_store), dest_iter);
++
+   path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), dest_iter);
+   gtk_tree_model_row_changed (GTK_TREE_MODEL (tree_store), path, dest_iter);
+   gtk_tree_path_free (path);
+@@ -3310,6 +3374,253 @@ gtk_tree_store_has_default_sort_func (GtkTreeSortable *sortable)
+   return (tree_store->priv->default_sort_func != NULL);
+ }
+ 
++static gint
++gtk_tree_store_get_box_column (GtkTreeBoxable    *boxable)
++{
++  return ((GtkTreeStore *) boxable)->priv->box_column;
++}
++
++static void
++_box_process_new (GtkTreeModel *tree_model, GNode *node)
++{
++  GtkTreeStorePrivate *priv = ((GtkTreeStore *) tree_model)->priv;
++  GNode *box;
++  GtkTreeIter i;
++
++  if (priv->box_column == GTK_TREE_BOXABLE_NO_BOX_COLUMN)
++    return;
++
++  /* look for the first boxed parent (if any) to add in hashtable */
++  i.stamp = priv->stamp;
++  for (box = node->parent; box != priv->root; box = box->parent)
++    {
++      GValue value = G_VALUE_INIT;
++
++      i.user_data = box;
++      gtk_tree_store_get_value (tree_model, &i, priv->box_column, &value);
++      /* we just check if there's something or not */
++      if (g_value_get_string (&value))
++        {
++          g_hash_table_insert (priv->box_htable, node, box);
++          g_value_unset (&value);
++          break;
++        }
++      g_value_unset (&value);
++    }
++}
++
++static inline void
++_box_process_change (GtkTreeModel *tree_model, GtkTreeIter *iter)
++{
++  GtkTreeIter box;
++
++  gtk_tree_store_get_in_box_info (GTK_TREE_BOXABLE (tree_model),
++                                  &box, NULL, NULL, iter);
++  _box_set_children (tree_model, iter, (box.stamp == 0) ? NULL : &box, FALSE);
++}
++
++static void
++_box_set_children (GtkTreeModel *tree_model,
++                   GtkTreeIter  *_parent,
++                   GtkTreeIter  *box,
++                   gboolean      init)
++{
++  GtkTreeStorePrivate *priv = ((GtkTreeStore *) tree_model)->priv;
++  GtkTreeIter parent = *_parent; /* to not modify _parent */
++
++  if (priv->box_column == GTK_TREE_BOXABLE_NO_BOX_COLUMN)
++    return;
++
++  do
++    {
++      GtkTreeIter iter;
++      GValue value = G_VALUE_INIT;
++      const gchar *s;
++
++      if (box)
++        g_hash_table_insert (priv->box_htable, parent.user_data, box->user_data);
++      else if (!init)
++        g_hash_table_remove (priv->box_htable, parent.user_data);
++
++      gtk_tree_store_get_value (tree_model, &parent, priv->box_column, &value);
++      s = g_value_get_string (&value);
++      if (gtk_tree_store_iter_children (tree_model, &iter, &parent))
++        _box_set_children (tree_model, &iter, (s) ? &parent : box, init);
++      g_value_unset (&value);
++    } while (gtk_tree_store_iter_next (tree_model, &parent));
++}
++
++static gboolean
++gtk_tree_store_set_box_column (GtkTreeBoxable *boxable,
++                               gint            column)
++{
++  GtkTreeStorePrivate *priv = ((GtkTreeStore *) boxable)->priv;
++  GtkTreeModel *tree_model = (GtkTreeModel *) boxable;
++  GtkTreeIter iter;
++
++  if (priv->box_column == column)
++    return TRUE;
++
++  if (column == GTK_TREE_BOXABLE_NO_BOX_COLUMN)
++    {
++      if (priv->box_htable)
++        {
++          g_hash_table_unref (priv->box_htable);
++          priv->box_htable = NULL;
++        }
++      priv->box_column = column;
++      gtk_tree_boxable_box_column_changed (boxable);
++      return TRUE;
++    }
++
++  g_return_val_if_fail (column < priv->n_columns, FALSE);
++
++  /* column must contain box/class names */
++  if (priv->column_headers[column] != G_TYPE_STRING)
++    {
++      g_warning ("%s: Column %d cannot be box_column, type %s, must be G_TYPE_STRING\n",
++                 G_STRLOC, column, g_type_name (priv->column_headers[column]));
++      return FALSE;
++    }
++
++  priv->box_column = column;
++
++  /* reset/init our hashmap */
++  if (priv->box_htable)
++    g_hash_table_unref (priv->box_htable);
++  priv->box_htable = g_hash_table_new (g_direct_hash, g_direct_equal);
++
++  /* fill it: get started on the first node (if any) */
++  if (gtk_tree_store_iter_children (tree_model, &iter, NULL))
++    _box_set_children (tree_model, &iter, NULL, TRUE);
++
++  gtk_tree_boxable_box_column_changed (boxable);
++  return TRUE;
++}
++
++static gboolean
++gtk_tree_store_get_current_box_info (GtkTreeBoxable *boxable,
++                                     gchar         **box,
++                                     gint           *depth,
++                                     GtkTreeIter    *iter)
++{
++  GtkTreeStore *tree_store = (GtkTreeStore *) boxable;
++  GtkTreeStorePrivate *priv = tree_store->priv;
++  GValue value = G_VALUE_INIT;
++
++  g_return_val_if_fail (VALID_ITER (iter, tree_store), FALSE);
++
++  if (priv->box_column == GTK_TREE_BOXABLE_NO_BOX_COLUMN)
++    return FALSE;
++
++  /* current box simply comes from the model */
++  gtk_tree_store_get_value ((GtkTreeModel *) tree_store, iter, priv->box_column, &value);
++  *box = g_value_dup_string (&value);
++  g_value_unset (&value);
++
++  if (!*box)
++    {
++      *depth = -1;
++      return FALSE;
++    }
++
++  *depth = g_node_depth (G_NODE (iter->user_data)) - 1;
++  return TRUE;
++}
++
++static gboolean
++gtk_tree_store_get_in_box_info (GtkTreeBoxable *boxable,
++                                GtkTreeIter    *iter_box,
++                                gchar         **box,
++                                gint           *depth,
++                                GtkTreeIter    *iter)
++{
++  GtkTreeStore *tree_store = (GtkTreeStore *) boxable;
++  GtkTreeStorePrivate *priv = tree_store->priv;
++
++  g_return_val_if_fail (VALID_ITER (iter, tree_store), FALSE);
++
++  if (priv->box_column == GTK_TREE_BOXABLE_NO_BOX_COLUMN)
++    return FALSE;
++
++  /* first boxed parent comes from hashtable */
++  iter_box->user_data = g_hash_table_lookup (priv->box_htable, iter->user_data);
++  if (iter_box->user_data)
++    {
++      GValue value = G_VALUE_INIT;
++
++      iter_box->stamp = priv->stamp;
++
++      if (box)
++        {
++          gtk_tree_store_get_value ((GtkTreeModel *) tree_store,
++                                    iter_box, priv->box_column, &value);
++          *box = g_value_dup_string (&value);
++          g_value_unset (&value);
++        }
++
++      if (depth)
++        *depth = g_node_depth (G_NODE (iter_box->user_data)) - 1;
++      return TRUE;
++    }
++  else
++    {
++      iter_box->stamp = 0;
++      if (box)
++        *box = NULL;
++      if (depth)
++        *depth = -1;
++      return FALSE;
++    }
++}
++
++static gboolean
++gtk_tree_store_get_main_box_info (GtkTreeBoxable *boxable,
++                                  GtkTreeIter    *iter_box,
++                                  gchar         **box,
++                                  gint           *depth,
++                                  GtkTreeIter    *iter)
++{
++  GtkTreeStore *tree_store = (GtkTreeStore *) boxable;
++  GtkTreeModel *tree_model = (GtkTreeModel *) tree_store;
++  GtkTreeStorePrivate *priv = tree_store->priv;
++  GValue value = G_VALUE_INIT;
++
++  g_return_val_if_fail (VALID_ITER (iter, tree_store), FALSE);
++
++  if (priv->box_column == GTK_TREE_BOXABLE_NO_BOX_COLUMN)
++    return FALSE;
++
++  /* are we boxed ourself? */
++  gtk_tree_store_get_value (tree_model, iter, priv->box_column, &value);
++  *box = g_value_dup_string (&value);
++  g_value_unset (&value);
++  if (*box)
++    {
++      *iter_box = *iter;
++      *depth = g_node_depth (G_NODE (iter->user_data)) - 1;
++      return TRUE;
++    }
++
++  /* then maybe we have a boxed parent? */
++  iter_box->user_data = g_hash_table_lookup (priv->box_htable, iter->user_data);
++  if (iter_box->user_data)
++    {
++      iter_box->stamp = priv->stamp;
++      gtk_tree_store_get_value (tree_model, iter_box, priv->box_column, &value);
++      *box = g_value_dup_string (&value);
++      g_value_unset (&value);
++      *depth = g_node_depth (G_NODE (iter_box->user_data)) - 1;
++      return TRUE;
++    }
++  else
++    {
++      iter_box->stamp = 0;
++      *depth = -1;
++      return FALSE;
++    }
++}
++
+ static void
+ validate_gnode (GNode* node)
+ {
+diff --git a/gtk/gtktreestore.h b/gtk/gtktreestore.h
+index 69a42be..50f52fc 100644
+--- a/gtk/gtktreestore.h
++++ b/gtk/gtktreestore.h
+@@ -25,6 +25,7 @@
+ #include <gdk/gdk.h>
+ #include <gtk/gtktreemodel.h>
+ #include <gtk/gtktreesortable.h>
++#include <gtk/gtktreeboxable.h>
+ #include <stdarg.h>
+ 
+ 
+diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
+index 8ef095e..d9117c4 100644
+--- a/gtk/gtktreeview.c
++++ b/gtk/gtktreeview.c
+@@ -54,6 +54,7 @@
+ #include "gtksettings.h"
+ #include "gtkwidgetpath.h"
+ #include "a11y/gtktreeviewaccessibleprivate.h"
++#include "gtktreeboxable.h"
+ 
+ 
+ /**
+@@ -713,6 +714,9 @@ static void gtk_tree_view_rows_reordered                  (GtkTreeModel    *mode
+ 							   GtkTreeIter     *iter,
+ 							   gint            *new_order,
+ 							   gpointer         data);
++/* GtkTreeBoxable signals */
++static void gtk_tree_view_box_column_changed              (GtkTreeBoxable  *boxable,
++                                                           gpointer         data);
+ 
+ /* Incremental reflow */
+ static gboolean validate_row             (GtkTreeView *tree_view,
+@@ -4800,6 +4804,7 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+   gboolean draw_vgrid_lines, draw_hgrid_lines;
+   GtkStyleContext *context;
+   gboolean parity;
++  GtkTreeBoxable *boxable;
+ 
+   rtl = (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL);
+   context = gtk_widget_get_style_context (widget);
+@@ -4868,7 +4873,10 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+   draw_hgrid_lines =
+     tree_view->priv->grid_lines == GTK_TREE_VIEW_GRID_LINES_HORIZONTAL
+     || tree_view->priv->grid_lines == GTK_TREE_VIEW_GRID_LINES_BOTH;
+-  expander_size = gtk_tree_view_get_expander_size (tree_view);
++  if (gtk_tree_view_draw_expanders (tree_view))
++      expander_size = gtk_tree_view_get_expander_size (tree_view);
++  else
++      expander_size = tree_view->priv->level_indentation;
+ 
+   if (draw_vgrid_lines || draw_hgrid_lines)
+     gtk_widget_style_get (widget, "grid-line-width", &grid_line_width, NULL);
+@@ -4902,12 +4910,19 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+   
+   parity = !(_gtk_rbtree_node_get_index (tree, node) % 2);
+ 
++  if (GTK_IS_TREE_BOXABLE (tree_view->priv->model)
++      && gtk_tree_boxable_get_box_column ((GtkTreeBoxable *) tree_view->priv->model) != -1)
++    boxable = (GtkTreeBoxable *) tree_view->priv->model;
++  else
++    boxable = NULL;
++
+   do
+     {
+       gboolean is_separator = FALSE;
+       gboolean is_first = FALSE;
+       gboolean is_last = FALSE;
+       gint n_col = 0;
++      gboolean past_expander = FALSE;
+ 
+       parity = !parity;
+       is_separator = row_is_separator (tree_view, &iter, NULL);
+@@ -4960,6 +4975,10 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+           gboolean draw_focus;
+           gboolean draw_select_highlight;
+           gchar *row_class;
++          /* boxable */
++          GtkTreeIter box_iter;
++          gchar *box = NULL;
++          gint box_depth;
+ 
+ 	  if (!gtk_tree_view_column_get_visible (column))
+             continue;
+@@ -5090,6 +5109,30 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+                 }
+             }
+ 
++          if (boxable)
++            {
++              if (gtk_tree_view_is_expander_column (tree_view, column))
++                {
++                  past_expander = TRUE;
++                  if (gtk_tree_boxable_get_main_box_info (boxable,
++                                                          &box_iter,
++                                                          &box,
++                                                          &box_depth,
++                                                          &iter))
++                    {
++                      gtk_style_context_save (context);
++                      gtk_style_context_add_class (context, box);
++                    }
++                }
++              else if (((!rtl && past_expander) || (rtl && !past_expander))
++                       && gtk_tree_boxable_get_main_box_info (boxable,
++                                                              &box_iter,
++                                                              &box,
++                                                              &box_depth,
++                                                              &iter))
++                gtk_style_context_add_class (context, box);
++            }
++
+ 	  if (node == tree_view->priv->cursor_node && has_can_focus_cell
+               && ((column == tree_view->priv->focus_column
+                    && tree_view->priv->draw_keyfocus &&
+@@ -5120,13 +5163,75 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+ 
+ 	  if (gtk_tree_view_is_expander_column (tree_view, column))
+ 	    {
++	        if (box)
++              {
++                gchar *b = box;
++                gint prev_depth = box_depth;
++                GdkRectangle rect = background_area;
++
++                /* restore to remove our box class */
++                gtk_style_context_restore (context);
++                gtk_style_context_save (context);
++                /* switch region row to boxed, to allow CSS styling where for
++                 * those "boxed" regions (expander area) the colors are always
++                 * applied, even when focused and/or selected */
++                gtk_style_context_remove_region (context, GTK_STYLE_REGION_ROW);
++                gtk_style_context_add_region (context, GTK_STYLE_REGION_BOXED, row_flags);
++
++                /* the "boxed" region for the main box */
++                if (rtl)
++                  {
++                    rect.x += rect.width - depth * expander_size;
++                    rect.width = expander_size * depth;
++                  }
++                else
++                  {
++                    rect.x += (box_depth - 1) * expander_size;
++                    rect.width = expander_size * (depth - box_depth + 1);
++                  }
++
++                gtk_style_context_save (context);
++                gtk_style_context_add_class (context, box);
++                gtk_render_background (context, cr,
++                                       rect.x, rect.y, rect.width, rect.height);
++                gtk_style_context_restore (context);
++
++                /* "boxed" regions for any parent boxes */
++                while (gtk_tree_boxable_get_in_box_info (boxable,
++                                                         &box_iter,
++                                                         &box,
++                                                         &box_depth,
++                                                         &box_iter))
++                  {
++                    rect = background_area;
++                    if (rtl)
++                      rect.x += rect.width - box_depth * expander_size;
++                    else
++                      rect.x += (box_depth - 1) * expander_size;
++                    rect.width = expander_size * (prev_depth - box_depth);
++                    gtk_style_context_save (context);
++                    gtk_style_context_add_class (context, box);
++                    gtk_render_background (context, cr,
++                                           rect.x, rect.y, rect.width, rect.height);
++                    gtk_style_context_restore (context);
++                    prev_depth = box_depth;
++                    g_free (box);
++                  }
++
++                /* switch back boxed to row */
++                gtk_style_context_restore (context);
++                /* and also add our box class */
++                gtk_style_context_add_class (context, b);
++                g_free (b);
++                box = NULL;
++              }
++
+ 	      if (!rtl)
+ 		cell_area.x += (depth - 1) * tree_view->priv->level_indentation;
+ 	      cell_area.width -= (depth - 1) * tree_view->priv->level_indentation;
+ 
+               if (gtk_tree_view_draw_expanders (tree_view))
+ 	        {
+-                  int expander_size = gtk_tree_view_get_expander_size (tree_view);
+ 	          if (!rtl)
+ 		    cell_area.x += depth * expander_size;
+ 		  cell_area.width -= depth * expander_size;
+@@ -5180,6 +5285,12 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+ 	    }
+ 	  else
+ 	    {
++	      if (box)
++            {
++              g_free (box);
++              box = NULL;
++            }
++
+ 	      if (is_separator)
+                 {
+                   gtk_style_context_save (context);
+@@ -9287,6 +9398,13 @@ gtk_tree_view_rows_reordered (GtkTreeModel *model,
+   gtk_tree_view_dy_to_top_row (tree_view);
+ }
+ 
++/* GtkTreeBoxable callbacks */
++
++static void
++gtk_tree_view_box_column_changed (GtkTreeBoxable *boxable, gpointer data)
++{
++  gtk_widget_queue_draw ((GtkWidget *) data);
++}
+ 
+ /* Internal tree functions
+  */
+@@ -11465,6 +11583,10 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
+       g_signal_handlers_disconnect_by_func (tree_view->priv->model,
+ 					    gtk_tree_view_rows_reordered,
+ 					    tree_view);
++      if (GTK_IS_TREE_BOXABLE (tree_view->priv->model))
++        g_signal_handlers_disconnect_by_func (tree_view->priv->model,
++                                              gtk_tree_view_box_column_changed,
++                                              tree_view);
+ 
+       for (; tmplist; tmplist = tmplist->next)
+ 	_gtk_tree_view_column_unset_model (tmplist->data,
+@@ -11539,6 +11661,11 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
+ 			"rows-reordered",
+ 			G_CALLBACK (gtk_tree_view_rows_reordered),
+ 			tree_view);
++      if (GTK_IS_TREE_BOXABLE (tree_view->priv->model))
++        g_signal_connect (tree_view->priv->model,
++                          "box-column-changed",
++                          G_CALLBACK (gtk_tree_view_box_column_changed),
++                          tree_view);
+ 
+       flags = gtk_tree_model_get_flags (tree_view->priv->model);
+       if ((flags & GTK_TREE_MODEL_LIST_ONLY) == GTK_TREE_MODEL_LIST_ONLY)
+-- 
+1.8.2.2
+

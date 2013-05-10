@@ -1,7 +1,7 @@
 From a2ed0fe13302597f34f65b2fd60b4f789e245e49 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Tue, 7 May 2013 00:28:40 +0200
-Subject: [PATCH] treeview: Add gtk_tree_view_set_row_class_column
+Subject: [PATCH 2/3] treeview: Add gtk_tree_view_set_row_class_column
 
 This allows to define a column on the model holding class names, which will be
 applied to the rows when drawn. This can be useful to provide visual clues
