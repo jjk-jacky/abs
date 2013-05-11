@@ -2,7 +2,7 @@
 
 _pkgname=zen-gtk-themes
 pkgname=zen-blua-jjk
-pkgver=0.11.1
+pkgver=0.11.2
 pkgrel=1
 pkgdesc="A GTK2/GTK3 theme that attempt to keep it simple, consistent and being visually appealing."
 arch=('any')
@@ -12,19 +12,25 @@ depends=('gtk-engines' 'gtk-engine-murrine')
 
 source=("$_pkgname-$pkgver.tar.gz::https://github.com/cedl38/$_pkgname/archive/v$pkgver.tar.gz"
         jjk-tweak-titlebar-colors.patch)
-sha256sums=('17f8d5247471ca7872dc41ea992be0fc74e8b0ef676f7dcb102ba2f038fbe357'
+sha256sums=('5b4deb6baa3fe6fbcad500b36aba609dbb02a3dbc3a0782d1016c944cd3a60b8'
             'a1a4a0a2c32d14caf6b5b1c7265f268c90810e6b79ada7532e6db86fd0b11f48')
 
 prepare() {
     cd "$srcdir/$_pkgname-$pkgver"
-
     patch -Np0 -i ../jjk-tweak-titlebar-colors.patch
 }
 
-package() {
-  cd "$srcdir/$_pkgname-$pkgver"
+build() {
+    cd "$srcdir/$_pkgname-$pkgver"
+    ./configure --prefix=/usr --disable-debug
+    make
+}
 
-  install -d -m755 "$pkgdir/usr/share/themes/$pkgname"
-  rm -rf Zen-Blua/xfce-notify-4.0
-  cp -r Zen-blua/* "$pkgdir/usr/share/themes/$pkgname"
+package() {
+    cd "$srcdir/$_pkgname-$pkgver"
+    make DESTDIR="$pkgdir/" install
+
+    rm -rf "$pkgdir"/usr/share/themes/Zen{,-{griza,nigra,nokto,papero,verda}}
+    rm -rf "$pkgdir"/usr/share/themes/Zen-blua/xfce-notify-4.0
+    mv "$pkgdir"/usr/share/themes/{Zen-blua,$pkgname}
 }
