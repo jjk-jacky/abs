@@ -3,7 +3,7 @@
 _pkgname=zen-gtk-themes
 pkgname=zen-blua-jjk
 pkgver=0.11.2
-pkgrel=1
+pkgrel=2
 pkgdesc="A GTK2/GTK3 theme that attempt to keep it simple, consistent and being visually appealing."
 arch=('any')
 url="http://opendesktop.org/content/show.php/Zen+suite?content=149883"
@@ -15,11 +15,6 @@ source=("$_pkgname-$pkgver.tar.gz::https://github.com/cedl38/$_pkgname/archive/v
 sha256sums=('5b4deb6baa3fe6fbcad500b36aba609dbb02a3dbc3a0782d1016c944cd3a60b8'
             'a1a4a0a2c32d14caf6b5b1c7265f268c90810e6b79ada7532e6db86fd0b11f48')
 
-prepare() {
-    cd "$srcdir/$_pkgname-$pkgver"
-    patch -Np0 -i ../jjk-tweak-titlebar-colors.patch
-}
-
 build() {
     cd "$srcdir/$_pkgname-$pkgver"
     ./configure --prefix=/usr --disable-debug
@@ -29,6 +24,15 @@ build() {
 package() {
     cd "$srcdir/$_pkgname-$pkgver"
     make DESTDIR="$pkgdir/" install
+
+    # not sure how this is supposed to work, but apparently make removes files
+    # from Zen-blua and copies over files from Zen; so we can't apply our patch
+    # in prepare()
+    # But, `make install` actually does the same as make before doing the
+    # install part, so really the only place we can patch is here:
+    cd "$pkgdir/usr/share/themes"
+    patch -Np0 -i "$srcdir/jjk-tweak-titlebar-colors.patch"
+    cd -
 
     rm -rf "$pkgdir"/usr/share/themes/Zen{,-{griza,nigra,nokto,papero,verda}}
     rm -rf "$pkgdir"/usr/share/themes/Zen-blua/xfce-notify-4.0
