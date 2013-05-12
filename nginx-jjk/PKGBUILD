@@ -9,7 +9,7 @@ _tmpdir=/var/lib/nginx
 _pkgname=nginx
 pkgname=$_pkgname-jjk
 pkgver=1.4.1
-pkgrel=1
+pkgrel=2
 pkgdesc="lightweight HTTP server and IMAP/POP3 proxy server"
 arch=('i686' 'x86_64')
 depends=('pcre' 'zlib' 'openssl')
@@ -32,7 +32,7 @@ source=(http://nginx.org/download/nginx-$pkgver.tar.gz
         logrotate)
 install=install
 md5sums=('fea7dfab995545ce27fe4c49dc21a972'
-         '62d494d23aef31d0b867161f9fffa6eb'
+         'ce9a06bcaf66ec4a3c4eb59b636e0dfd'
          '7711fc234ef2f35151885c1994f8fe73')
 
 build() {
@@ -41,7 +41,7 @@ build() {
     ./configure \
         --prefix=$_cfgdir \
         --conf-path=$_cfgdir/nginx.conf \
-        --sbin-path=/usr/sbin/nginx \
+        --sbin-path=/usr/bin/nginx \
         --pid-path=/var/run/nginx.pid \
         --lock-path=/var/lock/nginx.lock \
         --user=http --group=http \
