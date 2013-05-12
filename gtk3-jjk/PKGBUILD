@@ -4,7 +4,7 @@
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
 pkgver=3.8.1
-pkgrel=13
+pkgrel=14
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -43,9 +43,9 @@ sha256sums=('f43e7c7d7a0e2417225509e88f67799534c69abfbb6f615fc7a895bf15e31255'
             '25aede6a172bd641e7775cd08cebc9b2e17cf82c8e2ab5e73714d2959d87851a'
             'c3702906daf8b30e7a1a82ee20149614aa750e80796d9b704d2f2514eae847cb'
             '080b20d27c2320fb54aacf5dbaf580b6d541ff5b16640bd35bbdce955f96550b'
-            'ae175bd8800877caf19bab2dc50cbdfd5fc4bca992fc0ba82932ab2f908cc671'
-            '7d458d304f46e31a4a2e0f4f1e1e247c20ee7695d2e08c454ecb40e069c6c001'
-            '41cf11c2fed6d873b14681dc2b5c2438d7020d0f46131a0f2c9ec3a5f53f5a05'
+            'df293aa33061b7f9504ba549ecd74f5148cf8faa99dda7b9f8ee220783b5a9a1'
+            '0b52498ed2487a02516521fb0340f14ea2987919b18f3a5647bca21b76d684fd'
+            'b5991e5b215f14d3ca75e0d7a9e296ace626232c9940ce10fbe63ffce1610ebe'
             'e78abd8173761eb23e1733619fb332c20665b7be0d60243d0f3a1cbb07522f3c')
 prepare() {
     cd "gtk+-$pkgver"

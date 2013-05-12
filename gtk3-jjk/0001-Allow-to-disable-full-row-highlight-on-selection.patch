@@ -743,5 +743,5 @@ index af2317c..55bb6a0 100644
    cairo_restore (cr);
  }
 -- 
-1.8.2.2
+1.8.2.3
 

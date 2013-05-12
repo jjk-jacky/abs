@@ -1,4 +1,4 @@
-From 6300b3c17d89136b2a1c8b192f8801ff336b9190 Mon Sep 17 00:00:00 2001
+From efb07f3b09db73e5bf293119e286da29f001afaf Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Fri, 10 May 2013 19:20:03 +0200
 Subject: [PATCH 3/3] treeview: Add GtkTreeBoxable
@@ -26,8 +26,8 @@ Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
  gtk/gtktreeboxable.h  |  96 ++++++++++++++++
  gtk/gtktreestore.c    | 311 ++++++++++++++++++++++++++++++++++++++++++++++++++
  gtk/gtktreestore.h    |   1 +
- gtk/gtktreeview.c     | 131 ++++++++++++++++++++-
- 8 files changed, 802 insertions(+), 2 deletions(-)
+ gtk/gtktreeview.c     | 147 +++++++++++++++++++++++-
+ 8 files changed, 818 insertions(+), 2 deletions(-)
  create mode 100644 gtk/gtktreeboxable.c
  create mode 100644 gtk/gtktreeboxable.h
 
@@ -905,7 +905,7 @@ index 69a42be..50f52fc 100644
  
  
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 8ef095e..d9117c4 100644
+index 8ef095e..0e46bf3 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -54,6 +54,7 @@
@@ -1008,7 +1008,7 @@ index 8ef095e..d9117c4 100644
  	  if (node == tree_view->priv->cursor_node && has_can_focus_cell
                && ((column == tree_view->priv->focus_column
                     && tree_view->priv->draw_keyfocus &&
-@@ -5120,13 +5163,75 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5120,13 +5163,91 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
  
  	  if (gtk_tree_view_is_expander_column (tree_view, column))
  	    {
@@ -1021,6 +1021,22 @@ index 8ef095e..d9117c4 100644
 +                /* restore to remove our box class */
 +                gtk_style_context_restore (context);
 +                gtk_style_context_save (context);
++
++                /* the "non-boxed" region before the main box */
++                if (box_depth > 1)
++                  {
++                    if (rtl)
++                      {
++                        rect.x += rect.width - depth * expander_size;
++                        rect.width = expander_size * depth;
++                      }
++                    else
++                      rect.width = expander_size * (box_depth - 1);
++
++                    gtk_render_background (context, cr,
++                                           rect.x, rect.y, rect.width, rect.height);
++                  }
++
 +                /* switch region row to boxed, to allow CSS styling where for
 +                 * those "boxed" regions (expander area) the colors are always
 +                 * applied, even when focused and/or selected */
@@ -1085,7 +1101,7 @@ index 8ef095e..d9117c4 100644
  	          if (!rtl)
  		    cell_area.x += depth * expander_size;
  		  cell_area.width -= depth * expander_size;
-@@ -5180,6 +5285,12 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5180,6 +5301,12 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
  	    }
  	  else
  	    {
@@ -1098,7 +1114,7 @@ index 8ef095e..d9117c4 100644
  	      if (is_separator)
                  {
                    gtk_style_context_save (context);
-@@ -9287,6 +9398,13 @@ gtk_tree_view_rows_reordered (GtkTreeModel *model,
+@@ -9287,6 +9414,13 @@ gtk_tree_view_rows_reordered (GtkTreeModel *model,
    gtk_tree_view_dy_to_top_row (tree_view);
  }
  
@@ -1112,7 +1128,7 @@ index 8ef095e..d9117c4 100644
  
  /* Internal tree functions
   */
-@@ -11465,6 +11583,10 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
+@@ -11465,6 +11599,10 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
        g_signal_handlers_disconnect_by_func (tree_view->priv->model,
  					    gtk_tree_view_rows_reordered,
  					    tree_view);
@@ -1123,7 +1139,7 @@ index 8ef095e..d9117c4 100644
  
        for (; tmplist; tmplist = tmplist->next)
  	_gtk_tree_view_column_unset_model (tmplist->data,
-@@ -11539,6 +11661,11 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
+@@ -11539,6 +11677,11 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
  			"rows-reordered",
  			G_CALLBACK (gtk_tree_view_rows_reordered),
  			tree_view);
@@ -1136,5 +1152,5 @@ index 8ef095e..d9117c4 100644
        flags = gtk_tree_model_get_flags (tree_view->priv->model);
        if ((flags & GTK_TREE_MODEL_LIST_ONLY) == GTK_TREE_MODEL_LIST_ONLY)
 -- 
-1.8.2.2
+1.8.2.3
 
