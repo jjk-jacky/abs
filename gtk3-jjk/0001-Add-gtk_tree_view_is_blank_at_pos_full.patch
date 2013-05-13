@@ -1,4 +1,4 @@
-From d969183aad8c305d607c1bbe71cd91f5927f0075 Mon Sep 17 00:00:00 2001
+From b313f36b362f3dd04c653c5f581875222125d9f4 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Thu, 7 Mar 2013 14:35:47 +0100
 Subject: [PATCH] Add gtk_tree_view_is_blank_at_pos_full()
@@ -51,10 +51,10 @@ index fcdcf81..fe57f8d 100644
  void		  _gtk_tree_view_column_cell_render      (GtkTreeViewColumn  *tree_column,
  							  cairo_t            *cr,
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index cb43c7f..3df8235 100644
+index ce46b74..c2fffb6 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -14062,6 +14062,9 @@ gtk_tree_view_get_visible_range (GtkTreeView  *tree_view,
+@@ -14063,6 +14063,9 @@ gtk_tree_view_get_visible_range (GtkTreeView  *tree_view,
   * likewise as for gtk_tree_view_get_path_at_pos().  Please see
   * gtk_tree_view_get_path_at_pos() for more information.
   *
@@ -64,7 +64,7 @@ index cb43c7f..3df8235 100644
   * Return value: %TRUE if the area at the given coordinates is blank,
   * %FALSE otherwise.
   *
-@@ -14088,12 +14091,134 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
+@@ -14089,12 +14092,134 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
    if (!gtk_tree_view_get_path_at_pos (tree_view, x, y,
                                        &real_path, &real_column,
                                        cell_x, cell_y))
@@ -201,7 +201,7 @@ index cb43c7f..3df8235 100644
    if (column)
      *column = real_column;
  
-@@ -14101,8 +14226,8 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
+@@ -14102,8 +14227,8 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
    _gtk_tree_view_find_node (tree_view, real_path, &tree, &node);
  
    /* Check if there's an expander arrow at (x, y) */
@@ -212,7 +212,7 @@ index cb43c7f..3df8235 100644
      {
        gboolean over_arrow;
  
-@@ -14134,7 +14259,8 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
+@@ -14135,7 +14260,8 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
    return _gtk_tree_view_column_is_blank_at_pos (real_column,
                                                  &cell_area,
                                                  &background_area,
@@ -269,5 +269,5 @@ index af2317c..8f44d49 100644
    gtk_cell_area_get_cell_allocation (priv->cell_area,
                                       priv->cell_area_context,
 -- 
-1.8.2.1
+1.8.2.3
 

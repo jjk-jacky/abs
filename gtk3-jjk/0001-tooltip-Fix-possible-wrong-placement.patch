@@ -1,4 +1,4 @@
-From 6e1a81242a473c6c95fcaa1cf7413701b222a5a6 Mon Sep 17 00:00:00 2001
+From 02966675a56efc3d869785e1a153070d332f7e09 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Wed, 24 Apr 2013 14:17:42 +0200
 Subject: [PATCH] tooltip: Fix possible wrong placement
@@ -17,10 +17,10 @@ Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/gtk/gtktooltip.c b/gtk/gtktooltip.c
-index aba9ffb..424b29d 100644
+index 0914641..c2603a7 100644
 --- a/gtk/gtktooltip.c
 +++ b/gtk/gtktooltip.c
-@@ -1071,6 +1071,7 @@ gtk_tooltip_position (GtkTooltip *tooltip,
+@@ -1089,6 +1089,7 @@ gtk_tooltip_position (GtkTooltip *tooltip,
  #define MAX_DISTANCE 32
  
    gtk_widget_realize (GTK_WIDGET (tooltip->current_window));
@@ -29,5 +29,5 @@ index aba9ffb..424b29d 100644
    tooltip->tooltip_widget = new_tooltip_widget;
  
 -- 
-1.8.2.1
+1.8.2.3
 

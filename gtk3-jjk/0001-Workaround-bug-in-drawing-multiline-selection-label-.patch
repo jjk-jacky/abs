@@ -1,0 +1,72 @@
+From 1babc8a265d1b6a19832431050ea22f3f81a569c Mon Sep 17 00:00:00 2001
+From: jjacky <i.am.jack.mail@gmail.com>
+Date: Sun, 7 Apr 2013 17:34:40 +0200
+Subject: [PATCH] Workaround bug in drawing multiline selection label (See
+ #697357)
+
+When drawing a label with multiline selection, lines with both selected &
+unselected text would have their entire text redrawn using the selected
+foreground color.
+
+Especially if that color is quite different from the non-selected one, it gets
+unreadable.
+
+It isn't the entire line that's affected, boundaries are determined by
+attributes. So as a workaround, we can add an attribute over the entire
+selection, thus making sure the rendering is always as expected (nothing outside
+of selection gets improperly redrawn).
+
+Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+---
+ gtk/gtklabel.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+diff --git a/gtk/gtklabel.c b/gtk/gtklabel.c
+index 3096c41..0ed07de 100644
+--- a/gtk/gtklabel.c
++++ b/gtk/gtklabel.c
+@@ -4006,6 +4006,8 @@ gtk_label_draw (GtkWidget *widget,
+           gint range[2];
+           cairo_region_t *clip;
+           GdkRGBA bg_color, fg_color;
++          PangoAttribute *attr;
++          PangoAttrList *list_org, *list_new;
+ 
+           range[0] = info->selection_anchor;
+           range[1] = info->selection_end;
+@@ -4036,10 +4038,32 @@ gtk_label_draw (GtkWidget *widget,
+           gdk_cairo_set_source_rgba (cr, &bg_color);
+           cairo_paint (cr);
+ 
++          /* add an attribute over the selection, to ensure drawing the text w/
++           * selected fg_color will only be done on the selection (not extended
++           * to text before/after selection on the same line); see #697357 */
++          attr = pango_attr_foreground_new (0, 0, 0);
++          attr->start_index = range[0];
++          attr->end_index = range[1];
++          list_org = pango_layout_get_attributes (priv->layout);
++          if (list_org)
++          {
++              pango_attr_list_ref (list_org);
++              list_new = pango_attr_list_copy (list_org);
++          }
++          else
++              list_new = pango_attr_list_new ();
++          pango_attr_list_insert (list_new, attr);
++          pango_layout_set_attributes (priv->layout, list_new);
++          pango_attr_list_unref (list_new);
++
+           gdk_cairo_set_source_rgba (cr, &fg_color);
+           cairo_move_to (cr, x, y);
+           _gtk_pango_fill_layout (cr, priv->layout);
+ 
++          pango_layout_set_attributes (priv->layout, list_org);
++          if (list_org)
++              pango_attr_list_unref (list_org);
++
+           cairo_restore (cr);
+           cairo_region_destroy (clip);
+         }
+-- 
+1.8.2.3
+

@@ -1,4 +1,4 @@
-From e14e97441e020bd8d61609e90017bc2e868d9986 Mon Sep 17 00:00:00 2001
+From 8ba376c3e3b9d16243bc1bdf2ac33bd844c19905 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Sun, 5 May 2013 13:03:35 +0200
 Subject: [PATCH] treeview: Add gtk_tree_view_set_focused_row()
@@ -26,10 +26,10 @@ index 030a06c..5dfa059 100644
  gtk_tree_view_set_drag_dest_row
  gtk_tree_view_set_enable_search
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index cb43c7f..5777eaf 100644
+index ce46b74..23d43e2 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -13381,6 +13381,37 @@ gtk_tree_view_set_cursor_on_cell (GtkTreeView       *tree_view,
+@@ -13382,6 +13382,37 @@ gtk_tree_view_set_cursor_on_cell (GtkTreeView       *tree_view,
  }
  
  /**
@@ -81,5 +81,5 @@ index cdd94f0..be20656 100644
  
  /* Layout information */
 -- 
-1.8.2.2
+1.8.2.3
 

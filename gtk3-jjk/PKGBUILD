@@ -3,8 +3,8 @@
 
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
-pkgver=3.8.1
-pkgrel=14
+pkgver=3.8.2
+pkgrel=1
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -19,8 +19,7 @@ backup=(etc/gtk-3.0/settings.ini)
 license=(LGPL)
 source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.tar.xz
         settings.ini
-        0001-Revert-window-restore-size-after-hide-show-properly.patch
-        0002-Fix-696882-window-would-revert-to-minimum-size-after.patch
+        0001-Workaround-bug-in-drawing-multiline-selection-label-.patch
         0001-cellrenderertext-Fix-possible-overwriting-of-markup.patch
         0001-treestore-Fix-segfault-when-reordering-non-existing-.patch
         0001-tooltip-Fix-possible-wrong-placement.patch
@@ -32,25 +31,25 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0002-treeview-Add-gtk_tree_view_set_row_class_column.patch
         0003-treeview-Add-GtkTreeBoxable.patch
         0001-Add-GTK_IS_JJK.patch)
-sha256sums=('f43e7c7d7a0e2417225509e88f67799534c69abfbb6f615fc7a895bf15e31255'
+sha256sums=('1ca80c9c15a1df95d74cefb8c2afe4682ba272a4b489106f04877be2a7aff297'
             'c214d3dcdcadda3d642112287524ab3e526ad592b70895c9f3e3733c23701621'
-            '669c39baeb765fb9a99daf0fb8d08358d1a2baf3f66f8c45c46ec9b75839f3e4'
-            '43eb3775c935052541300adf550f41fdf2a25e46e2612fdb357cf1ec1ebd02f4'
-            '1954fc7a24591776a482069c6b379916f78de83832f9e825cd8695640fc09d26'
-            'fcd6ce586910fba9fd670cac9540bb44fd25d904f040bf16c3254fe0748b22f3'
-            '19b8d290cda0fa3210f6db495e13998b53a345054e67c22e8af31c92507003c1'
-            '59757cc89469444956d029a510e394c86ea148f3e299b8bf5c2731ac8c4d7d9b'
-            '25aede6a172bd641e7775cd08cebc9b2e17cf82c8e2ab5e73714d2959d87851a'
-            'c3702906daf8b30e7a1a82ee20149614aa750e80796d9b704d2f2514eae847cb'
-            '080b20d27c2320fb54aacf5dbaf580b6d541ff5b16640bd35bbdce955f96550b'
-            'df293aa33061b7f9504ba549ecd74f5148cf8faa99dda7b9f8ee220783b5a9a1'
-            '0b52498ed2487a02516521fb0340f14ea2987919b18f3a5647bca21b76d684fd'
-            'b5991e5b215f14d3ca75e0d7a9e296ace626232c9940ce10fbe63ffce1610ebe'
-            'e78abd8173761eb23e1733619fb332c20665b7be0d60243d0f3a1cbb07522f3c')
+            '44d2a91a1782af53c1092a63771512d55f5c43bd990ae28288ce9d9972ddaecc'
+            '031a032224743cda94e26684235683486d5d11e84eab9cd8149ba8937f322743'
+            '954a7f991f64c00a6ae9b4dca92e76d5ed6b50b19c7c40ea8ad14e39c01b3148'
+            '71ea9e2b6834b210a0b1ff8c44968d1d1188e7e09bfdef50fbc9ff819c05da20'
+            'dddc3b5c1a9b83f94cb5dfc4e734896f9239b0025f0085b7041fc7ded7ab0315'
+            'ac0e271d5a16a0ac7dab308e09788dbde594eeb589786e4ca3f8224c8be6666b'
+            '780d799d6541e1bb0e4fe6b80ce0cd28cba1fcd5f1106935ac85fc9d7e5fdca0'
+            'c6d231c75645e3655376c625767a0bef58f7b304d5125fc5092dc59bbe93d966'
+            'fec9f850bedac3f515808c1656519c27f0edebf10d14577e16cc37c04149b907'
+            '7b1e90d246e3c63c4e96bf92536141ba5782ee87916dbd8816b41e6766364186'
+            'e74ee15b245be17be3f35cc8acd14f336c2ed43abb284831a84cb37579b3bb0e'
+            '289c81547bb52da1e38411f9a48b19981b6e821edcba712ddee978825a2bb894')
 prepare() {
     cd "gtk+-$pkgver"
 
     patch -p1 -i ../0001-Add-GTK_IS_JJK.patch
+    patch -p1 -i ../0001-Workaround-bug-in-drawing-multiline-selection-label-.patch
     patch -p1 -i ../0001-gtkcellareabox-Fix-renderer-not-always-drawn-when-vi.patch
     patch -p1 -i ../0001-Add-gtk_tree_view_is_blank_at_pos_full.patch
     patch -p1 -i ../0001-treestore-Fix-segfault-when-reordering-non-existing-.patch
@@ -61,16 +60,6 @@ prepare() {
     patch -p1 -i ../0001-Allow-to-disable-full-row-highlight-on-selection.patch
     patch -p1 -i ../0002-treeview-Add-gtk_tree_view_set_row_class_column.patch
     patch -p1 -i ../0003-treeview-Add-GtkTreeBoxable.patch
-
-    # official fix is actually buggy, as seen in original report:
-    # https://bugzilla.gnome.org/show_bug.cgi?id=696882
-    # it also means a window with an expander will get its default size
-    # forcefully restore when toggling the expander, thus undoing any manual
-    # resize
-    # So as we wait to see how upstream fixes that, revert to our fix, which
-    # (seems to) just fix the original bug :)
-    patch -p1 -i ../0001-Revert-window-restore-size-after-hide-show-properly.patch
-    patch -p1 -i ../0002-Fix-696882-window-would-revert-to-minimum-size-after.patch
 }
 
 build() {
