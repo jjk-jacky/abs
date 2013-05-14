@@ -4,7 +4,7 @@
 
 _pkgname=tt-rss
 pkgname=$_pkgname-jjk
-pkgver=1.7.8
+pkgver=1.7.9
 pkgrel=1
 pkgdesc="Open source web-based news feed (RSS/Atom) aggregator"
 arch=('any')
@@ -15,16 +15,9 @@ optdepends=('mysql' 'postgresql' 'php-curl')
 options=('!strip')
 
 source=(http://github.com/gothfox/Tiny-Tiny-RSS/archive/$pkgver.tar.gz
-        tt-rss.service
-        0001-Remove-open_basedir-limitation.patch)
-md5sums=('efd7eec1629db379896fb7e74bba400e'
-         'a7da2abadf4bbbc51d78f34cf4b7d4d5'
-         '175de37c2b42cb78372adf795f5b5b35')
-
-build() {
-    cd "$srcdir/Tiny-Tiny-RSS-$pkgver"
-    patch -p1 -i ../0001-Remove-open_basedir-limitation.patch
-}
+        tt-rss.service)
+md5sums=('d4980f9646cf588ada3956ca9ffba754'
+         'a7da2abadf4bbbc51d78f34cf4b7d4d5')
 
 package() {
     cd "$srcdir/Tiny-Tiny-RSS-$pkgver"
@@ -41,4 +34,3 @@ package() {
     # make several directories writable by http user
     chown -R http:root ${_instdir}/{lock,feed-icons,cache}
 }
-
