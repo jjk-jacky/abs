@@ -35,6 +35,7 @@ build() {
     phpconfig="--srcdir=../${pkgbase}-${pkgver} \
         --config-cache \
         --prefix=/usr \
+        --sbindir=/usr/bin \
         --sysconfdir=/etc/php \
         --localstatedir=/var \
         --with-layout=GNU \
@@ -173,7 +174,7 @@ package_php-fpm-jjk() {
 	backup=('etc/php/php-fpm.conf')
 	install='php-fpm.install'
 
-	install -D -m755 ${srcdir}/build-fpm/sapi/fpm/php-fpm ${pkgdir}/usr/sbin/php-fpm
+	install -D -m755 ${srcdir}/build-fpm/sapi/fpm/php-fpm ${pkgdir}/usr/bin/php-fpm
 	install -D -m644 ${srcdir}/build-fpm/sapi/fpm/php-fpm.8 ${pkgdir}/usr/share/man/man8/php-fpm.8
 	install -D -m644 ${srcdir}/build-fpm/sapi/fpm/php-fpm.conf ${pkgdir}/etc/php/php-fpm.conf
 	install -D -m644 ${srcdir}/logrotate.d.php-fpm ${pkgdir}/etc/logrotate.d/php-fpm
