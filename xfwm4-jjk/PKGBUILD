@@ -5,7 +5,7 @@
 _pkgname=xfwm4
 pkgname=$_pkgname-jjk
 pkgver=4.10.1
-pkgrel=2
+pkgrel=3
 pkgdesc="Xfce window manager w/ hover effect for inactive windows & better placement"
 arch=('i686' 'x86_64')
 license=('GPL2')
@@ -19,15 +19,18 @@ conflicts=('xfwm4')
 install=${pkgname}.install
 source=(http://archive.xfce.org/src/xfce/${_pkgname}/4.10/${_pkgname}-${pkgver}.tar.bz2
         0001-Add-hover-effects-for-titlebar-s-buttons-of-inactive.patch
+        0001-Fix-possible-invalid-centering.patch
         0001-Rewrote-smartPlacement.patch)
 sha1sums=('cbfb1beee0e952f133ef851526823b472992de1d'
           'b0421e8147411083028e3dfe0df69ce959ac435d'
+          '5e15c73019b9a635f6fa65c2b0dcae9f26f34f25'
           '8c0bc28a8ae5d3e9d516c1a3b271eab094b0dd88')
 
 prepare() {
   cd ${srcdir}/${_pkgname}-${pkgver}
   patch -p1 -i ../0001-Add-hover-effects-for-titlebar-s-buttons-of-inactive.patch
   patch -p1 -i ../0001-Rewrote-smartPlacement.patch
+  patch -p1 -i ../0001-Fix-possible-invalid-centering.patch
 }
 
 build() {

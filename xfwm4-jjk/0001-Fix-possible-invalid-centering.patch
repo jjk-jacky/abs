@@ -1,0 +1,54 @@
+From 18145f20f581d31bec9742ccd49b4021bfd7718d Mon Sep 17 00:00:00 2001
+From: jjacky <i.am.jack.mail@gmail.com>
+Date: Sat, 18 May 2013 14:10:01 +0200
+Subject: [PATCH] Fix possible invalid centering
+
+When new windows are placed, clientKeepVisible() is used to possibly center the
+window, if it was determined that is was trying to be centered.
+
+That is, it is checked if its position would get it centered based on the whole
+screen, and then on each monitors. If so, it gets centered on the current
+monitor.
+
+Doing so uses a "margin of error" of 25 pixels (both horizontally and
+vertically). That is, if the position if what would get the window centered,
+more or less 25 pixels, it's a match.
+
+In my setup, with a main monitor (1440x900) and a second one (1280n1024) on the
+right, some windows to be placed in the top-right corner of the main monitor
+(e.g. some notifications) would get wrongly matched as trying to be centered,
+and therefore get (wrongly) centered.
+
+Lowering the margin of error to 5 pixels should keep re-centering windows that
+were centered on the whole screen, while not centering windows that shouldn't
+be.
+
+Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+---
+ src/placement.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/placement.c b/src/placement.c
+index 01f2590..97e41cf 100644
+--- a/src/placement.c
++++ b/src/placement.c
+@@ -477,14 +477,14 @@ clientKeepVisible (Client * c, gint n_monitors, GdkRectangle *monitor_rect)
+         diff_y = abs (c->size->y - ((c->screen_info->height - c->size->height) / 2));
+ 
+         monitor_nbr = 0;
+-        centered = ((diff_x < 25) && (diff_y < 25));
++        centered = ((diff_x < 5) && (diff_y < 5));
+ 
+         while ((!centered) && (monitor_nbr < n_monitors))
+         {
+             gdk_screen_get_monitor_geometry (screen_info->gscr, monitor_nbr, &rect);
+             diff_x = abs (c->size->x - ((rect.width - c->size->width) / 2));
+             diff_y = abs (c->size->y - ((rect.height - c->size->height) / 2));
+-            centered = ((diff_x < 25) && (diff_y < 25));
++            centered = ((diff_x < 5) && (diff_y < 5));
+             monitor_nbr++;
+         }
+     }
+-- 
+1.8.2.3
+
