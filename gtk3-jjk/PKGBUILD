@@ -4,7 +4,7 @@
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
 pkgver=3.8.2
-pkgrel=1
+pkgrel=2
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -30,6 +30,7 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0001-Allow-to-disable-full-row-highlight-on-selection.patch
         0002-treeview-Add-gtk_tree_view_set_row_class_column.patch
         0003-treeview-Add-GtkTreeBoxable.patch
+        0001-Add-gtk_tree_selection_invert_range.patch
         0001-Add-GTK_IS_JJK.patch)
 sha256sums=('1ca80c9c15a1df95d74cefb8c2afe4682ba272a4b489106f04877be2a7aff297'
             'c214d3dcdcadda3d642112287524ab3e526ad592b70895c9f3e3733c23701621'
@@ -44,6 +45,7 @@ sha256sums=('1ca80c9c15a1df95d74cefb8c2afe4682ba272a4b489106f04877be2a7aff297'
             'fec9f850bedac3f515808c1656519c27f0edebf10d14577e16cc37c04149b907'
             '7b1e90d246e3c63c4e96bf92536141ba5782ee87916dbd8816b41e6766364186'
             'e74ee15b245be17be3f35cc8acd14f336c2ed43abb284831a84cb37579b3bb0e'
+            '4b4cdc7bbcf3ba55f2ec87a80684d60e0045b473e1da46f4f07f7eff336e1974'
             '289c81547bb52da1e38411f9a48b19981b6e821edcba712ddee978825a2bb894')
 prepare() {
     cd "gtk+-$pkgver"
@@ -60,6 +62,7 @@ prepare() {
     patch -p1 -i ../0001-Allow-to-disable-full-row-highlight-on-selection.patch
     patch -p1 -i ../0002-treeview-Add-gtk_tree_view_set_row_class_column.patch
     patch -p1 -i ../0003-treeview-Add-GtkTreeBoxable.patch
+    patch -p1 -i ../0001-Add-gtk_tree_selection_invert_range.patch
 }
 
 build() {
