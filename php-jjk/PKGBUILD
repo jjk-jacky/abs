@@ -7,7 +7,7 @@ pkgname=('php-jjk'
          'php-pear-jjk'
          'php-mcrypt-jjk')
 pkgver=5.4.15
-pkgrel=1
+pkgrel=2
 arch=('i686' 'x86_64')
 license=('PHP')
 url='http://www.php.net'
@@ -20,7 +20,7 @@ md5sums=('145ea5e845e910443ff1eddb3dbcf56a'
          '44c1bb1df346b3b9d3e092c7df9a37d0'
          '825e580dd5708d959b50944afa1b12b6'
          '96db55a01e6087cf9d90c9dd92c80921'
-         'f8b206cb8fecb05cb1ded8bee45633ff'
+         '4af4d94f3db58437eef8db87d16a5fab'
          'c60343df74f8e1afb13b084d5c0e47ed')
 
 prepare() {
