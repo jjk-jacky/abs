@@ -2,9 +2,9 @@
 # Contributor: Tom Gundersen <teg@jklm.no>
 
 pkgbase=systemd
-pkgname=('systemd-jjk' 'systemd-sysvcompat-jjk')
+pkgname=systemd-jjk
 pkgver=204
-pkgrel=2
+pkgrel=3
 arch=('i686' 'x86_64')
 url="http://www.freedesktop.org/wiki/Software/systemd"
 license=('GPL2' 'LGPL2.1' 'MIT')
@@ -16,25 +16,22 @@ source=("http://www.freedesktop.org/software/$pkgbase/$pkgbase-$pkgver.tar.xz"
         'initcpio-hook-udev'
         'initcpio-install-udev'
         'initcpio-install-timestamp'
-        'use-split-usr-path.patch'
         '0001-swap-fix-swap-behaviour-with-symlinks-2.patch'
         '0002-Make-swap-unit-follow-device-node-when-swap-is-off.patch'
         '0001-utmp-turn-systemd-update-utmp-shutdown.service-into-.patch'
+        '0001-journald-DO-recalculate-the-ACL-mask-but-only-if-it-.patch'
         )
 md5sums=('a07619bb19f48164fbf0761d12fd39a8'
          'e99e9189aa2f6084ac28b8ddf605aeb8'
          'fb37e34ea006c79be1c54cbb0f803414'
          'df69615503ad293c9ddf9d8b7755282d'
-         'fd5b5f04ab0a847373d357555129d4c0'
          '18feca3db46bcfddb9cc253fee083521'
          'd6dd6cdca958e852b27e17e671b57eb2'
-         '7f39f9fde1ff7b48293ed1e3d0a6c213')
+         '7f39f9fde1ff7b48293ed1e3d0a6c213'
+         '66e3162856ded8eb7dc7383405c6e0d6')
 
 prepare() {
   cd "$pkgbase-$pkgver"
-
-  # hang onto this until we do the /{,s}bin merge
-  patch -Np1 <"$srcdir/use-split-usr-path.patch"
 
   # so swap can be stopped properly (e.g. on reboot)
   patch -Np1 <"$srcdir/0001-swap-fix-swap-behaviour-with-symlinks-2.patch"
@@ -43,6 +40,7 @@ prepare() {
   patch -Np1 <"$srcdir/0002-Make-swap-unit-follow-device-node-when-swap-is-off.patch"
 
   patch -Np1 <"$srcdir/0001-utmp-turn-systemd-update-utmp-shutdown.service-into-.patch"
+  patch -Np1 <"$srcdir/0001-journald-DO-recalculate-the-ACL-mask-but-only-if-it-.patch"
   autoreconf
 }
 
@@ -69,7 +67,7 @@ build() {
 #  make -C "$pkgbase-$pkgver" check
 #}
 
-package_systemd-jjk() {
+package() {
   pkgdesc="system and service manager"
   depends=('acl' 'bash' 'dbus-core' 'glib2' 'kbd' 'kmod' 'hwids' 'libcap' 'libgcrypt'
            'pam' 'util-linux' 'xz')
@@ -111,10 +109,6 @@ package_systemd-jjk() {
   # get rid of RPM macros
   rm -r "$pkgdir/etc/rpm"
 
-  # the path to udevadm is hardcoded in some places
-  install -d "$pkgdir/sbin"
-  ln -s ../usr/bin/udevadm "$pkgdir/sbin/udevadm"
-
   # add back tmpfiles.d/legacy.conf
   install -m644 "systemd-$pkgver/tmpfiles.d/legacy.conf" "$pkgdir/usr/lib/tmpfiles.d"
 
@@ -136,23 +130,6 @@ package_systemd-jjk() {
 
   # create /var/log/journal. users can control the actual log destination via journald.conf
   install -dm755 "$pkgdir/var/log/journal"
-}
-
-package_systemd-sysvcompat-jjk() {
-  pkgdesc="sysvinit compat for systemd"
-  groups=('base')
-  provides=('systemd-sysvcompat')
-  conflicts=('systemd-sysvcompat' 'sysvinit')
-  depends=('sysvinit-tools' 'systemd')
-
-  mv "$srcdir/_sysvcompat"/* "$pkgdir"
-
-  install -dm755 "$pkgdir/sbin"
-  for tool in runlevel reboot shutdown poweroff halt telinit; do
-    ln -s '/usr/bin/systemctl' "$pkgdir/sbin/$tool"
-  done
-
-  ln -s '../usr/lib/systemd/systemd' "$pkgdir/sbin/init"
 }
 
 # vim: ft=sh syn=sh et
