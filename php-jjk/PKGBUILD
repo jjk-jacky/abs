@@ -6,8 +6,8 @@ pkgname=('php-jjk'
          'php-fpm-jjk'
          'php-pear-jjk'
          'php-mcrypt-jjk')
-pkgver=5.4.15
-pkgrel=2
+pkgver=5.4.16
+pkgrel=1
 arch=('i686' 'x86_64')
 license=('PHP')
 url='http://www.php.net'
@@ -16,11 +16,11 @@ makedepends=('file' 'libmcrypt' 'libltdl' 'libpng' 'libjpeg'
 source=("http://www.php.net/distributions/${pkgbase}-${pkgver}.tar.bz2"
         'php.ini.patch' 'php-fpm.conf.in.patch'
         'logrotate.d.php-fpm' 'php-fpm.service' 'php-fpm.tmpfiles')
-md5sums=('145ea5e845e910443ff1eddb3dbcf56a'
+md5sums=('3d2c694d28861d707b2622c3cc941cff'
          '44c1bb1df346b3b9d3e092c7df9a37d0'
          '825e580dd5708d959b50944afa1b12b6'
          '96db55a01e6087cf9d90c9dd92c80921'
-         '4af4d94f3db58437eef8db87d16a5fab'
+         'cc2940f5312ba42e7aa1ddfab74b84c4'
          'c60343df74f8e1afb13b084d5c0e47ed')
 
 prepare() {
@@ -65,6 +65,7 @@ build() {
         --with-bz2=shared \
         --with-curl=shared \
         --with-db4=/usr \
+        --with-fpm-systemd \
         --with-freetype-dir=/usr \
         --with-gd=shared \
         --with-gdbm \
