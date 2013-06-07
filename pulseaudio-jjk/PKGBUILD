@@ -8,19 +8,18 @@ _pkgbase=pulseaudio
 pkgbase=$_pkgbase-jjk
 pkgname=(pulseaudio-jjk libpulse-jjk)
 pkgdesc="A featureful, general-purpose sound server"
-pkgver=3.0
-pkgrel=2
+pkgver=4.0
+pkgrel=1
 arch=(i686 x86_64)
 url="http://www.freedesktop.org/wiki/Software/PulseAudio"
 license=(GPL LGPL)
 makedepends=(libasyncns libcap attr libxtst libsm libsamplerate libtool rtkit
-             gdbm udev dbus-core avahi bluez gconf intltool
-             openssl orc json-c gtk2
-             systemd)
+             gdbm systemd dbus avahi gconf intltool
+             openssl orc json-c gtk3)
 options=(!emptydirs !libtool)
 source=(http://freedesktop.org/software/$_pkgbase/releases/$_pkgbase-$pkgver.tar.xz
         pulseaudio.xinit)
-sha256sums=('c90bfda29605942d08e3e218ef10e3c660506a06651a616bfbb6a6df8392836d'
+sha256sums=('35ceb36bb1822fe54f0b5e4863b4f486769fdfb8ff2111f01fd8778928f9cdae'
             'a0db6cdc74fbf0ca10e2343c08e1e228f109221c6c0ff91b0bfade5c4bdf03cf')
 
 build() {
@@ -51,10 +50,9 @@ build() {
 }
 
 package_pulseaudio-jjk() {
-  depends=("libpulse=$pkgver-$pkgrel" rtkit libltdl gdbm udev orc
-           libsamplerate systemd)
+  depends=("libpulse=$pkgver-$pkgrel" rtkit libltdl gdbm systemd orc
+           libsamplerate)
   optdepends=('avahi: zeroconf support'
-              'bluez: bluetooth support'
               'gconf: configuration through gconf (paprefs)'
               'openssl: RAOP support')
   backup=(etc/pulse/{daemon.conf,default.pa,system.pa})
@@ -84,6 +82,9 @@ package_pulseaudio-jjk() {
   install -Dm755 "$srcdir/pulseaudio.xinit" "$pkgdir/etc/X11/xinit/xinitrc.d/pulseaudio"
 
   rm "$pkgdir/etc/dbus-1/system.d/pulseaudio-system.conf"
+
+  install -Dm644 shell-completion/pulseaudio-zsh-completion.zsh \
+      "$pkgdir/usr/share/zsh/site-functions/_pulseaudio"
 
 ### Split libpulse
 
@@ -115,7 +116,7 @@ package_pulseaudio-jjk() {
 
 package_libpulse-jjk() {
   pkgdesc="$pkgdesc (client library)"
-  depends=(dbus-core libasyncns libcap libxtst libsm libsndfile json-c)
+  depends=(dbus libasyncns libcap libxtst libsm libsndfile json-c)
   optdepends=('alsa-plugins: ALSA support'
               'avahi: zeroconf support')
   backup=(etc/pulse/client.conf)
