@@ -1,4 +1,4 @@
-From 26bd6b8690b4b3743da6c9b6681030a8e84d2940 Mon Sep 17 00:00:00 2001
+From 90b4e0b2e55a372f4acd902bde9e1423808411ab Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Fri, 10 May 2013 19:20:03 +0200
 Subject: [PATCH 3/3] treeview: Add GtkTreeBoxable
@@ -32,7 +32,7 @@ Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
  create mode 100644 gtk/gtktreeboxable.h
 
 diff --git a/gtk/Makefile.am b/gtk/Makefile.am
-index 90487fb..56123ab 100644
+index 7b106a4..81a1a8a 100644
 --- a/gtk/Makefile.am
 +++ b/gtk/Makefile.am
 @@ -364,6 +364,7 @@ gtk_public_h_sources = 		\
@@ -1152,5 +1152,5 @@ index a04c7ca..7101f31 100644
        flags = gtk_tree_model_get_flags (tree_view->priv->model);
        if ((flags & GTK_TREE_MODEL_LIST_ONLY) == GTK_TREE_MODEL_LIST_ONLY)
 -- 
-1.8.2.3
+1.8.3
 

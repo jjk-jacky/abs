@@ -1,4 +1,4 @@
-From 64d2b863ba1ff4c8727af3685a2fb40e837b7a5d Mon Sep 17 00:00:00 2001
+From 168e3bff49940fb3014c7d8367e6134ff789bd95 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Tue, 7 May 2013 00:28:40 +0200
 Subject: [PATCH 2/3] treeview: Add gtk_tree_view_set_row_class_column
@@ -167,5 +167,5 @@ index 1baa505..ba8216e 100644
  								    GtkTreeViewColumnDropFunc  func,
  								    gpointer                   user_data,
 -- 
-1.8.2.3
+1.8.3
 
