@@ -1,0 +1,32 @@
+From 3c2b771122a52c301377d796f02b45502b92f1da Mon Sep 17 00:00:00 2001
+From: jjacky <i.am.jack.mail@gmail.com>
+Date: Sat, 15 Jun 2013 22:34:02 +0200
+Subject: [PATCH] Fix scrolling menu not working properly; Bug #701077
+
+The fix for #695120 introduced a new bug, where long menus didn't properly get
+scrolling, as it removed not only the call to gtk_widget_size_allocate() but
+also gtk_widget_queue_resize().
+
+Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+---
+ gtk/gtkmenu.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/gtk/gtkmenu.c b/gtk/gtkmenu.c
+index 1103ce2..3e89505 100644
+--- a/gtk/gtkmenu.c
++++ b/gtk/gtkmenu.c
+@@ -1683,6 +1683,10 @@ gtk_menu_popup_for_device (GtkMenu             *menu,
+    */
+   gtk_menu_position (menu, TRUE);
+ 
++  /* Ensure scrolling is done properly -- Fix #701077, introduced by #695120 */
++  if (!gtk_widget_get_realized (GTK_WIDGET (menu)))
++    gtk_widget_queue_resize (GTK_WIDGET (menu));
++
+   gtk_menu_scroll_to (menu, priv->scroll_offset);
+ 
+   /* if no item is selected, select the first one */
+-- 
+1.8.3.1
+
