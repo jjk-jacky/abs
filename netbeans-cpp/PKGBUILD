@@ -16,6 +16,7 @@ conflicts=('netbeans')
 replaces=('netbeans-cpp-beta')
 options=('!strip')
 install=netbeans.install
+backup=('usr/share/netbeans/etc/netbeans.conf')
 source=(http://dlc.sun.com.edgesuite.net/$_pkgname/$pkgver/final/zip/$_pkgname-$pkgver-$_subpkgver-cpp.zip
 	netbeans.desktop)
 md5sums=('5fa767b26cb486ab5610b9bf3da39594'
