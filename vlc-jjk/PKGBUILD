@@ -5,7 +5,7 @@
 
 _pkgname=vlc
 pkgname=$_pkgname-jjk
-pkgver=2.0.8
+pkgver=2.0.8.a
 pkgrel=1
 pkgdesc="A multi-platform MPEG, VCD/DVD, and DivX player"
 arch=('i686' 'x86_64')
@@ -55,13 +55,13 @@ conflicts=('vlc-plugin' 'vlc')
 replaces=('vlc-plugin' 'vlc')
 options=('!libtool' '!emptydirs')
 install=vlc.install
-source=("http://download.videolan.org/pub/videolan/${_pkgname}/${pkgver}/${_pkgname}-${pkgver}.tar.xz"
+source=("http://download.videolan.org/pub/videolan/${_pkgname}/${pkgver/.a}/${_pkgname}-${pkgver/.a/a}.tar.xz"
         'inhibit.c')
-md5sums=('6445eb55aa087f30abe27423535e1ab8'
+md5sums=('e5000677181406d026ffe448633d1ca0'
          '924afaeb7ba8d2f486a5536bf512d294')
 
 build() {
-  cd "${srcdir}/${_pkgname}-${pkgver}"
+  cd "${srcdir}/${_pkgname}-${pkgver/.a}"
 
   cp -f "${srcdir}/inhibit.c" modules/misc/
   sed -i -e 's:truetype/freefont:TTF:g' modules/text_renderer/freetype.c
@@ -79,12 +79,12 @@ build() {
 }
 
 package() {
-  cd "${srcdir}/${_pkgname}-${pkgver}"
+  cd "${srcdir}/${_pkgname}-${pkgver/.a}"
 
   make DESTDIR="${pkgdir}" install
 
   for res in 16 32 48 128; do
-    install -D -m644 "${srcdir}/vlc-${pkgver}/share/icons/${res}x${res}/vlc.png" \
+    install -D -m644 "${srcdir}/vlc-${pkgver/.a}/share/icons/${res}x${res}/vlc.png" \
         "${pkgdir}/usr/share/icons/hicolor/${res}x${res}/apps/vlc.png"
   done
 }
