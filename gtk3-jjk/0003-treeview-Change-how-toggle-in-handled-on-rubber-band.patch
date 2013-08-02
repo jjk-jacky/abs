@@ -1,0 +1,76 @@
+From 97c53193421cf361814ff20908e26a5efaba4577 Mon Sep 17 00:00:00 2001
+From: jjacky <i.am.jack.mail@gmail.com>
+Date: Fri, 2 Aug 2013 17:26:12 +0200
+Subject: [PATCH 3/3] treeview: Change how toggle in handled on rubber banding
+
+Instead of ignoring the first row, assuming it was handled (selecting/toggling
+selection) on button-press, we "undo" the toggle on rubber-band-active.
+
+This results in the same effect for default operations, but allows rubber
+banding operations done manually (i.e. using gtk_tree_view_start_rubber_banding)
+to behave correctly/as expected as well.
+
+Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+---
+ gtk/gtktreeview.c | 24 +++++++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
+
+diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
+index 87a3123..6dd5b7f 100644
+--- a/gtk/gtktreeview.c
++++ b/gtk/gtktreeview.c
+@@ -795,6 +795,7 @@ static void     column_sizing_notify                         (GObject
+ static void     update_prelight                              (GtkTreeView        *tree_view,
+                                                               int                 x,
+                                                               int                 y);
++static void     gtk_tree_view_rubber_banding_active          (GtkTreeView *tree_view);
+ 
+ static inline gint gtk_tree_view_get_effective_header_height (GtkTreeView *tree_view);
+ 
+@@ -976,6 +977,7 @@ gtk_tree_view_class_init (GtkTreeViewClass *class)
+   class->expand_collapse_cursor_row = gtk_tree_view_real_expand_collapse_cursor_row;
+   class->select_cursor_parent = gtk_tree_view_real_select_cursor_parent;
+   class->start_interactive_search = gtk_tree_view_start_interactive_search;
++  class->rubber_banding_active = gtk_tree_view_rubber_banding_active;
+ 
+   /* Properties */
+ 
+@@ -4177,9 +4179,6 @@ gtk_tree_view_update_rubber_band_selection_range (GtkTreeView *tree_view,
+ 						 gboolean     skip_start,
+ 						 gboolean     skip_end)
+ {
+-  if (start_node == end_node)
+-    return;
+-
+   /* We skip the first node and jump inside the loop */
+   if (skip_start)
+     goto skip_first;
+@@ -4458,6 +4457,25 @@ gtk_tree_view_paint_rubber_band (GtkTreeView  *tree_view,
+   cairo_restore (cr);
+ }
+ 
++static void
++gtk_tree_view_rubber_banding_active (GtkTreeView *tree_view)
++{
++  GtkTreeViewPrivate *priv = tree_view->priv;
++
++  if (priv->rubber_band_modify && priv->rubber_band_start_node)
++    {
++      /* Toggle the selection state -- this is required to "undo" the toggling
++       * done on button-press: on press, a toggle was done. Another toggle was
++       * done when handling the first motion (right before this), which
++       * therefore had the undesired effect of undoing the toggle on press,
++       * which we're undoing now to get the expected behavior. */
++      if (GTK_RBNODE_FLAG_SET (priv->rubber_band_start_node, GTK_RBNODE_IS_SELECTED))
++        GTK_RBNODE_UNSET_FLAG (priv->rubber_band_start_node, GTK_RBNODE_IS_SELECTED);
++      else
++        GTK_RBNODE_SET_FLAG (priv->rubber_band_start_node, GTK_RBNODE_IS_SELECTED);
++    }
++}
++
+ static gboolean
+ gtk_tree_view_motion_bin_window (GtkWidget      *widget,
+ 				 GdkEventMotion *event)
+-- 
+1.8.3.4
+
