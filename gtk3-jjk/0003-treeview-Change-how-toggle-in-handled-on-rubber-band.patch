@@ -1,4 +1,4 @@
-From 97c53193421cf361814ff20908e26a5efaba4577 Mon Sep 17 00:00:00 2001
+From b19e3076c44e1e973d4b8291655b0df18763cfd3 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Fri, 2 Aug 2013 17:26:12 +0200
 Subject: [PATCH 3/3] treeview: Change how toggle in handled on rubber banding
@@ -13,7 +13,8 @@ to behave correctly/as expected as well.
 Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
 ---
  gtk/gtktreeview.c | 24 +++++++++++++++++++++---
- 1 file changed, 21 insertions(+), 3 deletions(-)
+ gtk/gtktreeview.h |  1 -
+ 2 files changed, 21 insertions(+), 4 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
 index 87a3123..6dd5b7f 100644
@@ -71,6 +72,18 @@ index 87a3123..6dd5b7f 100644
  static gboolean
  gtk_tree_view_motion_bin_window (GtkWidget      *widget,
  				 GdkEventMotion *event)
+diff --git a/gtk/gtktreeview.h b/gtk/gtktreeview.h
+index 794e34d..8fd3039 100644
+--- a/gtk/gtktreeview.h
++++ b/gtk/gtktreeview.h
+@@ -119,7 +119,6 @@ struct _GtkTreeViewClass
+   void (*_gtk_reserved5) (void);
+   void (*_gtk_reserved6) (void);
+   void (*_gtk_reserved7) (void);
+-  void (*_gtk_reserved8) (void);
+ };
+ 
+ /**
 -- 
 1.8.3.4
 
