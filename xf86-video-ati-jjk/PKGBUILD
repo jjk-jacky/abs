@@ -4,7 +4,7 @@
 
 _pkgname=xf86-video-ati
 pkgname=$_pkgname-jjk
-pkgver=7.1.0
+pkgver=7.2.0
 pkgrel=1
 pkgdesc="X.org ati video driver"
 arch=('i686' 'x86_64')
@@ -18,7 +18,7 @@ provides=($_pkgname)
 groups=('xorg-drivers' 'xorg')
 options=('!libtool')
 source=(${url}/releases/individual/driver/${_pkgname}-${pkgver}.tar.bz2)
-sha256sums=('c8ae44051fcb331625217f98c09a3aa69f493052b69d62c03f41fed0bfe610cd')
+sha256sums=('f30f5efdc8d7d18d06eda7ef2f91a8b7290f1cfbf6ff26362cd47ab8969daec4')
 
 build() {
   cd ${srcdir}/${_pkgname}-${pkgver}
