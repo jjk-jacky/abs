@@ -1,16 +1,16 @@
---- Zen-blua/gtk-2.0/gtk-widgets.rc	2013-04-01 18:28:59.000000000 +0200
-+++ Zen-blua/gtk-2.0/gtk-widgets.rc.new	2013-04-22 16:25:33.612222514 +0200
-@@ -496,9 +496,10 @@
+--- Zen-blua/gtk-2.0/xfce.rc	2013-08-10 13:23:29.000000000 +0200
++++ Zen-blua/gtk-2.0/xfce.rc.new	2013-08-12 10:41:12.628472117 +0200
+@@ -9,9 +9,10 @@
  
- style "titlebar" = "default"
+ style "titlebar-adaptive" = "default"
  {
--	fg[SELECTED]		= mix(0.26, @bg_color, @selected_text_color)
--	fg[INSENSITIVE]		= mix(0.5, @bg_color, @fg_color)
 -	bg[SELECTED]		= shade(0.9, @selected_bg_color)
-+    bg[SELECTED]      = "#222c89"
-+    fg[SELECTED]      = "#ffffff"
-+    bg[INSENSITIVE]   = "#d4d4a6"
-+    fg[INSENSITIVE]   = "#888a85"
+-	fg[SELECTED]        = mix(0.26, @bg_color, @selected_text_color)
+-	fg[INSENSITIVE]		= mix(0.5, @bg_color, @fg_color)
++	bg[SELECTED]		= "#222c89"
++	fg[SELECTED]        = "#ffffff"
++	bg[INSENSITIVE]		= "#d4d4a6"
++	fg[INSENSITIVE]		= "#888a85"
  }
  
- widget "xfwm"						style "titlebar"
+ style "titlebar-dark" = "default"
