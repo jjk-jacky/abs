@@ -4,13 +4,13 @@
 
 _pkgname=cairo
 pkgname=$_pkgname-jjk
-pkgver=1.12.14
-pkgrel=2
+pkgver=1.12.16
+pkgrel=1
 pkgdesc="Cairo vector graphics library"
 arch=(i686 x86_64)
 license=('LGPL' 'MPL')
 url="http://cairographics.org/"
-makedepends=('mesa>=9.1' 'libgl>=9.1' 'librsvg' 'gtk2' 'poppler-glib' 'libspectre' 'gtk-doc'
+makedepends=('mesa' 'libgl' 'librsvg' 'gtk2' 'poppler-glib' 'libspectre' 'gtk-doc'
              'valgrind')
 depends=('libpng' 'libxrender' 'libxext' 'fontconfig' 'pixman>=0.28.0' 'glib2' 'libgl' 'sh')
 provides=('cairo-xcb' 'cairo')
@@ -18,7 +18,7 @@ replaces=('cairo-xcb' 'cairo')
 conflicts=('cairo')
 options=('!libtool')
 source=(http://cairographics.org/releases/$_pkgname-$pkgver.tar.xz)
-sha1sums=('9106ab09b2e7b9f90521b18dd4a7e9577eba6c15')
+sha1sums=('4f6e337d5d3edd7ea79d1426f575331552b003ec')
 
 build() {
   cd "$srcdir/$_pkgname-$pkgver"
