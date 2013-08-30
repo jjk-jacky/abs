@@ -1,8 +1,7 @@
-From 8e2e216630069c42e4c0aeaad0e04218343db421 Mon Sep 17 00:00:00 2001
+From 1696fccaf58c71fab83a02016d6ffb25d2415f6f Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Thu, 7 Mar 2013 15:03:34 +0100
 Subject: [PATCH] Add GTK_IS_JJK
-
 
 Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
 ---
@@ -22,5 +21,5 @@ index e95494f..4bc8907 100644
  #include <gdk/gdk.h>
  #include <gtk/gtkaboutdialog.h>
 -- 
-1.8.2.3
+1.8.4
 

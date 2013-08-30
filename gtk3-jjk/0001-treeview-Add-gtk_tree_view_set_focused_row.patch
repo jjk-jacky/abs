@@ -1,4 +1,4 @@
-From 1b271d0d92ec90dde4006ab6dd0fcf92a9d3c00c Mon Sep 17 00:00:00 2001
+From 41df3a00b2ce2a7962bc9c072f30ab51277629e4 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Sun, 5 May 2013 13:03:35 +0200
 Subject: [PATCH] treeview: Add gtk_tree_view_set_focused_row()
@@ -82,5 +82,5 @@ index cdd94f0..be20656 100644
  
  /* Layout information */
 -- 
-1.8.3
+1.8.4
 

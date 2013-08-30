@@ -1,4 +1,4 @@
-From b19e3076c44e1e973d4b8291655b0df18763cfd3 Mon Sep 17 00:00:00 2001
+From 31cf298e34d74332a29ee936277c703b86166e44 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Fri, 2 Aug 2013 17:26:12 +0200
 Subject: [PATCH 3/3] treeview: Change how toggle in handled on rubber banding
@@ -85,5 +85,5 @@ index 794e34d..8fd3039 100644
  
  /**
 -- 
-1.8.3.4
+1.8.4
 

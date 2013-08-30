@@ -1,4 +1,4 @@
-From 02966675a56efc3d869785e1a153070d332f7e09 Mon Sep 17 00:00:00 2001
+From 7c64e7be03aec627ea21ae6001447d7998fb6f00 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Wed, 24 Apr 2013 14:17:42 +0200
 Subject: [PATCH] tooltip: Fix possible wrong placement
@@ -29,5 +29,5 @@ index 0914641..c2603a7 100644
    tooltip->tooltip_widget = new_tooltip_widget;
  
 -- 
-1.8.2.3
+1.8.4
 

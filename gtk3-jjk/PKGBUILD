@@ -3,8 +3,8 @@
 
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
-pkgver=3.8.2
-pkgrel=12
+pkgver=3.8.4
+pkgrel=1
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -19,7 +19,6 @@ backup=(etc/gtk-3.0/settings.ini)
 license=(LGPL)
 source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.tar.xz
         settings.ini
-        0001-Workaround-bug-in-drawing-multiline-selection-label-.patch
         0001-cellrenderertext-Fix-possible-overwriting-of-markup.patch
         0001-treestore-Fix-segfault-when-reordering-non-existing-.patch
         0001-tooltip-Fix-possible-wrong-placement.patch
@@ -37,31 +36,29 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0002-treeview-Add-gtk_tree_view_start_rubber_banding.patch
         0003-treeview-Change-how-toggle-in-handled-on-rubber-band.patch
         0001-Add-GTK_IS_JJK.patch)
-sha256sums=('1ca80c9c15a1df95d74cefb8c2afe4682ba272a4b489106f04877be2a7aff297'
+sha256sums=('b08360167702299e91b3435a4ce6bae41dd26d2794e898632f12dd091b0692e2'
             'c214d3dcdcadda3d642112287524ab3e526ad592b70895c9f3e3733c23701621'
-            '44d2a91a1782af53c1092a63771512d55f5c43bd990ae28288ce9d9972ddaecc'
-            '031a032224743cda94e26684235683486d5d11e84eab9cd8149ba8937f322743'
-            '954a7f991f64c00a6ae9b4dca92e76d5ed6b50b19c7c40ea8ad14e39c01b3148'
-            '71ea9e2b6834b210a0b1ff8c44968d1d1188e7e09bfdef50fbc9ff819c05da20'
-            'dddc3b5c1a9b83f94cb5dfc4e734896f9239b0025f0085b7041fc7ded7ab0315'
-            'ac0e271d5a16a0ac7dab308e09788dbde594eeb589786e4ca3f8224c8be6666b'
-            '780d799d6541e1bb0e4fe6b80ce0cd28cba1fcd5f1106935ac85fc9d7e5fdca0'
-            'c4a76a9bde219858b5e1f286ee9fce0f7a66eb931505752cb35970c66609a231'
-            '5fb93e3c4505865037ba46602fd79403cdc809f44dddcca8d225d6db0339318c'
-            '493825e16cd0e06ed9f482fc1e905155e24ec7e39bf2753727e8c0fd9cc90d93'
-            'f61aca4ec214a37063a10d671a7f5b863ca02bc107ba9cdb7ac2076f1458d4a0'
-            '4b4cdc7bbcf3ba55f2ec87a80684d60e0045b473e1da46f4f07f7eff336e1974'
-            'd0066f63d2fc0932931811df3cfa8e0d39354d50269311bcdad832f7eabbe5f3'
-            '474e6cdbe7f4eca28d228dc886ac3798f6441cfe3c334e9e6125ac2465557554'
-            'cf8b4e7b91f1d9fbdbedef2800799a47db6970d96eb4d9fff4bf374fb53bfe57'
-            'abedfc2edd56d4f9a2715b7ffa00df91035c809951d50f8ab61428d6377b72d4'
-            '7efeca50b528efab71769c6820a08b6c34198fbd48c1e95ad3f32429357c63ea'
-            '289c81547bb52da1e38411f9a48b19981b6e821edcba712ddee978825a2bb894')
+            'eeafa8688b74f40d886ba2c66fb1e20352831353e92901b03e87a7f3379c8a44'
+            '04a40393c98ebaf183b379a7098f3530308f67c89d2ddce43501e0fc6384c46c'
+            'ce6ffb6d37cb73eb294b8c0a4631a53113e1e664da30b375a66792f24bce8ade'
+            'b8079f0f3f1cd34894e785013244d652dcd2eca63622c30fac0828ba03f7a17b'
+            'c8f5017de9c651db85144f58a2ccb3eefdc0c60fb17721ce6963428ed0c9efcb'
+            '9bbdc895699c2499f1bf1ab9a01dc56ff89707fff7e7f25be23b90d01c545776'
+            '6e41b387fd496ed5cf7d2b3222832cae58374e1fd90431947e942b081e89e669'
+            '70f3b43c1f7acac083028f8e1ca5426c4d95a1008f091d8e3713ff3f3f4a506f'
+            'bbe8db16ae5ca4333c9ef4c777569a1f0df9324da3f6ffd88f8caa3f6caa2636'
+            '64679fcefa6fc3777d31d228b516fae878bb13c17a695c2798fa050bc1e7ddce'
+            '9a47bead9905d60e34f9d593d9ad85cfec90850c30aa58a1b36fefb8a8b1b552'
+            '670e3c9c78f3444158c34adf555da9c7b09c3a49efeab295c4815d980f4260b6'
+            '2e0a3503a0c420eb0283c97adc56e188ac9e42530d79edb3dfaacc7dec2abef8'
+            'dd702e29440c8b3d19daa3a209d1df98c847ffd83efa59700f5a100917ac7b9f'
+            'b97b865d11609088f7a978050301cbb502c26b016996389742684323321f5dea'
+            '75fd328c66a3cf829cb2b7b5cffe065026e10baea7bb360e3ca7ee5434178bb4'
+            'cfabfbe4ee529eb95fca3f85d651db50b0d9d2b3c822064802bdef18325740ff')
 prepare() {
     cd "gtk+-$pkgver"
 
     patch -p1 -i ../0001-Add-GTK_IS_JJK.patch
-    patch -p1 -i ../0001-Workaround-bug-in-drawing-multiline-selection-label-.patch
     patch -p1 -i ../0001-gtkcellareabox-Fix-renderer-not-always-drawn-when-vi.patch
     patch -p1 -i ../0001-Add-gtk_tree_view_is_blank_at_pos_full.patch
     patch -p1 -i ../0001-treestore-Fix-segfault-when-reordering-non-existing-.patch

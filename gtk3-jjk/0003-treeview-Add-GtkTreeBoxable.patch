@@ -1,4 +1,4 @@
-From 90b4e0b2e55a372f4acd902bde9e1423808411ab Mon Sep 17 00:00:00 2001
+From f62f7ffc469fda09c0fe0f7093f03d49c054d24e Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Fri, 10 May 2013 19:20:03 +0200
 Subject: [PATCH 3/3] treeview: Add GtkTreeBoxable
@@ -1152,5 +1152,5 @@ index a04c7ca..7101f31 100644
        flags = gtk_tree_model_get_flags (tree_view->priv->model);
        if ((flags & GTK_TREE_MODEL_LIST_ONLY) == GTK_TREE_MODEL_LIST_ONLY)
 -- 
-1.8.3
+1.8.4
 

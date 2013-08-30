@@ -1,4 +1,4 @@
-From b313f36b362f3dd04c653c5f581875222125d9f4 Mon Sep 17 00:00:00 2001
+From ba42dd60070b59b546f9f73de75b99d0ddb3959b Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Thu, 7 Mar 2013 14:35:47 +0100
 Subject: [PATCH] Add gtk_tree_view_is_blank_at_pos_full()
@@ -269,5 +269,5 @@ index af2317c..8f44d49 100644
    gtk_cell_area_get_cell_allocation (priv->cell_area,
                                       priv->cell_area_context,
 -- 
-1.8.2.3
+1.8.4
 
