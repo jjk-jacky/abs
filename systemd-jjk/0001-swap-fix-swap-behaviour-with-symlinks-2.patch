@@ -1,20 +1,20 @@
-From 8ef8208664079c7b35f6cb0aa1cef176596778ef Mon Sep 17 00:00:00 2001
+From 318205a98bc9e20c860e9bd5517984095c3a769d Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <i.am.jack.mail@gmail.com>
 Date: Sat, 13 Oct 2012 13:53:44 +0200
 Subject: [PATCH 1/2] swap: fix swap behaviour with symlinks (2)
 
 Make sure swap_add_one is only called once per unit also for symlinks
 
-Signed-off-by: Olivier Brunel <i.am.jack.mail@gmail.com>
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
  src/core/swap.c | 10 +++++++---
  1 file changed, 7 insertions(+), 3 deletions(-)
 
 diff --git a/src/core/swap.c b/src/core/swap.c
-index d503fe2..7771ca6 100644
+index 3950860..ffd1b6f 100644
 --- a/src/core/swap.c
 +++ b/src/core/swap.c
-@@ -451,9 +451,13 @@ static int swap_process_new_swap(Manager *m, const char *device, int prio, bool
+@@ -468,9 +468,13 @@ static int swap_process_new_swap(Manager *m, const char *device, int prio, bool
                                      st.st_rdev != udev_device_get_devnum(d))
                                          continue;
  
@@ -32,5 +32,5 @@ index d503fe2..7771ca6 100644
  
                  udev_device_unref(d);
 -- 
-1.8.2.2
+1.8.4
 
