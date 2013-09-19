@@ -1,0 +1,31 @@
+From a9b45a0c978c19f4e96e48d3cb606d2d53bc3810 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Thu, 19 Sep 2013 18:58:20 +0200
+Subject: [PATCH 3/3] Fix possible lack of status messages on shutdown/reboot
+
+Since 31a7eb86 the output on console can be disabled to avoid colliding with
+gettys. However, it could also lead to a lack of messages during
+shutdown/reboot.
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ src/core/job.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/core/job.c b/src/core/job.c
+index 85f77e8..fd22184 100644
+--- a/src/core/job.c
++++ b/src/core/job.c
+@@ -1100,6 +1100,9 @@ void job_shutdown_magic(Job *j) {
+         if (detect_container(NULL) > 0)
+                 return;
+ 
++        /* In case messages on console has been disabled on boot */
++        j->unit->manager->no_console_output = false;
++
+         asynchronous_sync();
+ }
+ 
+-- 
+1.8.4
+
