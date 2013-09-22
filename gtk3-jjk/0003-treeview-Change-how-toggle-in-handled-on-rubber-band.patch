@@ -1,4 +1,4 @@
-From 31cf298e34d74332a29ee936277c703b86166e44 Mon Sep 17 00:00:00 2001
+From 5b25d745e07d708afcf62d07af4c445308536bfa Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Fri, 2 Aug 2013 17:26:12 +0200
 Subject: [PATCH 3/3] treeview: Change how toggle in handled on rubber banding
@@ -10,14 +10,14 @@ This results in the same effect for default operations, but allows rubber
 banding operations done manually (i.e. using gtk_tree_view_start_rubber_banding)
 to behave correctly/as expected as well.
 
-Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
  gtk/gtktreeview.c | 24 +++++++++++++++++++++---
  gtk/gtktreeview.h |  1 -
  2 files changed, 21 insertions(+), 4 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 87a3123..6dd5b7f 100644
+index 816799b..09b3a6c 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -795,6 +795,7 @@ static void     column_sizing_notify                         (GObject
@@ -73,7 +73,7 @@ index 87a3123..6dd5b7f 100644
  gtk_tree_view_motion_bin_window (GtkWidget      *widget,
  				 GdkEventMotion *event)
 diff --git a/gtk/gtktreeview.h b/gtk/gtktreeview.h
-index 794e34d..8fd3039 100644
+index 3ea56ab..e24f1f1 100644
 --- a/gtk/gtktreeview.h
 +++ b/gtk/gtktreeview.h
 @@ -119,7 +119,6 @@ struct _GtkTreeViewClass

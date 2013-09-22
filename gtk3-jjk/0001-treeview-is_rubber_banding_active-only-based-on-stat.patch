@@ -9,7 +9,7 @@ status, looking at whether it's enabled or not isn't needed.
 This will also allow to have it disbaled, yet have a rubber banding operation
 being done, when triggered manually.
 
-Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
  gtk/gtktreeview.c | 3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
