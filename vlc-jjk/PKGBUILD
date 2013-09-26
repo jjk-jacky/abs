@@ -5,7 +5,7 @@
 
 _pkgname=vlc
 pkgname=$_pkgname-jjk
-pkgver=2.0.8.a
+pkgver=2.1.0
 pkgrel=1
 pkgdesc="A multi-platform MPEG, VCD/DVD, and DivX player"
 arch=('i686' 'x86_64')
@@ -57,7 +57,7 @@ options=('!libtool' '!emptydirs')
 install=vlc.install
 source=("http://download.videolan.org/pub/videolan/${_pkgname}/${pkgver/.a}/${_pkgname}-${pkgver/.a/a}.tar.xz"
         'inhibit.c')
-md5sums=('e5000677181406d026ffe448633d1ca0'
+md5sums=('8c77bda671821f5b9ede96b6816e2ade'
          '924afaeb7ba8d2f486a5536bf512d294')
 
 build() {
