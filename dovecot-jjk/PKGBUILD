@@ -6,7 +6,7 @@
 
 _pkgname=dovecot
 pkgname=$_pkgname-jjk
-pkgver=2.2.5
+pkgver=2.2.6
 pkgrel=1
 pkgdesc="An IMAP and POP3 server written with security primarily in mind"
 arch=('i686' 'x86_64')
@@ -20,7 +20,7 @@ options=('!libtool')
 install=$_pkgname.install
 source=(http://dovecot.org/releases/2.2/${_pkgname}-${pkgver}.tar.gz{,.sig}
         dovecot.tmpfilesd)
-md5sums=('0096442e2a1739b1b7997a833248a263'
+md5sums=('db65988ef2e6889dd8b49c132b21fc8f'
          'SKIP'
          '342a28251d40f983c98c0d1f1bf3d07d')
 
