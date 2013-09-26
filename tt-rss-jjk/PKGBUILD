@@ -4,7 +4,7 @@
 
 _pkgname=tt-rss
 pkgname=$_pkgname-jjk
-pkgver=1.9
+pkgver=1.10
 pkgrel=1
 pkgdesc="Open source web-based news feed (RSS/Atom) aggregator"
 arch=('any')
@@ -16,7 +16,7 @@ options=('!strip')
 
 source=(http://github.com/gothfox/Tiny-Tiny-RSS/archive/$pkgver.tar.gz
         tt-rss.service)
-md5sums=('8bacb2dfc2d4e149c6a9e4b8f89884ed'
+md5sums=('308eac9926c2eb81aac2ca88a24a6e7f'
          'a7da2abadf4bbbc51d78f34cf4b7d4d5')
 
 package() {
