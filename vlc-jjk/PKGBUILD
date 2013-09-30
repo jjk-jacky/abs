@@ -6,7 +6,7 @@
 _pkgname=vlc
 pkgname=$_pkgname-jjk
 pkgver=2.1.0
-pkgrel=1
+pkgrel=2
 pkgdesc="A multi-platform MPEG, VCD/DVD, and DivX player"
 arch=('i686' 'x86_64')
 url="http://www.videolan.org/vlc/"
@@ -56,15 +56,19 @@ replaces=('vlc-plugin' 'vlc')
 options=('!libtool' '!emptydirs')
 install=vlc.install
 source=("http://download.videolan.org/pub/videolan/${_pkgname}/${pkgver/.a}/${_pkgname}-${pkgver/.a/a}.tar.xz"
-        'inhibit.c')
+        '0001-Add-dpms-module-to-switch-it-off-while-playing.patch')
 md5sums=('8c77bda671821f5b9ede96b6816e2ade'
-         '924afaeb7ba8d2f486a5536bf512d294')
+         '79e9506f5032f90cfc198444f137fe3a')
+
+prepare() {
+  cd "${srcdir}/${_pkgname}-${pkgver/.a}"
+
+  sed -i -e 's:truetype/freefont:TTF:g' modules/text_renderer/freetype.c
+  patch -p1 -i ../0001-Add-dpms-module-to-switch-it-off-while-playing.patch
+}
 
 build() {
   cd "${srcdir}/${_pkgname}-${pkgver/.a}"
-
-  cp -f "${srcdir}/inhibit.c" modules/misc/
-  sed -i -e 's:truetype/freefont:TTF:g' modules/text_renderer/freetype.c
 
   ./configure --prefix=/usr \
               --sysconfdir=/etc \
