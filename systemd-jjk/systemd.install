@@ -37,24 +37,12 @@ post_install() {
 post_upgrade() {
   post_common
 
-  # getty@tty1.service is no longer enabled by default, but we don't want to break
-  # existing setups.
-  if [ "$(vercmp 183 "$2")" -eq 1 ]; then
-    # systemctl seems to be whiny on sysvinit. this will succeed unless something
-    # horrific happens, so just mask the error.
-    systemctl -q enable getty@.service || true
-  fi
+  if [ "$(vercmp 208-1 "$2")" -eq 1 ]; then
+    chown root:systemd-journal var/log/journal
+    chmod 2755 var/log/journal
 
-  if [ "$(vercmp 194-4 "$2")" -eq 1 ]; then
-    printf '==> journald now writes to /var/log/journal by default. This can be\n'
-    printf '    controlled with the Storage setting in /etc/systemd/journald.conf\n'
-  fi
-
-  # logind's protocol changed. kindly restart the daemon to avoid locking
-  # out further logins.
-  if [ "$(vercmp 195 "$2")" -eq 1 ]; then
-    if sd_booted; then
-      systemctl restart systemd-logind.service
+    if [ -e var/lib/random-seed ] && [ ! -e var/lib/systemd/random-seed ]; then
+      mv -T var/lib/random-seed var/lib/systemd/random-seed
     fi
   fi
 }

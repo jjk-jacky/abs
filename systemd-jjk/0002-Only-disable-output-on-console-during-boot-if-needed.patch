@@ -1,4 +1,4 @@
-From 00f313382fc18cbfee7c8b49f79cbf16af3abfc1 Mon Sep 17 00:00:00 2001
+From 8161e1e511ad6a59a6540f715d93ce8114c71a2a Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 19 Sep 2013 18:55:58 +0200
 Subject: [PATCH 2/3] Only disable output on console during boot if needed
@@ -11,10 +11,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/src/core/manager.c b/src/core/manager.c
-index 669af15..a48d711 100644
+index 58dacdc..ce32baf 100644
 --- a/src/core/manager.c
 +++ b/src/core/manager.c
-@@ -1757,7 +1757,7 @@ static int process_event(Manager *m, struct epoll_event *ev) {
+@@ -1761,7 +1761,7 @@ static int process_event(Manager *m, struct epoll_event *ev) {
          }
  
          case WATCH_IDLE_PIPE: {
