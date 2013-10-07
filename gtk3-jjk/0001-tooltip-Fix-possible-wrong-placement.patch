@@ -1,4 +1,4 @@
-From 7c64e7be03aec627ea21ae6001447d7998fb6f00 Mon Sep 17 00:00:00 2001
+From 000f7521d12fbd66487a5ecc2991dba3911be366 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Wed, 24 Apr 2013 14:17:42 +0200
 Subject: [PATCH] tooltip: Fix possible wrong placement
@@ -11,16 +11,16 @@ the returned allocated size would be 1, hence wrong calculations.
 
 (See b495ce5446a0 for why the allocated size is 1 when not visible.)
 
-Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
  gtk/gtktooltip.c | 1 +
  1 file changed, 1 insertion(+)
 
 diff --git a/gtk/gtktooltip.c b/gtk/gtktooltip.c
-index 0914641..c2603a7 100644
+index 7892ef0..12e49ae 100644
 --- a/gtk/gtktooltip.c
 +++ b/gtk/gtktooltip.c
-@@ -1089,6 +1089,7 @@ gtk_tooltip_position (GtkTooltip *tooltip,
+@@ -1096,6 +1096,7 @@ gtk_tooltip_position (GtkTooltip *tooltip,
  #define MAX_DISTANCE 32
  
    gtk_widget_realize (GTK_WIDGET (tooltip->current_window));

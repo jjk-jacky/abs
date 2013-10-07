@@ -1,4 +1,4 @@
-From 5050d6b7fe437a7bd106fd3a10ad1e0891e8bfa8 Mon Sep 17 00:00:00 2001
+From 2b8fc337c154f0c53639cf65ea40d7f1abb1b62c Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Wed, 24 Apr 2013 11:27:59 +0200
 Subject: [PATCH] treestore: Fix segfault when reordering non-existing children
@@ -6,16 +6,16 @@ Subject: [PATCH] treestore: Fix segfault when reordering non-existing children
 Calling gtk_tree_store_reorder() on a node without children would cause a
 segfault; Fixes https://bugzilla.gnome.org/show_bug.cgi?id=698396
 
-Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
  gtk/gtktreestore.c | 6 ++++++
  1 file changed, 6 insertions(+)
 
 diff --git a/gtk/gtktreestore.c b/gtk/gtktreestore.c
-index ccf2409..3ad3227 100644
+index bbf6e5d..6db1f56 100644
 --- a/gtk/gtktreestore.c
 +++ b/gtk/gtktreestore.c
-@@ -2288,6 +2288,12 @@ gtk_tree_store_reorder (GtkTreeStore *tree_store,
+@@ -2285,6 +2285,12 @@ gtk_tree_store_reorder (GtkTreeStore *tree_store,
    else
      level = G_NODE (parent->user_data)->children;
  

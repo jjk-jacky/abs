@@ -1,4 +1,4 @@
-From bf3e41c381f8e7edb92683961faffec7b49d1f41 Mon Sep 17 00:00:00 2001
+From 2a410ebeb284147f764e08de9fa5392431fcda32 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Mon, 27 May 2013 19:00:33 +0200
 Subject: [PATCH] Add gtk_tree_selection_invert_range()
@@ -6,30 +6,30 @@ Subject: [PATCH] Add gtk_tree_selection_invert_range()
 Similar to its select & unselect counterparts, but to invert the current state
 of each node in the given range.
 
-Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
- gtk/gtk.symbols        |  1 +
- gtk/gtktreeselection.c | 37 +++++++++++++++++++++++++++++++++++--
- gtk/gtktreeselection.h |  3 +++
- 3 files changed, 39 insertions(+), 2 deletions(-)
+ docs/reference/gtk/gtk3-sections.txt |  1 +
+ gtk/gtktreeselection.c               | 37 ++++++++++++++++++++++++++++++++++--
+ gtk/gtktreeselection.h               |  4 ++++
+ 3 files changed, 40 insertions(+), 2 deletions(-)
 
-diff --git a/gtk/gtk.symbols b/gtk/gtk.symbols
-index 030a06c..8c52984 100644
---- a/gtk/gtk.symbols
-+++ b/gtk/gtk.symbols
-@@ -3415,6 +3415,7 @@ gtk_tree_selection_get_select_function
- gtk_tree_selection_get_tree_view
- gtk_tree_selection_get_type
- gtk_tree_selection_get_user_data
+diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
+index 27bb480..f6a5123 100644
+--- a/docs/reference/gtk/gtk3-sections.txt
++++ b/docs/reference/gtk/gtk3-sections.txt
+@@ -4389,6 +4389,7 @@ gtk_tree_selection_select_all
+ gtk_tree_selection_unselect_all
+ gtk_tree_selection_select_range
+ gtk_tree_selection_unselect_range
 +gtk_tree_selection_invert_range
- gtk_tree_selection_iter_is_selected
- gtk_tree_selection_path_is_selected
- gtk_tree_selection_select_all
+ <SUBSECTION Standard>
+ GTK_TREE_SELECTION
+ GTK_IS_TREE_SELECTION
 diff --git a/gtk/gtktreeselection.c b/gtk/gtktreeselection.c
-index 10c9cd7..395d06d 100644
+index 65c0990..9c5adbf 100644
 --- a/gtk/gtktreeselection.c
 +++ b/gtk/gtktreeselection.c
-@@ -1297,7 +1297,8 @@ gtk_tree_selection_unselect_all (GtkTreeSelection *selection)
+@@ -1289,7 +1289,8 @@ gtk_tree_selection_unselect_all (GtkTreeSelection *selection)
  enum
  {
    RANGE_SELECT,
@@ -39,7 +39,7 @@ index 10c9cd7..395d06d 100644
  };
  
  static gint
-@@ -1355,7 +1356,10 @@ gtk_tree_selection_real_modify_range (GtkTreeSelection *selection,
+@@ -1347,7 +1348,10 @@ gtk_tree_selection_real_modify_range (GtkTreeSelection *selection,
  
    do
      {
@@ -51,7 +51,7 @@ index 10c9cd7..395d06d 100644
  
        if (start_node == end_node)
  	break;
-@@ -1438,6 +1442,35 @@ gtk_tree_selection_unselect_range (GtkTreeSelection *selection,
+@@ -1430,6 +1434,35 @@ gtk_tree_selection_unselect_range (GtkTreeSelection *selection,
      g_signal_emit (selection, tree_selection_signals[CHANGED], 0);
  }
  
@@ -88,13 +88,14 @@ index 10c9cd7..395d06d 100644
  _gtk_tree_selection_row_is_selectable (GtkTreeSelection *selection,
  				       GtkRBNode        *node,
 diff --git a/gtk/gtktreeselection.h b/gtk/gtktreeselection.h
-index 4600930..b57e16e 100644
+index 379961e..83cebd1 100644
 --- a/gtk/gtktreeselection.h
 +++ b/gtk/gtktreeselection.h
-@@ -139,6 +139,9 @@ void             gtk_tree_selection_select_range        (GtkTreeSelection
+@@ -160,6 +160,10 @@ GDK_AVAILABLE_IN_ALL
  void             gtk_tree_selection_unselect_range      (GtkTreeSelection            *selection,
                                                           GtkTreePath                 *start_path,
  							 GtkTreePath                 *end_path);
++GDK_AVAILABLE_IN_3_10
 +void             gtk_tree_selection_invert_range        (GtkTreeSelection            *selection,
 +							 GtkTreePath                 *start_path,
 +							 GtkTreePath                 *end_path);

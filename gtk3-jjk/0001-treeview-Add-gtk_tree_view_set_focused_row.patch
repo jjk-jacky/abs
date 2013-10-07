@@ -1,4 +1,4 @@
-From 41df3a00b2ce2a7962bc9c072f30ab51277629e4 Mon Sep 17 00:00:00 2001
+From b5592c32ceca3206a4fccd2abff1c273f0e97616 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Sun, 5 May 2013 13:03:35 +0200
 Subject: [PATCH] treeview: Add gtk_tree_view_set_focused_row()
@@ -6,30 +6,30 @@ Subject: [PATCH] treeview: Add gtk_tree_view_set_focused_row()
 Allows to set the cursor/focused row, but without any (other/visual) changes
 done on tree, specifically no change in the selection, nor any scrolling.
 
-Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
- gtk/gtk.symbols   |  1 +
- gtk/gtktreeview.c | 32 ++++++++++++++++++++++++++++++++
- gtk/gtktreeview.h |  2 ++
- 3 files changed, 35 insertions(+)
+ docs/reference/gtk/gtk3-sections.txt |  1 +
+ gtk/gtktreeview.c                    | 32 ++++++++++++++++++++++++++++++++
+ gtk/gtktreeview.h                    |  3 +++
+ 3 files changed, 36 insertions(+)
 
-diff --git a/gtk/gtk.symbols b/gtk/gtk.symbols
-index 030a06c..5dfa059 100644
---- a/gtk/gtk.symbols
-+++ b/gtk/gtk.symbols
-@@ -3591,6 +3591,7 @@ gtk_tree_view_set_activate_on_single_click
- gtk_tree_view_set_column_drag_function
+diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
+index 27bb480..7a37e7d 100644
+--- a/docs/reference/gtk/gtk3-sections.txt
++++ b/docs/reference/gtk/gtk3-sections.txt
+@@ -4606,6 +4606,7 @@ gtk_tree_view_scroll_to_cell
  gtk_tree_view_set_cursor
  gtk_tree_view_set_cursor_on_cell
+ gtk_tree_view_get_cursor
 +gtk_tree_view_set_focused_row
- gtk_tree_view_set_destroy_count_func
- gtk_tree_view_set_drag_dest_row
- gtk_tree_view_set_enable_search
+ gtk_tree_view_row_activated
+ gtk_tree_view_expand_all
+ gtk_tree_view_collapse_all
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index ce46b74..b461335 100644
+index d228360..bc0a765 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -13382,6 +13382,38 @@ gtk_tree_view_set_cursor_on_cell (GtkTreeView       *tree_view,
+@@ -13322,6 +13322,38 @@ gtk_tree_view_set_cursor_on_cell (GtkTreeView       *tree_view,
  }
  
  /**
@@ -69,13 +69,14 @@ index ce46b74..b461335 100644
   * @tree_view: A #GtkTreeView
   *
 diff --git a/gtk/gtktreeview.h b/gtk/gtktreeview.h
-index cdd94f0..be20656 100644
+index 5ccc300..f392f4b 100644
 --- a/gtk/gtktreeview.h
 +++ b/gtk/gtktreeview.h
-@@ -319,6 +319,8 @@ void                   gtk_tree_view_set_cursor_on_cell            (GtkTreeView
+@@ -358,6 +358,9 @@ GDK_AVAILABLE_IN_ALL
  void                   gtk_tree_view_get_cursor                    (GtkTreeView               *tree_view,
  								    GtkTreePath              **path,
  								    GtkTreeViewColumn        **focus_column);
++GDK_AVAILABLE_IN_3_10
 +void                   gtk_tree_view_set_focused_row               (GtkTreeView               *tree_view,
 +                                                                    GtkTreePath               *path);
  

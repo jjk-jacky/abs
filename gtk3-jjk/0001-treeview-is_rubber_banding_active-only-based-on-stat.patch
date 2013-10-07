@@ -1,4 +1,4 @@
-From 8670a4a068e91fd6a40f3ec5a15908c5c48877ac Mon Sep 17 00:00:00 2001
+From 2d5c9553796bf452b801cf1565cd253a1121d133 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Wed, 31 Jul 2013 11:16:14 +0200
 Subject: [PATCH 1/3] treeview: is_rubber_banding_active() only based on status
@@ -15,10 +15,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index ce46b74..929e259 100644
+index d228360..4389e16 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -15812,8 +15812,7 @@ gtk_tree_view_is_rubber_banding_active (GtkTreeView *tree_view)
+@@ -15737,8 +15737,7 @@ gtk_tree_view_is_rubber_banding_active (GtkTreeView *tree_view)
  {
    g_return_val_if_fail (GTK_IS_TREE_VIEW (tree_view), FALSE);
  

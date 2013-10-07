@@ -3,8 +3,8 @@
 
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
-pkgver=3.8.4
-pkgrel=2
+pkgver=3.10.0
+pkgrel=1
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -15,7 +15,6 @@ makedepends=(gobject-introspection mesa)
 provides=($_pkgname)
 conflicts=($_pkgname)
 options=('!libtool' '!strip' 'debug')
-backup=(etc/gtk-3.0/settings.ini)
 license=(LGPL)
 source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.tar.xz
         settings.ini
@@ -36,25 +35,25 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0002-treeview-Add-gtk_tree_view_start_rubber_banding.patch
         0003-treeview-Change-how-toggle-in-handled-on-rubber-band.patch
         0001-Add-GTK_IS_JJK.patch)
-sha256sums=('b08360167702299e91b3435a4ce6bae41dd26d2794e898632f12dd091b0692e2'
-            'c214d3dcdcadda3d642112287524ab3e526ad592b70895c9f3e3733c23701621'
-            'eeafa8688b74f40d886ba2c66fb1e20352831353e92901b03e87a7f3379c8a44'
-            '04a40393c98ebaf183b379a7098f3530308f67c89d2ddce43501e0fc6384c46c'
-            'ce6ffb6d37cb73eb294b8c0a4631a53113e1e664da30b375a66792f24bce8ade'
-            'b8079f0f3f1cd34894e785013244d652dcd2eca63622c30fac0828ba03f7a17b'
-            'c8f5017de9c651db85144f58a2ccb3eefdc0c60fb17721ce6963428ed0c9efcb'
-            '9bbdc895699c2499f1bf1ab9a01dc56ff89707fff7e7f25be23b90d01c545776'
-            '6e41b387fd496ed5cf7d2b3222832cae58374e1fd90431947e942b081e89e669'
-            '70f3b43c1f7acac083028f8e1ca5426c4d95a1008f091d8e3713ff3f3f4a506f'
-            'bbe8db16ae5ca4333c9ef4c777569a1f0df9324da3f6ffd88f8caa3f6caa2636'
-            '64679fcefa6fc3777d31d228b516fae878bb13c17a695c2798fa050bc1e7ddce'
-            '9a47bead9905d60e34f9d593d9ad85cfec90850c30aa58a1b36fefb8a8b1b552'
-            '670e3c9c78f3444158c34adf555da9c7b09c3a49efeab295c4815d980f4260b6'
-            '2e0a3503a0c420eb0283c97adc56e188ac9e42530d79edb3dfaacc7dec2abef8'
-            'e9b36c8b3250136762fb7a78e8b38cbdbe35d08a7fb0c582a32a78159b39fe93'
-            '68a78763550618876bf66d597c20b1d8f02faa243dc17b84691938d7127e0ecc'
-            'ca7f4f73b629b7088dc2a3291b99f759aff6f10b6baf0263c428756d06a050ae'
-            'cfabfbe4ee529eb95fca3f85d651db50b0d9d2b3c822064802bdef18325740ff')
+sha256sums=('6559feb360cd935d341cd7a0b69a72f8f4346ed6ee9b7c4040c02b73b75c53fe'
+            'de961084b35507da5415640db733457161e1672ee54639828dfa399ea3d220b1'
+            '552217ebe5ffe32b2b9fa230423eba695c4db62f394ade87cebe415b610d809e'
+            'cf2adbee473912f40d14e32cf0a96a24525b8d1885808758a8bb0ab8edc9047e'
+            '30220311a2e238ad107cd0e072969048df182e7a6a7935f68ac848b3831910eb'
+            '548bddf555e1f81fd3f3e6bc4f6829e22b7dceb64b7500b1116a1135baee7295'
+            '27fe3a7467a7bb90f9ccc0a661ce63364528eaac41d6d06cf34ecdb4ae1d5b89'
+            '984e0c9a7e04756d7e03cfacaf48e45d757fbc9df322be3b116351c19af64150'
+            '43f8e883b5701915135cbaf096aaddbbe13c9a2c5126c0cbfe10af77d987567d'
+            'b7f8a704f59c69c38472b6d797aa7d298c62e9a9c8a828335ff58f6ffb0a961f'
+            '727847afac39bf8447870977154b0ed143d51c78b0ac60a0bb99fd01259d41a2'
+            '424ede11b86bd6a7c5d1dd65f2951f08f0c54e372eb5958e6abda5644141291d'
+            'f11d9f2d2104f4e00bb0dd3c95cd52955415ff77fd5069ea242a657112939cba'
+            '5bda2d381595c0b8cfdf42d329b8951583ed5d96e2bd73604862e0092b48033d'
+            '84f3d6bc0fbfed60bf0f0df7361fb8c8933cd7cd191d7c9ded742f97eb210d41'
+            '2376f7608afc9424972726a5affc0472d436ea737cf1611509baea0965a92ee4'
+            '245bc80171d40bcbdeffd3cde167515d4ca1079341066448cbefa8b6c990655c'
+            'b302a82cff5eb2048fdd1615b6f1598d2dfac4eddc5f02e64129aac722dc93ef'
+            'f64e9be57b52dd0870594d50098396ebc8e4caffe7fa187c538ff8eafb39e87e')
 prepare() {
     cd "gtk+-$pkgver"
 
@@ -76,7 +75,7 @@ prepare() {
     patch -p1 -i ../0002-treeview-Add-gtk_tree_view_start_rubber_banding.patch
     patch -p1 -i ../0003-treeview-Change-how-toggle-in-handled-on-rubber-band.patch
 
-    ./autogen.sh
+    NOCONFIGURE=1 ./autogen.sh
 }
 
 build() {
@@ -88,7 +87,8 @@ build() {
         --enable-gtk2-dependency \
         --disable-schemas-compile \
         --disable-cups \
-        --disable-colord
+        --disable-colord \
+        --enable-x11-backend
 
     #https://bugzilla.gnome.org/show_bug.cgi?id=655517
     sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
@@ -100,5 +100,5 @@ package() {
     cd "gtk+-$pkgver"
     make DESTDIR="$pkgdir" install
 
-    install -Dm644 "$srcdir/settings.ini" "$pkgdir/etc/gtk-3.0/settings.ini"
+    install -Dm644 "$srcdir/settings.ini" "$pkgdir/usr/share/gtk-3.0/settings.ini"
 }

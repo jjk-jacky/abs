@@ -1,4 +1,4 @@
-From 674caed6927ab0f9228eb48f09bd68bc56bdc019 Mon Sep 17 00:00:00 2001
+From 1a203d2af96053ee7691d82d4b245309abab4860 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Fri, 3 May 2013 10:51:18 +0200
 Subject: [PATCH] Add class "focused-row" to the focused row, regardless of
@@ -8,7 +8,7 @@ Unlike pseudo-class :focused this class will always be set on the focus row,
 thus allowing an highlight even when the widget/window doesn't have the focus.
 (Combining the two is of course possible.)
 
-Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
  gtk/gtkiconview.c     |  9 ++++++++-
  gtk/gtkstylecontext.h | 10 ++++++++++
@@ -16,10 +16,10 @@ Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
  3 files changed, 24 insertions(+), 1 deletion(-)
 
 diff --git a/gtk/gtkiconview.c b/gtk/gtkiconview.c
-index d93582f..6fb6e67 100644
+index 224f34d..099b8d4 100644
 --- a/gtk/gtkiconview.c
 +++ b/gtk/gtkiconview.c
-@@ -3125,7 +3125,14 @@ gtk_icon_view_paint_item (GtkIconView     *icon_view,
+@@ -3123,7 +3123,14 @@ gtk_icon_view_paint_item (GtkIconView     *icon_view,
  
    if ((state & GTK_STATE_FLAG_FOCUSED) &&
        item == icon_view->priv->cursor_item)
@@ -36,10 +36,10 @@ index d93582f..6fb6e67 100644
    if (item->selected)
      {
 diff --git a/gtk/gtkstylecontext.h b/gtk/gtkstylecontext.h
-index 35655f2..76f6cc3 100644
+index 29f3ebf..1d8e997 100644
 --- a/gtk/gtkstylecontext.h
 +++ b/gtk/gtkstylecontext.h
-@@ -527,6 +527,16 @@ struct _GtkStyleContextClass
+@@ -556,6 +556,16 @@ struct _GtkStyleContextClass
  #define GTK_STYLE_CLASS_HIGHLIGHT "highlight"
  
  /**
@@ -57,10 +57,10 @@ index 35655f2..76f6cc3 100644
   *
   * A CSS class defining a frame delimiting content, such as
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index ce46b74..bdccab4 100644
+index d228360..c95c475 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -5023,6 +5023,12 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5073,6 +5073,12 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
            gtk_style_context_set_state (context, state);
  
            gtk_style_context_add_class (context, GTK_STYLE_CLASS_CELL);

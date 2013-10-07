@@ -1,4 +1,4 @@
-From 7cfa671aa951089f6b0ba2153a7f61e79e6cd069 Mon Sep 17 00:00:00 2001
+From d8be9fa82a9c10a49e519db019472b7fe000ce2d Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Wed, 5 Jun 2013 16:07:40 +0200
 Subject: [PATCH] GtkTreeView: Fix issues when removing a column
@@ -16,16 +16,16 @@ treeview was set as parent of the button (via gtk_widget_set_parent() from
 gtk_tree_view_column_create_button()). Therefore, the proper way to "undo" this
 is call gtk_widget_unparent() on the button.
 
-Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
  gtk/gtktreeviewcolumn.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/gtk/gtktreeviewcolumn.c b/gtk/gtktreeviewcolumn.c
-index af2317c..f40ea33 100644
+index e1846d5..90696ff 100644
 --- a/gtk/gtktreeviewcolumn.c
 +++ b/gtk/gtktreeviewcolumn.c
-@@ -1464,7 +1464,7 @@ _gtk_tree_view_column_unset_tree_view (GtkTreeViewColumn *column)
+@@ -1459,7 +1459,7 @@ _gtk_tree_view_column_unset_tree_view (GtkTreeViewColumn *column)
  
    if (priv->tree_view && priv->button)
      {
