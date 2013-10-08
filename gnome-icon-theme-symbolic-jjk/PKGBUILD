@@ -1,0 +1,8 @@
+_pkgname=gnome-icon-theme-symbolic
+pkgname=$_pkgname-jjk
+pkgdesc='Fake package to resolve dependencies'
+pkgver=1
+pkgrel=1
+arch=('any')
+provides=($_pkgname)
+conflicts=($_pkgname)
