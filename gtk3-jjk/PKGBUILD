@@ -4,7 +4,7 @@
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
 pkgver=3.10.0
-pkgrel=1
+pkgrel=2
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -34,6 +34,9 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0001-treeview-is_rubber_banding_active-only-based-on-stat.patch
         0002-treeview-Add-gtk_tree_view_start_rubber_banding.patch
         0003-treeview-Change-how-toggle-in-handled-on-rubber-band.patch
+        0001-Revert-Deprecate-and-ignore-gtk-menu-images-setting.patch
+        0002-Revert-Deprecate-and-ignore-gtk-button-images-settin.patch
+        0001-gtkicontheme-Fallback-to-regular-icons-when-symbolic.patch
         0001-Add-GTK_IS_JJK.patch)
 sha256sums=('6559feb360cd935d341cd7a0b69a72f8f4346ed6ee9b7c4040c02b73b75c53fe'
             'de961084b35507da5415640db733457161e1672ee54639828dfa399ea3d220b1'
@@ -53,6 +56,9 @@ sha256sums=('6559feb360cd935d341cd7a0b69a72f8f4346ed6ee9b7c4040c02b73b75c53fe'
             '2376f7608afc9424972726a5affc0472d436ea737cf1611509baea0965a92ee4'
             '245bc80171d40bcbdeffd3cde167515d4ca1079341066448cbefa8b6c990655c'
             'b302a82cff5eb2048fdd1615b6f1598d2dfac4eddc5f02e64129aac722dc93ef'
+            '3990907f7eb9cfe2dcb8eafede32229c0b036c944bb13f165b54cec488afcc3f'
+            'c3cb4b9e9b2efeab5646d592f112bf6c8964e5ffa50c7ff925a31126fbb2abed'
+            '69d9721611cbb8a848308301e726b7c491dd4c1226f3c7ad9f10935ab884be0d'
             'f64e9be57b52dd0870594d50098396ebc8e4caffe7fa187c538ff8eafb39e87e')
 prepare() {
     cd "gtk+-$pkgver"
@@ -74,6 +80,10 @@ prepare() {
     patch -p1 -i ../0001-treeview-is_rubber_banding_active-only-based-on-stat.patch
     patch -p1 -i ../0002-treeview-Add-gtk_tree_view_start_rubber_banding.patch
     patch -p1 -i ../0003-treeview-Change-how-toggle-in-handled-on-rubber-band.patch
+
+    patch -p1 -i ../0001-Revert-Deprecate-and-ignore-gtk-menu-images-setting.patch
+    patch -p1 -i ../0002-Revert-Deprecate-and-ignore-gtk-button-images-settin.patch
+    patch -p1 -i ../0001-gtkicontheme-Fallback-to-regular-icons-when-symbolic.patch
 
     NOCONFIGURE=1 ./autogen.sh
 }

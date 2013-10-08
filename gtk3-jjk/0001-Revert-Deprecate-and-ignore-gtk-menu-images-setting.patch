@@ -1,0 +1,302 @@
+From b50828808d3ccab70e4040bf1f978c2e3bfad8f9 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Tue, 8 Oct 2013 15:02:32 +0200
+Subject: [PATCH 1/2] Revert "Deprecate and ignore gtk-menu-images setting"
+
+This reverts commit e8147d15f74e62047c84eb95e393449722198d89.
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ gdk/wayland/gdkscreen-wayland.c   |  1 +
+ gdk/win32/gdkproperty-win32.c     |  3 ++
+ gdk/x11/gdksettings.c             |  3 ++
+ gtk/deprecated/gtkaction.c        | 12 +++--
+ gtk/deprecated/gtkimagemenuitem.c | 98 ++++++++++++++++++++++++++++++++++++---
+ gtk/gtksettings.c                 | 13 ++----
+ 6 files changed, 108 insertions(+), 22 deletions(-)
+
+diff --git a/gdk/wayland/gdkscreen-wayland.c b/gdk/wayland/gdkscreen-wayland.c
+index daf9b29..7fb14c6 100644
+--- a/gdk/wayland/gdkscreen-wayland.c
++++ b/gdk/wayland/gdkscreen-wayland.c
+@@ -502,6 +502,7 @@ static TranslationEntry translations[] = {
+   { "org.gnome.desktop.interface", "cursor-blink", "gtk-cursor-blink", G_TYPE_BOOLEAN,  { .b = TRUE } },
+   { "org.gnome.desktop.interface", "cursor-blink-time", "gtk-cursor-blink-time", G_TYPE_INT, { .i = 1200 } },
+   { "org.gnome.desktop.interface", "cursor-blink-timeout", "gtk-cursor-blink-timeout", G_TYPE_INT, { .i = 3600 } },
++  { "org.gnome.desktop.interface", "menus-have-icons", "gtk-menu-images", G_TYPE_BOOLEAN, { .b = FALSE } },
+   { "org.gnome.desktop.interface", "gtk-im-module", "gtk-im-module", G_TYPE_STRING, { .s = "simple" } },
+   { "org.gnome.desktop.interface", "enable-animations", "gtk-enable-animations", G_TYPE_BOOLEAN, { .b = TRUE } },
+   { "org.gnome.settings-daemon.peripherals.mouse", "double-click", "gtk-double-click-time", G_TYPE_INT, { .i = 250 } },
+diff --git a/gdk/win32/gdkproperty-win32.c b/gdk/win32/gdkproperty-win32.c
+index 72e7512..4bfc0c3 100644
+--- a/gdk/win32/gdkproperty-win32.c
++++ b/gdk/win32/gdkproperty-win32.c
+@@ -311,6 +311,9 @@ _gdk_win32_window_delete_property (GdkWindow *window,
+   "Gtk/FontName\0"            "gtk-font-name\0"
+   "Gtk/KeyThemeName\0"        "gtk-key-theme-name\0"
+   "Gtk/Modules\0"             "gtk-modules\0"
++  "Gtk/FileChooserBackend\0"  "gtk-file-chooser-backend\0"
++  "Gtk/MenuImages\0"          "gtk-menu-images\0"
++  "Gtk/MenuBarAccel\0"        "gtk-menu-bar-accel\0"
+   "Gtk/CursorBlinkTimeout\0"  "gtk-cursor-blink-timeout\0"
+   "Gtk/CursorThemeName\0"     "gtk-cursor-theme-name\0"
+   "Gtk/CursorThemeSize\0"     "gtk-cursor-theme-size\0"
+diff --git a/gdk/x11/gdksettings.c b/gdk/x11/gdksettings.c
+index fd7aacd..d63a95e 100644
+--- a/gdk/x11/gdksettings.c
++++ b/gdk/x11/gdksettings.c
+@@ -36,6 +36,9 @@ static const struct {
+   {"Gtk/FontName",            "gtk-font-name"},
+   {"Gtk/KeyThemeName",        "gtk-key-theme-name"},
+   {"Gtk/Modules",             "gtk-modules"},
++  {"Gtk/FileChooserBackend",  "gtk-file-chooser-backend"},
++  {"Gtk/MenuImages",          "gtk-menu-images"},
++  {"Gtk/MenuBarAccel",        "gtk-menu-bar-accel"},
+   {"Gtk/CursorThemeName",     "gtk-cursor-theme-name"},
+   {"Gtk/CursorThemeSize",     "gtk-cursor-theme-size"},
+   {"Gtk/ColorScheme",         "gtk-color-scheme"},
+diff --git a/gtk/deprecated/gtkaction.c b/gtk/deprecated/gtkaction.c
+index 3e5a630..7f55b73 100644
+--- a/gtk/deprecated/gtkaction.c
++++ b/gtk/deprecated/gtkaction.c
+@@ -497,7 +497,8 @@ gtk_action_class_init (GtkActionClass *klass)
+   /**
+    * GtkAction:always-show-image:
+    *
+-   * If %TRUE, the action's menu item proxies will always show their image, if available.
++   * If %TRUE, the action's menu item proxies will ignore the #GtkSettings:gtk-menu-images 
++   * setting and always show their image, if available.
+    *
+    * Use this property if the menu item would be useless or hard to use
+    * without their image. 
+@@ -1352,8 +1353,8 @@ gtk_action_get_is_important (GtkAction *action)
+  * @action: a #GtkAction
+  * @always_show: %TRUE if menuitem proxies should always show their image
+  *
+- * Sets whether @action<!-- -->'s menu item proxies will always show
+- * their image, if available.
++ * Sets whether @action<!-- -->'s menu item proxies will ignore the
++ * #GtkSettings:gtk-menu-images setting and always show their image, if available.
+  *
+  * Use this if the menu item would be useless or hard to use
+  * without their image.
+@@ -1387,8 +1388,9 @@ gtk_action_set_always_show_image (GtkAction *action,
+  * gtk_action_get_always_show_image:
+  * @action: a #GtkAction
+  *
+- * Returns whether @action<!-- -->'s menu item proxies will always
+- * show their image, if available.
++ * Returns whether @action<!-- -->'s menu item proxies will ignore the
++ * #GtkSettings:gtk-menu-images setting and always show their image,
++ * if available.
+  *
+  * Returns: %TRUE if the menu item proxies will always show their image
+  *
+diff --git a/gtk/deprecated/gtkimagemenuitem.c b/gtk/deprecated/gtkimagemenuitem.c
+index c12bae9..7bf627f 100644
+--- a/gtk/deprecated/gtkimagemenuitem.c
++++ b/gtk/deprecated/gtkimagemenuitem.c
+@@ -109,6 +109,8 @@ static void gtk_image_menu_item_get_property         (GObject         *object,
+                                                       guint            prop_id,
+                                                       GValue          *value,
+                                                       GParamSpec      *pspec);
++static void gtk_image_menu_item_screen_changed       (GtkWidget        *widget,
++                                                      GdkScreen        *previous_screen);
+ 
+ static void gtk_image_menu_item_recalculate          (GtkImageMenuItem *image_menu_item);
+ 
+@@ -135,6 +137,7 @@ gtk_image_menu_item_class_init (GtkImageMenuItemClass *klass)
+   GtkContainerClass *container_class = (GtkContainerClass*) klass;
+ 
+   widget_class->destroy = gtk_image_menu_item_destroy;
++  widget_class->screen_changed = gtk_image_menu_item_screen_changed;
+   widget_class->get_preferred_width = gtk_image_menu_item_get_preferred_width;
+   widget_class->get_preferred_height = gtk_image_menu_item_get_preferred_height;
+   widget_class->get_preferred_height_for_width = gtk_image_menu_item_get_preferred_height_for_width;
+@@ -187,9 +190,10 @@ gtk_image_menu_item_class_init (GtkImageMenuItemClass *klass)
+   /**
+    * GtkImageMenuItem:always-show-image:
+    *
+-   * If %TRUE, the menu item will always show the image, if available.
++   * If %TRUE, the menu item will ignore the #GtkSettings:gtk-menu-images
++   * setting and always show the image, if available.
+    *
+-   * Use this property only if the menuitem would be useless or hard to use
++   * Use this property if the menuitem would be useless or hard to use
+    * without the image.
+    *
+    * Since: 2.16
+@@ -306,6 +310,21 @@ gtk_image_menu_item_get_property (GObject         *object,
+     }
+ }
+ 
++static gboolean
++show_image (GtkImageMenuItem *image_menu_item)
++{
++  GtkImageMenuItemPrivate *priv = image_menu_item->priv;
++  GtkSettings *settings = gtk_widget_get_settings (GTK_WIDGET (image_menu_item));
++  gboolean show;
++
++  if (priv->always_show_image)
++    show = TRUE;
++  else
++    g_object_get (settings, "gtk-menu-images", &show, NULL);
++
++  return show;
++}
++
+ static void
+ gtk_image_menu_item_map (GtkWidget *widget)
+ {
+@@ -316,7 +335,7 @@ gtk_image_menu_item_map (GtkWidget *widget)
+ 
+   if (priv->image)
+     g_object_set (priv->image,
+-                  "visible", priv->always_show_image,
++                  "visible", show_image (image_menu_item),
+                   NULL);
+ }
+ 
+@@ -932,7 +951,8 @@ gtk_image_menu_item_get_use_stock (GtkImageMenuItem *image_menu_item)
+  * @image_menu_item: a #GtkImageMenuItem
+  * @always_show: %TRUE if the menuitem should always show the image
+  *
+- * If %TRUE, the menu item will always show the image, if available.
++ * If %TRUE, the menu item will ignore the #GtkSettings:gtk-menu-images
++ * setting and always show the image, if available.
+  *
+  * Use this property if the menuitem would be useless or hard to use
+  * without the image.
+@@ -957,7 +977,7 @@ gtk_image_menu_item_set_always_show_image (GtkImageMenuItem *image_menu_item,
+ 
+       if (priv->image)
+         {
+-          if (priv->always_show_image)
++          if (show_image (image_menu_item))
+             gtk_widget_show (priv->image);
+           else
+             gtk_widget_hide (priv->image);
+@@ -971,7 +991,8 @@ gtk_image_menu_item_set_always_show_image (GtkImageMenuItem *image_menu_item,
+  * gtk_image_menu_item_get_always_show_image:
+  * @image_menu_item: a #GtkImageMenuItem
+  *
+- * Returns whether the menu item will always show the image, if available.
++ * Returns whether the menu item will ignore the #GtkSettings:gtk-menu-images
++ * setting and always show the image, if available.
+  *
+  * Returns: %TRUE if the menu item will always show the image
+  *
+@@ -1075,7 +1096,7 @@ gtk_image_menu_item_set_image (GtkImageMenuItem *image_menu_item,
+ 
+   gtk_widget_set_parent (image, GTK_WIDGET (image_menu_item));
+   g_object_set (image,
+-                "visible", priv->always_show_image,
++                "visible", show_image (image_menu_item),
+                 "no-show-all", TRUE,
+                 NULL);
+ 
+@@ -1128,3 +1149,66 @@ gtk_image_menu_item_remove (GtkContainer *container,
+       GTK_CONTAINER_CLASS (gtk_image_menu_item_parent_class)->remove (container, child);
+     }
+ }
++
++static void
++show_image_change_notify (GtkImageMenuItem *image_menu_item)
++{
++  GtkImageMenuItemPrivate *priv = image_menu_item->priv;
++
++  if (priv->image)
++    {
++      if (show_image (image_menu_item))
++        gtk_widget_show (priv->image);
++      else
++        gtk_widget_hide (priv->image);
++    }
++}
++
++static void
++traverse_container (GtkWidget *widget,
++                    gpointer   data)
++{
++  if (GTK_IS_IMAGE_MENU_ITEM (widget))
++    show_image_change_notify (GTK_IMAGE_MENU_ITEM (widget));
++  else if (GTK_IS_CONTAINER (widget))
++    gtk_container_forall (GTK_CONTAINER (widget), traverse_container, NULL);
++}
++
++static void
++gtk_image_menu_item_setting_changed (GtkSettings *settings)
++{
++  GList *list, *l;
++
++  list = gtk_window_list_toplevels ();
++
++  for (l = list; l; l = l->next)
++    gtk_container_forall (GTK_CONTAINER (l->data),
++                          traverse_container, NULL);
++
++  g_list_free (list);
++}
++
++static void
++gtk_image_menu_item_screen_changed (GtkWidget *widget,
++                                    GdkScreen *previous_screen)
++{
++  GtkSettings *settings;
++  gulong show_image_connection;
++
++  if (!gtk_widget_has_screen (widget))
++    return;
++
++  settings = gtk_widget_get_settings (widget);
++
++  show_image_connection =
++    g_signal_handler_find (settings, G_SIGNAL_MATCH_FUNC, 0, 0,
++                           NULL, gtk_image_menu_item_setting_changed, NULL);
++
++  if (show_image_connection)
++    return;
++
++  g_signal_connect (settings, "notify::gtk-menu-images",
++                    G_CALLBACK (gtk_image_menu_item_setting_changed), NULL);
++
++  show_image_change_notify (GTK_IMAGE_MENU_ITEM (widget));
++}
+diff --git a/gtk/gtksettings.c b/gtk/gtksettings.c
+index 2794dfa..5c6dc7c 100644
+--- a/gtk/gtksettings.c
++++ b/gtk/gtksettings.c
+@@ -88,7 +88,7 @@
+  *   /&ast; make sure the type is realized &ast;/
+  *   g_type_class_unref (g_type_class_ref (GTK_TYPE_IMAGE_MENU_ITEM));
+  *
+- *   g_object_set (gtk_settings_get_default (), "gtk-enable-animations", FALSE, NULL);
++ *   g_object_set (gtk_settings_get_default (), "gtk-menu-images", FALSE, NULL);
+  * </programlisting></informalexample>
+  *
+  * There is one GtkSettings instance per screen. It can be obtained with
+@@ -1345,19 +1345,12 @@ gtk_settings_class_init (GtkSettingsClass *class)
+                                              NULL);
+   g_assert (result == PROP_ENTRY_PASSWORD_HINT_TIMEOUT);
+ 
+-  /**
+-   * GtkSettings::gtk-menu-images:
+-   *
+-   * Whether images should be shown in menu items
+-   *
+-   * Deprecated: 3.10: This setting is ignored
+-   */
+   result = settings_install_property_parser (class,
+                                              g_param_spec_boolean ("gtk-menu-images",
+                                                                    P_("Show menu images"),
+                                                                    P_("Whether images should be shown in menus"),
+-                                                                   FALSE,
+-                                                                   GTK_PARAM_READWRITE | G_PARAM_DEPRECATED),
++                                                                   TRUE,
++                                                                   GTK_PARAM_READWRITE),
+                                              NULL);
+   g_assert (result == PROP_MENU_IMAGES);
+ 
+-- 
+1.8.4
+
