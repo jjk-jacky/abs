@@ -1,0 +1,34 @@
+From 5273ee275926740806926e663a791844d9854a5a Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Tue, 8 Oct 2013 16:11:44 +0200
+Subject: [PATCH] gthemedicon: Fallback to "regular" icons when symbolic ones
+ aren't found
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ gio/gthemedicon.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/gio/gthemedicon.c b/gio/gthemedicon.c
+index 9016860..e7a59f8 100644
+--- a/gio/gthemedicon.c
++++ b/gio/gthemedicon.c
+@@ -187,12 +187,12 @@ g_themed_icon_constructed (GObject *object)
+ 
+       if (is_symbolic)
+         {
+-          themed->names = g_new (char *, dashes + 1 + 1);
++          themed->names = g_new (char *, 2 * (dashes + 1) + 1);
+           for (i = 0; names[i] != NULL; i++)
+             themed->names[i] = g_strconcat (names[i], "-symbolic", NULL);
+ 
+-          themed->names[i] = NULL;
+-          g_strfreev (names);
++          memcpy (themed->names + i, names, sizeof (char *) * (dashes + 1 + 1));
++          g_free (names);
+         }
+       else
+         {
+-- 
+1.8.4
+
