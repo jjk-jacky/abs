@@ -3,8 +3,8 @@
 
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
-pkgver=3.10.0
-pkgrel=2
+pkgver=3.10.1
+pkgrel=1
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -38,28 +38,28 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0002-Revert-Deprecate-and-ignore-gtk-button-images-settin.patch
         0001-gtkicontheme-Fallback-to-regular-icons-when-symbolic.patch
         0001-Add-GTK_IS_JJK.patch)
-sha256sums=('6559feb360cd935d341cd7a0b69a72f8f4346ed6ee9b7c4040c02b73b75c53fe'
+sha256sums=('c12e6897fb1ec8d8f1a6de6cd0ac1372fee6fd63ee3a5a63813dc5f3473e6ab8'
             'de961084b35507da5415640db733457161e1672ee54639828dfa399ea3d220b1'
             '552217ebe5ffe32b2b9fa230423eba695c4db62f394ade87cebe415b610d809e'
-            'cf2adbee473912f40d14e32cf0a96a24525b8d1885808758a8bb0ab8edc9047e'
-            '30220311a2e238ad107cd0e072969048df182e7a6a7935f68ac848b3831910eb'
-            '548bddf555e1f81fd3f3e6bc4f6829e22b7dceb64b7500b1116a1135baee7295'
-            '27fe3a7467a7bb90f9ccc0a661ce63364528eaac41d6d06cf34ecdb4ae1d5b89'
-            '984e0c9a7e04756d7e03cfacaf48e45d757fbc9df322be3b116351c19af64150'
-            '43f8e883b5701915135cbaf096aaddbbe13c9a2c5126c0cbfe10af77d987567d'
-            'b7f8a704f59c69c38472b6d797aa7d298c62e9a9c8a828335ff58f6ffb0a961f'
-            '727847afac39bf8447870977154b0ed143d51c78b0ac60a0bb99fd01259d41a2'
-            '424ede11b86bd6a7c5d1dd65f2951f08f0c54e372eb5958e6abda5644141291d'
-            'f11d9f2d2104f4e00bb0dd3c95cd52955415ff77fd5069ea242a657112939cba'
-            '5bda2d381595c0b8cfdf42d329b8951583ed5d96e2bd73604862e0092b48033d'
-            '84f3d6bc0fbfed60bf0f0df7361fb8c8933cd7cd191d7c9ded742f97eb210d41'
-            '2376f7608afc9424972726a5affc0472d436ea737cf1611509baea0965a92ee4'
-            '245bc80171d40bcbdeffd3cde167515d4ca1079341066448cbefa8b6c990655c'
-            'b302a82cff5eb2048fdd1615b6f1598d2dfac4eddc5f02e64129aac722dc93ef'
-            '3990907f7eb9cfe2dcb8eafede32229c0b036c944bb13f165b54cec488afcc3f'
-            'c3cb4b9e9b2efeab5646d592f112bf6c8964e5ffa50c7ff925a31126fbb2abed'
-            '69d9721611cbb8a848308301e726b7c491dd4c1226f3c7ad9f10935ab884be0d'
-            'f64e9be57b52dd0870594d50098396ebc8e4caffe7fa187c538ff8eafb39e87e')
+            '09a22c5cf1c8983b9169a4abd8e8aeca28693d21471e9b09317cc2612ba185f3'
+            '760c98cdb7831c48971fbc196666bb185e3f6aab1e5ad0d3f172fd77c2670601'
+            'c9c9aaad8d071b387963bd6c8790737523475aeae863ed5a1bc7a2e343bcd273'
+            '2fb0b0a60181dc97f1104a42380bcc12c1c40418036aede63a9ba74427d4d356'
+            '719879821c616e859a0b420e1faa4701d78bf6314c3e5e48f8d14f1512d94ab4'
+            'df1921cc52bebc24cbcc87fd33cf807d5744a36e6e3b089efcb45054b6e9be8a'
+            'a426bda35ca16bf734eeeb6782032cabd06408ce5a77d4ca4ee2577954fd62b1'
+            'd751a50d8172adb68181797d39abcf9fb79ecf34a6c74987de5b66c1e4a9d868'
+            'e7f4fd835c1c6a8d63daf1f36b73504ea55200ba1432efaaee3784bf4f084d0a'
+            '32952272d9c4917558415d9211405ad4fb299d85c82c4e11cd4b5723e6987859'
+            '55b4254ec696ecc1ddb0d4649513bfa2496a3a01f111ef2d522899a7e4c28d7c'
+            '5316650d21bc21a50cd8baaa7ad4194bf84837d6e75d3fbc81e502de5f4563b6'
+            'f06b7414749c6bc3cf851da7481228ccfb1d8c6308298f115654c6744b949478'
+            'a06254020b1657916238b98093074dc395787dd0f60db4e398989d1f37efccca'
+            'a91f43869f86e38f52677a519024df90721c9ad5f69089767fde0c94be6d2504'
+            '9bfdfe3b3015605a35001878c04d8228ed5f242544b24abb5cad6a4707b0d0c1'
+            'b561dde328d8d36c993f25efbbe6067776f6594d1631274fbe004b4e8d67146c'
+            '62157382639e0a80d3ab106c8aacaade3761753f06ad1db1718fe539a6a6e912'
+            '653e1c3a988b1ebd91ffbc760a99cad23f103ff03f89886dac02a7fbdc61c8a6')
 prepare() {
     cd "gtk+-$pkgver"
 

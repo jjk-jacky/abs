@@ -1,4 +1,4 @@
-From 1a203d2af96053ee7691d82d4b245309abab4860 Mon Sep 17 00:00:00 2001
+From 0a5013dc1090b3b7390a29f4625b73d487937680 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Fri, 3 May 2013 10:51:18 +0200
 Subject: [PATCH] Add class "focused-row" to the focused row, regardless of

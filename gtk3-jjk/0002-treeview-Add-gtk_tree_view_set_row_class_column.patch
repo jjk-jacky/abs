@@ -1,4 +1,4 @@
-From 59261a1dbe9d4fbbb195de18c0c0fd0d5118d03e Mon Sep 17 00:00:00 2001
+From 54be2da6e8e699d23fb66f9de34df746244deaf8 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Tue, 7 May 2013 00:28:40 +0200
 Subject: [PATCH 2/3] treeview: Add gtk_tree_view_set_row_class_column

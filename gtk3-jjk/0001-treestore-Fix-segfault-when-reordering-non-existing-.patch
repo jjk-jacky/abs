@@ -1,4 +1,4 @@
-From 2b8fc337c154f0c53639cf65ea40d7f1abb1b62c Mon Sep 17 00:00:00 2001
+From be9e904997b399383aaac6a479c340d4a6fab0d7 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Wed, 24 Apr 2013 11:27:59 +0200
 Subject: [PATCH] treestore: Fix segfault when reordering non-existing children

@@ -1,4 +1,4 @@
-From d8be9fa82a9c10a49e519db019472b7fe000ce2d Mon Sep 17 00:00:00 2001
+From 7543899964a8d746872a6cc06a2b2ea3c2bf16ce Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Wed, 5 Jun 2013 16:07:40 +0200
 Subject: [PATCH] GtkTreeView: Fix issues when removing a column

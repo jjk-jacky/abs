@@ -1,4 +1,4 @@
-From 21a2290e1ba40fcbe7916e441450034ec0a6b3ed Mon Sep 17 00:00:00 2001
+From 6c13d6427f40a75febb785fbdb7999dafb735ad9 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 8 Oct 2013 15:03:22 +0200
 Subject: [PATCH 2/2] Revert "Deprecate and ignore gtk-button-images setting"
@@ -200,7 +200,7 @@ index 20b15a6..735163e 100644
   * Returns: %TRUE if the button will always show the image
   *
 diff --git a/gtk/gtksettings.c b/gtk/gtksettings.c
-index 5c6dc7c..e3bf158 100644
+index 23a3a52..ca9f7dc 100644
 --- a/gtk/gtksettings.c
 +++ b/gtk/gtksettings.c
 @@ -1305,15 +1305,13 @@ gtk_settings_class_init (GtkSettingsClass *class)

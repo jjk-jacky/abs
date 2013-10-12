@@ -1,4 +1,4 @@
-From 28fc9deac5d7bc09538068a412dbcbb493eaa296 Mon Sep 17 00:00:00 2001
+From 9303f5b47689f0a13d9bd69434b5aec7935fdc97 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Thu, 7 Mar 2013 11:26:02 +0100
 Subject: [PATCH] gtkcellareabox: Fix renderer not always drawn when visible

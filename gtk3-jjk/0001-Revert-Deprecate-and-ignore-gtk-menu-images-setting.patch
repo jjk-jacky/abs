@@ -1,4 +1,4 @@
-From b50828808d3ccab70e4040bf1f978c2e3bfad8f9 Mon Sep 17 00:00:00 2001
+From d04302dbc1f1a528ceb44b0cfe0f627d0108fcae Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 8 Oct 2013 15:02:32 +0200
 Subject: [PATCH 1/2] Revert "Deprecate and ignore gtk-menu-images setting"
@@ -263,7 +263,7 @@ index c12bae9..7bf627f 100644
 +  show_image_change_notify (GTK_IMAGE_MENU_ITEM (widget));
 +}
 diff --git a/gtk/gtksettings.c b/gtk/gtksettings.c
-index 2794dfa..5c6dc7c 100644
+index 484a5c1..23a3a52 100644
 --- a/gtk/gtksettings.c
 +++ b/gtk/gtksettings.c
 @@ -88,7 +88,7 @@

@@ -1,4 +1,4 @@
-From f6663dda147ce3c9227b95b082d6f53c6f8f2945 Mon Sep 17 00:00:00 2001
+From ae26de06776ac72fe16820201ac840c4db7acdfe Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Thu, 9 May 2013 16:50:41 +0200
 Subject: [PATCH 3/3] treeview: Add GtkTreeBoxable

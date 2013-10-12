@@ -1,4 +1,4 @@
-From 52e34e1a1eda989bbbcbaf3cc8173689d364550e Mon Sep 17 00:00:00 2001
+From 685c0822a4e4c287026ad85ee30c272aeb0b090a Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Thu, 7 Mar 2013 14:35:47 +0100
 Subject: [PATCH] Add gtk_tree_view_is_blank_at_pos_full()
