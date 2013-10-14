@@ -4,14 +4,14 @@
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
 pkgver=3.10.1
-pkgrel=1
+pkgrel=2
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
 install=gtk3.install
 depends=(atk cairo gtk-update-icon-cache libxcursor libxinerama libxrandr
          libxi libxcomposite libxdamage pango shared-mime-info at-spi2-atk)
-makedepends=(gobject-introspection mesa)
+makedepends=(gobject-introspection mesa gtk-doc)
 provides=($_pkgname)
 conflicts=($_pkgname)
 options=('!libtool' '!strip' 'debug')
@@ -37,6 +37,9 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0001-Revert-Deprecate-and-ignore-gtk-menu-images-setting.patch
         0002-Revert-Deprecate-and-ignore-gtk-button-images-settin.patch
         0001-gtkicontheme-Fallback-to-regular-icons-when-symbolic.patch
+        0001-Fix-GtkToolButton-possibly-being-empty.patch
+        fix-710073.patch
+        fix-709967.patch
         0001-Add-GTK_IS_JJK.patch)
 sha256sums=('c12e6897fb1ec8d8f1a6de6cd0ac1372fee6fd63ee3a5a63813dc5f3473e6ab8'
             'de961084b35507da5415640db733457161e1672ee54639828dfa399ea3d220b1'
@@ -59,6 +62,9 @@ sha256sums=('c12e6897fb1ec8d8f1a6de6cd0ac1372fee6fd63ee3a5a63813dc5f3473e6ab8'
             '9bfdfe3b3015605a35001878c04d8228ed5f242544b24abb5cad6a4707b0d0c1'
             'b561dde328d8d36c993f25efbbe6067776f6594d1631274fbe004b4e8d67146c'
             '62157382639e0a80d3ab106c8aacaade3761753f06ad1db1718fe539a6a6e912'
+            'df86481bf44fa0baba896382aa6177983dc27c81bbdbdfabc858dce0766b29d7'
+            'e856d70078ee76778c24f22eabe31e209d6eb7762e0f1cd78ad7c42f3b606b5c'
+            '5104ee652e5fade16448e4c319df2a328c977b60ab2cf355b4b9631eb5da18b2'
             '653e1c3a988b1ebd91ffbc760a99cad23f103ff03f89886dac02a7fbdc61c8a6')
 prepare() {
     cd "gtk+-$pkgver"
@@ -80,6 +86,9 @@ prepare() {
     patch -p1 -i ../0001-treeview-is_rubber_banding_active-only-based-on-stat.patch
     patch -p1 -i ../0002-treeview-Add-gtk_tree_view_start_rubber_banding.patch
     patch -p1 -i ../0003-treeview-Change-how-toggle-in-handled-on-rubber-band.patch
+    patch -p1 -i ../0001-Fix-GtkToolButton-possibly-being-empty.patch
+    patch -p1 -i ../fix-710073.patch
+    patch -p1 -i ../fix-709967.patch
 
     patch -p1 -i ../0001-Revert-Deprecate-and-ignore-gtk-menu-images-setting.patch
     patch -p1 -i ../0002-Revert-Deprecate-and-ignore-gtk-button-images-settin.patch

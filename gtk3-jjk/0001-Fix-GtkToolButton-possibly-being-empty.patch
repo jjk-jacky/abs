@@ -1,0 +1,29 @@
+From 7859c24b7a9413c68563dfe6157c3653d623bddc Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Mon, 14 Oct 2013 20:08:30 +0200
+Subject: [PATCH] Fix GtkToolButton possibly being empty
+
+With style BOTH_HORIZ the label would not be selected (if not marked
+"important") and when there's no icon, it would result in an empty button.
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ gtk/gtktoolbutton.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gtk/gtktoolbutton.c b/gtk/gtktoolbutton.c
+index 7acfc9f..0aeea1b 100644
+--- a/gtk/gtktoolbutton.c
++++ b/gtk/gtktoolbutton.c
+@@ -421,7 +421,7 @@ gtk_tool_button_construct_contents (GtkToolItem *tool_item)
+       need_label = TRUE;
+     }
+   
+-  if (style == GTK_TOOLBAR_ICONS && button->priv->icon_widget == NULL &&
++  if (style != GTK_TOOLBAR_TEXT && button->priv->icon_widget == NULL &&
+       button->priv->stock_id == NULL && button->priv->icon_name == NULL)
+     {
+       need_label = TRUE;
+-- 
+1.8.4
+

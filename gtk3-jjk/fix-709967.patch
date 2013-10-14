@@ -1,0 +1,19 @@
+diff --git a/gtk/gtkicontheme.c b/gtk/gtkicontheme.c
+index fad7ff4..0683d3c 100644
+--- a/gtk/gtkicontheme.c
++++ b/gtk/gtkicontheme.c
+@@ -3873,7 +3873,13 @@ gtk_icon_info_load_icon (GtkIconInfo *icon_info,
+   if (!icon_info_ensure_scale_and_pixbuf (icon_info, FALSE))
+     {
+       if (icon_info->load_error)
+-        g_propagate_error (error, icon_info->load_error);
++        {
++          /* g_propagate_error would be wrong here as
++             icon_info->load_error gets freed in the
++             finalizer. */
++          if (error)
++            *error = g_error_copy(icon_info->load_error);
++        }
+       else
+         g_set_error_literal (error,  
+                              GTK_ICON_THEME_ERROR,  
