@@ -1,0 +1,40 @@
+From 2041c2434383ee88e32c54403350cb03e287a032 Mon Sep 17 00:00:00 2001
+From: Sven Verdoolaege <skimo@kotnet.org>
+Date: Mon, 16 Sep 2013 11:36:59 +0200
+Subject: [PATCH] treeview: correctly identify column of initial pixels
+
+gtk_tree_view_get_path_at_pos() would mistakenly identify the first
+pixel of all but the first column in a tree view as belonging to
+the previous column.  As a result, the returned x-coordinate
+relative to the cell background for these pixels would be equal
+to the width of this background and therefore fall outside of
+the background.
+
+Move to the next column if the remaining x coordinate is equal
+to the width of the current column.
+
+This problem appears to date back all the way to
+ef7b510 (Got rid of GtkTreeNode, and changed it to GtkTreeIter.
+Added iterators, Thu Oct 26 00:36:47 2000 +0000).
+
+Signed-off-by: Sven Verdoolaege <skimo@kotnet.org>
+---
+ gtk/gtktreeview.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
+index 718174c..0c0fa69 100644
+--- a/gtk/gtktreeview.c
++++ b/gtk/gtktreeview.c
+@@ -13423,7 +13423,7 @@ gtk_tree_view_get_path_at_pos (GtkTreeView        *tree_view,
+ 
+ 	  last_column = tmp_column;
+           width = gtk_tree_view_column_get_width (tmp_column);
+-	  if (remaining_x <= width)
++	  if (remaining_x < width)
+ 	    {
+               found = TRUE;
+ 
+-- 
+1.8.3.rc3.8.g5e49f30
+

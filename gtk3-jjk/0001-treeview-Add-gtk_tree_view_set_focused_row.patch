@@ -1,6 +1,6 @@
-From c58c21258f2f1873b694172ace645537a0bce181 Mon Sep 17 00:00:00 2001
-From: jjacky <i.am.jack.mail@gmail.com>
-Date: Sun, 5 May 2013 13:03:35 +0200
+From f534037935b1cfcf8d6d13414334b4dbcb3bf0a9 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Tue, 15 Oct 2013 16:42:45 +0200
 Subject: [PATCH] treeview: Add gtk_tree_view_set_focused_row()
 
 Allows to set the cursor/focused row, but without any (other/visual) changes

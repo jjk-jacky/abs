@@ -1,6 +1,6 @@
-From 211015eb32d5e3baa88b2a3f63a287c56ac17f09 Mon Sep 17 00:00:00 2001
-From: jjacky <i.am.jack.mail@gmail.com>
-Date: Wed, 24 Apr 2013 14:17:42 +0200
+From 013a23bf1f8fbe45ac63655e7ca115b738432595 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Tue, 15 Oct 2013 15:06:26 +0200
 Subject: [PATCH] tooltip: Fix possible wrong placement
 
 When showing a tooltip on the edge of a monitor, the tooltip could be wrongly
@@ -8,8 +8,6 @@ placed and be shown going from one monitor to the next.
 
 This happened because the current_window wasn't set visible, and when it wasn't
 the returned allocated size would be 1, hence wrong calculations.
-
-(See b495ce5446a0 for why the allocated size is 1 when not visible.)
 
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---

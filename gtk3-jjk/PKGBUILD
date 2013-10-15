@@ -22,7 +22,8 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0001-treestore-Fix-segfault-when-reordering-non-existing-.patch
         0001-tooltip-Fix-possible-wrong-placement.patch
         0001-gtkcellareabox-Fix-renderer-not-always-drawn-when-vi.patch
-        0001-Add-gtk_tree_view_is_blank_at_pos_full.patch
+        0001-Some-fixes-in-gtk_tree_view_is_blank_at_pos.patch
+        0002-Add-gtk_tree_view_is_blank_at_pos_full.patch
         0001-Add-class-focused-row-to-the-focused-row-regardless-.patch
         0001-treeview-Add-gtk_tree_view_set_focused_row.patch
         0001-Allow-to-disable-full-row-highlight-on-selection.patch
@@ -40,6 +41,7 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0001-Fix-GtkToolButton-possibly-being-empty.patch
         fix-710073.patch
         fix-709967.patch
+        fix-708148.patch
         0001-Add-GTK_IS_JJK.patch)
 sha256sums=('c12e6897fb1ec8d8f1a6de6cd0ac1372fee6fd63ee3a5a63813dc5f3473e6ab8'
             'de961084b35507da5415640db733457161e1672ee54639828dfa399ea3d220b1'
@@ -71,7 +73,8 @@ prepare() {
 
     patch -p1 -i ../0001-Add-GTK_IS_JJK.patch
     patch -p1 -i ../0001-gtkcellareabox-Fix-renderer-not-always-drawn-when-vi.patch
-    patch -p1 -i ../0001-Add-gtk_tree_view_is_blank_at_pos_full.patch
+    patch -p1 -i ../0001-Some-fixes-in-gtk_tree_view_is_blank_at_pos.patch
+    patch -p1 -i ../0002-Add-gtk_tree_view_is_blank_at_pos_full.patch
     patch -p1 -i ../0001-treestore-Fix-segfault-when-reordering-non-existing-.patch
     patch -p1 -i ../0001-tooltip-Fix-possible-wrong-placement.patch
     patch -p1 -i ../0001-cellrenderertext-Fix-possible-overwriting-of-markup.patch
@@ -89,6 +92,7 @@ prepare() {
     patch -p1 -i ../0001-Fix-GtkToolButton-possibly-being-empty.patch
     patch -p1 -i ../fix-710073.patch
     patch -p1 -i ../fix-709967.patch
+    patch -p1 -i ../fix-708148.patch
 
     patch -p1 -i ../0001-Revert-Deprecate-and-ignore-gtk-menu-images-setting.patch
     patch -p1 -i ../0002-Revert-Deprecate-and-ignore-gtk-button-images-settin.patch

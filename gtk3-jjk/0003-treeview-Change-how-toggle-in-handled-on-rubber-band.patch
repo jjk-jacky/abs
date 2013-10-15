@@ -1,6 +1,6 @@
-From 4ca491cb6e2075b765aff9332a54ed528500f0c7 Mon Sep 17 00:00:00 2001
-From: jjacky <i.am.jack.mail@gmail.com>
-Date: Fri, 2 Aug 2013 17:26:12 +0200
+From ef364306c64f593be2cbfc709547f9287b80b0fd Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Tue, 15 Oct 2013 16:43:50 +0200
 Subject: [PATCH 3/3] treeview: Change how toggle in handled on rubber banding
 
 Instead of ignoring the first row, assuming it was handled (selecting/toggling

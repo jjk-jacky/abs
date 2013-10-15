@@ -1,6 +1,6 @@
-From c74d4d81e84395cdfaacee61edf5aab3c05ac030 Mon Sep 17 00:00:00 2001
-From: jjacky <i.am.jack.mail@gmail.com>
-Date: Mon, 27 May 2013 19:00:33 +0200
+From ee6efc899f9ee90d906a69a05c50b8afa8577b09 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Tue, 15 Oct 2013 16:42:05 +0200
 Subject: [PATCH] Add gtk_tree_selection_invert_range()
 
 Similar to its select & unselect counterparts, but to invert the current state
@@ -26,7 +26,7 @@ index 27bb480..f6a5123 100644
  GTK_TREE_SELECTION
  GTK_IS_TREE_SELECTION
 diff --git a/gtk/gtktreeselection.c b/gtk/gtktreeselection.c
-index 65c0990..9c5adbf 100644
+index 65c0990..c36bb48 100644
 --- a/gtk/gtktreeselection.c
 +++ b/gtk/gtktreeselection.c
 @@ -1289,7 +1289,8 @@ gtk_tree_selection_unselect_all (GtkTreeSelection *selection)
@@ -45,8 +45,8 @@ index 65c0990..9c5adbf 100644
      {
 -      dirty |= gtk_tree_selection_real_select_node (selection, start_tree, start_node, (mode == RANGE_SELECT)?TRUE:FALSE);
 +      gboolean select;
-+      select = (mode == RANGE_SELECT || (mode == RANGE_INVERT
-+                  && !((start_node->flags & GTK_RBNODE_IS_SELECTED) == GTK_RBNODE_IS_SELECTED)));
++      select = (mode == RANGE_SELECT || (mode == RANGE_INVERT &&
++                  !((start_node->flags & GTK_RBNODE_IS_SELECTED) == GTK_RBNODE_IS_SELECTED)));
 +      dirty |= gtk_tree_selection_real_select_node (selection, start_tree, start_node, select);
  
        if (start_node == end_node)

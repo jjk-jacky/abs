@@ -1,6 +1,6 @@
-From 6cec2ee9ced7afded8a149a1fb1eb93a32b9ea8b Mon Sep 17 00:00:00 2001
-From: jjacky <i.am.jack.mail@gmail.com>
-Date: Thu, 7 Mar 2013 15:03:34 +0100
+From 8dd0dd68be6c1c737ade90d7cc6c85dc41a62a5d Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Tue, 15 Oct 2013 15:06:08 +0200
 Subject: [PATCH] Add GTK_IS_JJK
 
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>

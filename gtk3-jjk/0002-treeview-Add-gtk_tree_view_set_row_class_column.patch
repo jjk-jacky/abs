@@ -1,6 +1,6 @@
-From 54be2da6e8e699d23fb66f9de34df746244deaf8 Mon Sep 17 00:00:00 2001
-From: jjacky <i.am.jack.mail@gmail.com>
-Date: Tue, 7 May 2013 00:28:40 +0200
+From a6311e2e502b1c778299cf9b220b8addb44a462e Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Tue, 15 Oct 2013 17:17:59 +0200
 Subject: [PATCH 2/3] treeview: Add gtk_tree_view_set_row_class_column
 
 This allows to define a column on the model holding class names, which will be
@@ -15,7 +15,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  3 files changed, 80 insertions(+), 1 deletion(-)
 
 diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
-index 6691bcd..ffa444e 100644
+index 05975d3..11f015f 100644
 --- a/docs/reference/gtk/gtk3-sections.txt
 +++ b/docs/reference/gtk/gtk3-sections.txt
 @@ -4600,6 +4600,8 @@ gtk_tree_view_get_columns

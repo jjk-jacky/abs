@@ -1,6 +1,6 @@
-From d6a37b6f787ee6b9d9a5536d8d092f8c7feb8b49 Mon Sep 17 00:00:00 2001
-From: jjacky <i.am.jack.mail@gmail.com>
-Date: Sat, 27 Apr 2013 21:02:32 +0200
+From ca54d2a2906eadd182105c59997baaf70c036aea Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Tue, 15 Oct 2013 15:07:45 +0200
 Subject: [PATCH] cellrenderertext: Fix possible overwriting of markup
 
 When creating the layout, attributes were inserted after existing attributes

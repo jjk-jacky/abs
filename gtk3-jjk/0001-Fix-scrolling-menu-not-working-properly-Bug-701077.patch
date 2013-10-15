@@ -1,6 +1,6 @@
-From 1005ca3545b5ebed32f553855d54d1f039aef1d8 Mon Sep 17 00:00:00 2001
-From: jjacky <i.am.jack.mail@gmail.com>
-Date: Sat, 15 Jun 2013 22:34:02 +0200
+From 9a56f373ffd2277f3520c9a34c84edf5be352a80 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Tue, 15 Oct 2013 15:09:15 +0200
 Subject: [PATCH] Fix scrolling menu not working properly; Bug #701077
 
 The fix for #695120 introduced a new bug, where long menus didn't properly get

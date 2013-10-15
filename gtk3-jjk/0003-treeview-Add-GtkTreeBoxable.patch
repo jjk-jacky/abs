@@ -1,6 +1,6 @@
-From ae26de06776ac72fe16820201ac840c4db7acdfe Mon Sep 17 00:00:00 2001
-From: jjacky <i.am.jack.mail@gmail.com>
-Date: Thu, 9 May 2013 16:50:41 +0200
+From d91843417e0878b90a9c1cbe27af8766fac42d7a Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Tue, 15 Oct 2013 17:20:27 +0200
 Subject: [PATCH 3/3] treeview: Add GtkTreeBoxable
 
 When a model implements GtkTreeBoxable, the GtkTreeView will do some special
@@ -46,7 +46,7 @@ index 9099510..d5e714a 100644
        <xi:include href="xml/gtktreemodelsort.xml" />
        <xi:include href="xml/gtktreemodelfilter.xml" />
 diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
-index ffa444e..9db004a 100644
+index 11f015f..02135fe 100644
 --- a/docs/reference/gtk/gtk3-sections.txt
 +++ b/docs/reference/gtk/gtk3-sections.txt
 @@ -4229,6 +4229,27 @@ gtk_tooltip_get_type

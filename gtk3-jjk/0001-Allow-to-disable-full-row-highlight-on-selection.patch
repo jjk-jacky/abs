@@ -1,6 +1,6 @@
-From 353500e09614e7672deedadecd159c9d948b5bbe Mon Sep 17 00:00:00 2001
-From: jjacky <i.am.jack.mail@gmail.com>
-Date: Thu, 2 May 2013 16:39:23 +0200
+From 92df8e665baa9941b58bcc67fb7190eb1ea24a02 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Tue, 15 Oct 2013 16:45:51 +0200
 Subject: [PATCH 1/3] Allow to disable full row highlight on selection
 
 - By setting a specific column to be the select-highlight-column, one can limit
@@ -16,19 +16,19 @@ Subject: [PATCH 1/3] Allow to disable full row highlight on selection
 
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
- docs/reference/gtk/gtk3-sections.txt |   4 +
+ docs/reference/gtk/gtk3-sections.txt |   5 +
  gtk/gtkcellarea.c                    | 144 +++++++++++++++++++++--
- gtk/gtkcellarea.h                    |  18 +++
+ gtk/gtkcellarea.h                    |  19 ++++
  gtk/gtkcellview.c                    |   4 +-
  gtk/gtkiconview.c                    |   6 +-
  gtk/gtktreeprivate.h                 |  11 +-
  gtk/gtktreeview.c                    | 215 +++++++++++++++++++++++++++++++++--
  gtk/gtktreeview.h                    |  10 ++
  gtk/gtktreeviewcolumn.c              |  21 ++--
- 9 files changed, 393 insertions(+), 40 deletions(-)
+ 9 files changed, 395 insertions(+), 40 deletions(-)
 
 diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
-index 27bb480..6691bcd 100644
+index 27bb480..05975d3 100644
 --- a/docs/reference/gtk/gtk3-sections.txt
 +++ b/docs/reference/gtk/gtk3-sections.txt
 @@ -4600,6 +4600,10 @@ gtk_tree_view_get_columns
@@ -42,6 +42,14 @@ index 27bb480..6691bcd 100644
  gtk_tree_view_set_column_drag_function
  gtk_tree_view_scroll_to_point
  gtk_tree_view_scroll_to_cell
+@@ -4758,6 +4762,7 @@ gtk_cell_area_foreach
+ gtk_cell_area_foreach_alloc
+ gtk_cell_area_event
+ gtk_cell_area_render
++gtk_cell_area_render_full
+ gtk_cell_area_get_cell_allocation
+ gtk_cell_area_get_cell_at_position
+ gtk_cell_area_create_context
 diff --git a/gtk/gtkcellarea.c b/gtk/gtkcellarea.c
 index 9bd4e10..135c36b 100644
 --- a/gtk/gtkcellarea.c
@@ -270,7 +278,7 @@ index 9bd4e10..135c36b 100644
  get_cell_allocation (GtkCellRenderer        *renderer,
                       const GdkRectangle     *cell_area,
 diff --git a/gtk/gtkcellarea.h b/gtk/gtkcellarea.h
-index e000a0c..aa2a942 100644
+index e000a0c..656114a 100644
 --- a/gtk/gtkcellarea.h
 +++ b/gtk/gtkcellarea.h
 @@ -206,6 +206,15 @@ struct _GtkCellAreaClass
@@ -289,10 +297,11 @@ index e000a0c..aa2a942 100644
    void               (* apply_attributes)                (GtkCellArea             *area,
                                                            GtkTreeModel            *tree_model,
                                                            GtkTreeIter             *iter,
-@@ -317,6 +326,15 @@ void                  gtk_cell_area_render                         (GtkCellArea
+@@ -317,6 +326,16 @@ void                  gtk_cell_area_render                         (GtkCellArea
                                                                      const GdkRectangle   *cell_area,
                                                                      GtkCellRendererState  flags,
                                                                      gboolean              paint_focus);
++GDK_AVAILABLE_IN_3_10
 +void                  gtk_cell_area_render_full                    (GtkCellArea          *area,
 +                                                                    GtkCellAreaContext   *context,
 +                                                                    GtkWidget            *widget,

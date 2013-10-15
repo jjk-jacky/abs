@@ -1,6 +1,6 @@
-From 9303f5b47689f0a13d9bd69434b5aec7935fdc97 Mon Sep 17 00:00:00 2001
-From: jjacky <i.am.jack.mail@gmail.com>
-Date: Thu, 7 Mar 2013 11:26:02 +0100
+From 3c295c10460a1271087a17f94f600065ff72b3be Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Tue, 15 Oct 2013 15:07:12 +0200
 Subject: [PATCH] gtkcellareabox: Fix renderer not always drawn when visible
 
 When a renderer was not originally visible, its natural size would be set to 0.
@@ -12,23 +12,23 @@ expected.
 
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
- gtk/gtkcellareabox.c | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ gtk/gtkcellareabox.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
 diff --git a/gtk/gtkcellareabox.c b/gtk/gtkcellareabox.c
-index fbb202a..97f5523 100644
+index fbb202a..be29867 100644
 --- a/gtk/gtkcellareabox.c
 +++ b/gtk/gtkcellareabox.c
-@@ -820,6 +820,27 @@ get_allocated_cells (GtkCellAreaBox        *box,
+@@ -820,6 +820,28 @@ get_allocated_cells (GtkCellAreaBox        *box,
    gint                      for_size, full_size;
    gboolean                  rtl;
  
 +  for (i = 0; i < priv->groups->len; ++i)
-+  {
++    {
 +      CellGroup *group = &g_array_index (priv->groups, CellGroup, i);
 +
 +      if (group->visible)
-+      {
++        {
 +          gint nat;
 +
 +          _gtk_cell_area_box_context_get_group_width (context, i, NULL, &nat);
@@ -36,13 +36,14 @@ index fbb202a..97f5523 100644
 +           * size calculations being done with it was not visible, so let's make
 +           * sure we have the correct size */
 +          if (nat == 0)
-+          {
++            {
 +              gtk_cell_area_box_get_preferred_width (GTK_CELL_AREA (box),
-+                      GTK_CELL_AREA_CONTEXT (context), widget, NULL, NULL);
++                                                     GTK_CELL_AREA_CONTEXT (context),
++                                                     widget, NULL, NULL);
 +              break;
-+          }
-+      }
-+  }
++            }
++        }
++    }
 +
    group_allocs = _gtk_cell_area_box_context_get_orientation_allocs (context, &n_allocs);
    if (!group_allocs)
