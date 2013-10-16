@@ -3,8 +3,8 @@
 
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
-pkgver=3.10.1
-pkgrel=2
+pkgver=3.10.2
+pkgrel=1
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -20,7 +20,6 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         settings.ini
         0001-cellrenderertext-Fix-possible-overwriting-of-markup.patch
         0001-treestore-Fix-segfault-when-reordering-non-existing-.patch
-        0001-tooltip-Fix-possible-wrong-placement.patch
         0001-gtkcellareabox-Fix-renderer-not-always-drawn-when-vi.patch
         0001-Some-fixes-in-gtk_tree_view_is_blank_at_pos.patch
         0002-Add-gtk_tree_view_is_blank_at_pos_full.patch
@@ -37,37 +36,32 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0003-treeview-Change-how-toggle-in-handled-on-rubber-band.patch
         0001-Revert-Deprecate-and-ignore-gtk-menu-images-setting.patch
         0002-Revert-Deprecate-and-ignore-gtk-button-images-settin.patch
-        0001-gtkicontheme-Fallback-to-regular-icons-when-symbolic.patch
         0001-Fix-GtkToolButton-possibly-being-empty.patch
-        fix-710073.patch
-        fix-709967.patch
         fix-708148.patch
         0001-Add-GTK_IS_JJK.patch)
-sha256sums=('c12e6897fb1ec8d8f1a6de6cd0ac1372fee6fd63ee3a5a63813dc5f3473e6ab8'
+sha256sums=('93af12d28e5f6ccc373ea59f31147e2884c9b3c15dc4841ce3b5cee45b13814c'
             'de961084b35507da5415640db733457161e1672ee54639828dfa399ea3d220b1'
-            '552217ebe5ffe32b2b9fa230423eba695c4db62f394ade87cebe415b610d809e'
-            '09a22c5cf1c8983b9169a4abd8e8aeca28693d21471e9b09317cc2612ba185f3'
-            '760c98cdb7831c48971fbc196666bb185e3f6aab1e5ad0d3f172fd77c2670601'
-            'c9c9aaad8d071b387963bd6c8790737523475aeae863ed5a1bc7a2e343bcd273'
-            '2fb0b0a60181dc97f1104a42380bcc12c1c40418036aede63a9ba74427d4d356'
-            '719879821c616e859a0b420e1faa4701d78bf6314c3e5e48f8d14f1512d94ab4'
-            'df1921cc52bebc24cbcc87fd33cf807d5744a36e6e3b089efcb45054b6e9be8a'
-            'a426bda35ca16bf734eeeb6782032cabd06408ce5a77d4ca4ee2577954fd62b1'
-            'd751a50d8172adb68181797d39abcf9fb79ecf34a6c74987de5b66c1e4a9d868'
-            'e7f4fd835c1c6a8d63daf1f36b73504ea55200ba1432efaaee3784bf4f084d0a'
-            '32952272d9c4917558415d9211405ad4fb299d85c82c4e11cd4b5723e6987859'
-            '55b4254ec696ecc1ddb0d4649513bfa2496a3a01f111ef2d522899a7e4c28d7c'
-            '5316650d21bc21a50cd8baaa7ad4194bf84837d6e75d3fbc81e502de5f4563b6'
-            'f06b7414749c6bc3cf851da7481228ccfb1d8c6308298f115654c6744b949478'
-            'a06254020b1657916238b98093074dc395787dd0f60db4e398989d1f37efccca'
-            'a91f43869f86e38f52677a519024df90721c9ad5f69089767fde0c94be6d2504'
+            '940925a5f1d17d3a94cc14d97b4b035f2020c2fbcd6bc80afd244f5f5ccfe94d'
+            '0f762da916bd9480028df1260df8a127865cc61ee88ef35987a15818103a33e3'
+            'eed27f3e1915dffd0b5ab9c016849beb6963d58575b16c643a89109a7ca4716b'
+            '545f52973179f2fbe7dc7a61cee8df84256c4c74726e91b6a205ff95834eec69'
+            '9d45bc62f62276f5e4060d314ce38765170b7f30538665898667f43e2b641578'
+            'a7e5a413d606867c2b67f07653ed5e971d273a5b630cbb7798ba758772b6b76c'
+            'f11754f8f812e895e14fff06d074973b7755034cb2a3c882ea176f8b2ab63e25'
+            'dabbb3db4b0618ff7db1da585bb8e5786a859510a13887e97a30b35a97eae110'
+            'd65411f209bf581c0c7de262f53621d8934d7a1603130ef6671a097b6b6676ff'
+            '5bfa575d44e92ba5a5841152e93b06f6bfef9373122be9f08c8d49ed66c8c0d8'
+            '72b95ee04f52c8bd9089d2910a7691a9dd517416cb1df8f60396b0b58efe5e53'
+            'c76bc7cb66aadb6b5364737b360a1caf69c428d394c50ecbf8a40e308d9abc3f'
+            'ff5aeeaad056b9aa30d7634886ce479e93f7ace83c6eead9206a1885729f2ed0'
+            '178d547fbd1bb91b77a6b9bb9f6b79bcb3ea60cdc979c3b8fc25bf2230b3939c'
+            '4702dd3032a094bec6805843a52073ddf9659ac6daaea65891f70cf643798919'
+            '7ec1abd2ac10482093a1668521e9979f3777dea5bcbfa8f8d6fd332b0fae8727'
             '9bfdfe3b3015605a35001878c04d8228ed5f242544b24abb5cad6a4707b0d0c1'
             'b561dde328d8d36c993f25efbbe6067776f6594d1631274fbe004b4e8d67146c'
-            '62157382639e0a80d3ab106c8aacaade3761753f06ad1db1718fe539a6a6e912'
             'df86481bf44fa0baba896382aa6177983dc27c81bbdbdfabc858dce0766b29d7'
-            'e856d70078ee76778c24f22eabe31e209d6eb7762e0f1cd78ad7c42f3b606b5c'
-            '5104ee652e5fade16448e4c319df2a328c977b60ab2cf355b4b9631eb5da18b2'
-            '653e1c3a988b1ebd91ffbc760a99cad23f103ff03f89886dac02a7fbdc61c8a6')
+            '8a8b500f6850466b646f788ee45756bbba21dea6f75babddca1d4b32ea1b0b03'
+            'efe759bc260b5aeb9a22c97a653d6b2a2a491ede71bfbff15fa4779a979f38a1')
 prepare() {
     cd "gtk+-$pkgver"
 
@@ -76,7 +70,6 @@ prepare() {
     patch -p1 -i ../0001-Some-fixes-in-gtk_tree_view_is_blank_at_pos.patch
     patch -p1 -i ../0002-Add-gtk_tree_view_is_blank_at_pos_full.patch
     patch -p1 -i ../0001-treestore-Fix-segfault-when-reordering-non-existing-.patch
-    patch -p1 -i ../0001-tooltip-Fix-possible-wrong-placement.patch
     patch -p1 -i ../0001-cellrenderertext-Fix-possible-overwriting-of-markup.patch
     patch -p1 -i ../0001-Add-class-focused-row-to-the-focused-row-regardless-.patch
     patch -p1 -i ../0001-treeview-Add-gtk_tree_view_set_focused_row.patch
@@ -90,13 +83,10 @@ prepare() {
     patch -p1 -i ../0002-treeview-Add-gtk_tree_view_start_rubber_banding.patch
     patch -p1 -i ../0003-treeview-Change-how-toggle-in-handled-on-rubber-band.patch
     patch -p1 -i ../0001-Fix-GtkToolButton-possibly-being-empty.patch
-    patch -p1 -i ../fix-710073.patch
-    patch -p1 -i ../fix-709967.patch
     patch -p1 -i ../fix-708148.patch
 
     patch -p1 -i ../0001-Revert-Deprecate-and-ignore-gtk-menu-images-setting.patch
     patch -p1 -i ../0002-Revert-Deprecate-and-ignore-gtk-button-images-settin.patch
-    patch -p1 -i ../0001-gtkicontheme-Fallback-to-regular-icons-when-symbolic.patch
 
     NOCONFIGURE=1 ./autogen.sh
 }
