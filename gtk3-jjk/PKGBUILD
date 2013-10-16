@@ -4,7 +4,7 @@
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
 pkgver=3.10.2
-pkgrel=1
+pkgrel=2
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -37,6 +37,7 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0001-Revert-Deprecate-and-ignore-gtk-menu-images-setting.patch
         0002-Revert-Deprecate-and-ignore-gtk-button-images-settin.patch
         0001-Fix-GtkToolButton-possibly-being-empty.patch
+        0001-Revert-treeview-Store-editable-position-differently.patch
         fix-708148.patch
         0001-Add-GTK_IS_JJK.patch)
 sha256sums=('93af12d28e5f6ccc373ea59f31147e2884c9b3c15dc4841ce3b5cee45b13814c'
@@ -60,6 +61,7 @@ sha256sums=('93af12d28e5f6ccc373ea59f31147e2884c9b3c15dc4841ce3b5cee45b13814c'
             '9bfdfe3b3015605a35001878c04d8228ed5f242544b24abb5cad6a4707b0d0c1'
             'b561dde328d8d36c993f25efbbe6067776f6594d1631274fbe004b4e8d67146c'
             'df86481bf44fa0baba896382aa6177983dc27c81bbdbdfabc858dce0766b29d7'
+            '49d40ba555f8ea07ccbf7ef6eb8be4c08f5ddb5eabdd39d8fe6f24dcd128f54e'
             '8a8b500f6850466b646f788ee45756bbba21dea6f75babddca1d4b32ea1b0b03'
             'efe759bc260b5aeb9a22c97a653d6b2a2a491ede71bfbff15fa4779a979f38a1')
 prepare() {
@@ -83,6 +85,7 @@ prepare() {
     patch -p1 -i ../0002-treeview-Add-gtk_tree_view_start_rubber_banding.patch
     patch -p1 -i ../0003-treeview-Change-how-toggle-in-handled-on-rubber-band.patch
     patch -p1 -i ../0001-Fix-GtkToolButton-possibly-being-empty.patch
+    patch -p1 -i ../0001-Revert-treeview-Store-editable-position-differently.patch
     patch -p1 -i ../fix-708148.patch
 
     patch -p1 -i ../0001-Revert-Deprecate-and-ignore-gtk-menu-images-setting.patch
