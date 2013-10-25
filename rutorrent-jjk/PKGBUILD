@@ -3,7 +3,7 @@
 
 _pkgname=rutorrent
 pkgname=$_pkgname-jjk
-pkgver=3.5
+pkgver=3.6
 pkgrel=1
 pkgdesc="Yet another web front-end for rTorrent"
 arch=('any')
@@ -13,14 +13,14 @@ depends=(php curl gzip coreutils)
 optdepends=('mod_scgi: for SCGI protocol')
 provides=('rutorrent')
 conflicts=('rutorrent')
-source=(http://rutorrent.googlecode.com/files/$_pkgname-$pkgver.tar.gz)
+source=(http://dl.bintray.com/novik65/generic/$_pkgname-$pkgver.tar.gz)
 backup=(
 etc/webapps/rutorrent/conf/config.php
 etc/webapps/rutorrent/conf/plugins.ini
 etc/webapps/rutorrent/conf/access.ini
 )
 options=(emptydirs)
-md5sums=('210cbabe0ead88c865c654bab2109e92')
+md5sums=('e5a908b9473be73007b614f4a72fc1d3')
 
 package() {
   cd $srcdir
@@ -28,8 +28,9 @@ package() {
   install -d $pkgdir/usr/share/webapps
   install -d $pkgdir/etc/webapps/$_pkgname
 
-  mv $_pkgname/conf $pkgdir/etc/webapps/$_pkgname/
+  cp -r $_pkgname/conf $pkgdir/etc/webapps/$_pkgname/
   cp -r $_pkgname $pkgdir/usr/share/webapps
+  rm -rf $pkgdir/usr/share/webapps/$_pkgname/conf
 
   pushd $pkgdir/usr/share/webapps/$_pkgname
   ln -s /etc/webapps/$_pkgname/conf
@@ -38,6 +39,4 @@ package() {
   #fix perms
   #chown http\: $pkgdir/usr/share/webapps/$pkgname/share/{settings,torrents,users}
   chmod 0777 $pkgdir/usr/share/webapps/$_pkgname/share/{settings,torrents,users}
-
-} 
-
+}
