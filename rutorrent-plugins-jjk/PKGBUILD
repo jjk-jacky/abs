@@ -1,15 +1,15 @@
 # Maintainer: jjacky
 pkgname=rutorrent-plugins-jjk
-pkgver=3.4.0
-pkgrel=3
+pkgver=3.6
+pkgrel=1
 pkgdesc="Selection of plugins for rutorrent"
 arch=('any')
 url="https://code.google.com/p/rutorrent/"
 license=('GPL3+')
 depends=('rutorrent')
-source=(https://rutorrent.googlecode.com/files/tracklabels-3.4.tar.gz
-  plugin.info init.js)
-md5sums=('5f6b9acdc06bdf2679e8115d1c79bcf5'
+source=(http://dl.bintray.com/novik65/generic/plugins-${pkgver}.tar.gz
+        plugin.info init.js)
+md5sums=('0d14492c75186c647ec9754e37de3771'
          '1bcedc94b2b75b708dd7b00151050cb3'
          '0117222dd4300fa4373daf49f2020e76')
 
@@ -18,7 +18,7 @@ package() {
   local destdir
   destdir="$pkgdir/usr/share/webapps/rutorrent/plugins"
   mkdir -p "$destdir"
-  cp -r tracklabels "$destdir"
+  cp -r plugins/tracklabels "$destdir"
   mkdir "$destdir/erasedata"
   cp plugin.info init.js "$destdir/erasedata"
 }
