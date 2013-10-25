@@ -3,8 +3,8 @@
 
 _pkgname=glib2
 pkgname=$_pkgname-jjk
-pkgver=2.38.0
-pkgrel=2
+pkgver=2.38.1
+pkgrel=1
 pkgdesc="Common C routines used by GTK+ and other libs"
 url="http://www.gtk.org/"
 arch=(i686 x86_64)
@@ -18,7 +18,7 @@ options=('!libtool' '!emptydirs' '!strip' 'debug')
 source=(http://ftp.gnome.org/pub/GNOME/sources/glib/${pkgver%.*}/glib-$pkgver.tar.xz
         revert-warn-glib-compile-schemas.patch
         0001-gthemedicon-Fallback-to-regular-icons-when-symbolic-.patch)
-sha256sums=('7513a7de5e814ccb48206340a8773ea523d6a7bf04dc74565de69b899bc2ff32'
+sha256sums=('01906c62ac666d2ab3183cc07261b2536fab7b211c6129ab66b119c2af56d159'
             '049240975cd2f1c88fbe7deb28af14d4ec7d2640495f7ca8980d873bb710cc97'
             '90126f7641c44513da1490131653eccc3627bb45ff8b624845134c2b8eece6b1')
 
