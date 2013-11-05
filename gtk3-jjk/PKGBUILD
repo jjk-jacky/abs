@@ -4,7 +4,7 @@
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
 pkgver=3.10.2
-pkgrel=3
+pkgrel=4
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -39,6 +39,8 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0001-Fix-GtkToolButton-possibly-being-empty.patch
         0001-Revert-treeview-Store-editable-position-differently.patch
         0001-Fix-key-Page_Down-identified-as-Next.patch
+        0001-cellarea-Fix-possibly-getting-invalid-inner_area.patch
+        0001-gtkpixelcache-Fix-possibly-ignoring-queued-redraw.patch
         fix-708148.patch
         0001-Add-GTK_IS_JJK.patch)
 sha256sums=('93af12d28e5f6ccc373ea59f31147e2884c9b3c15dc4841ce3b5cee45b13814c'
@@ -64,6 +66,8 @@ sha256sums=('93af12d28e5f6ccc373ea59f31147e2884c9b3c15dc4841ce3b5cee45b13814c'
             'df86481bf44fa0baba896382aa6177983dc27c81bbdbdfabc858dce0766b29d7'
             '49d40ba555f8ea07ccbf7ef6eb8be4c08f5ddb5eabdd39d8fe6f24dcd128f54e'
             '0b0eb70ceffbc420ac65d5a0145220fb979caa57d60d02eee1622d9d109d7cf9'
+            'a5c0ca82ef599fef4ecc6989035b4229e905f479a0e5fb236b5d5fe6aac34163'
+            '15a26985ee733bb30ccbf4863e99539e4c6c6565f7bde2bf7a072f4bd1520a49'
             '8a8b500f6850466b646f788ee45756bbba21dea6f75babddca1d4b32ea1b0b03'
             'efe759bc260b5aeb9a22c97a653d6b2a2a491ede71bfbff15fa4779a979f38a1')
 prepare() {
@@ -90,6 +94,8 @@ prepare() {
     patch -p1 -i ../0001-Revert-treeview-Store-editable-position-differently.patch
     patch -p1 -i ../0001-Fix-key-Page_Down-identified-as-Next.patch
     patch -p1 -i ../fix-708148.patch
+    patch -p1 -i ../0001-cellarea-Fix-possibly-getting-invalid-inner_area.patch
+    patch -p1 -i ../0001-gtkpixelcache-Fix-possibly-ignoring-queued-redraw.patch
 
     patch -p1 -i ../0001-Revert-Deprecate-and-ignore-gtk-menu-images-setting.patch
     patch -p1 -i ../0002-Revert-Deprecate-and-ignore-gtk-button-images-settin.patch

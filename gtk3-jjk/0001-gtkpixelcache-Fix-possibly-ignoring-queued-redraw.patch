@@ -1,0 +1,58 @@
+From 9c77630b9b4a196543276da36c06d7f15bffa1a8 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Tue, 5 Nov 2013 19:21:28 +0100
+Subject: [PATCH] gtkpixelcache: Fix possibly ignoring queued redraw
+
+If a queue_redraw() (invalidating a region, or the whole widget) was
+called from the draw() call, it could get ignored if surface_dirty
+existed, as it would then be updated, but destroyed right at the end of
+the _gtk_pixel_cache_repaint(), leading the next call to
+_gtk_pixel_cache_draw() have its call to repaint() be a no-op
+(since there's no surface_dirty) and then simply draw from (non
+updated) surface.
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ gtk/gtkpixelcache.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
+
+diff --git a/gtk/gtkpixelcache.c b/gtk/gtkpixelcache.c
+index ca6740f..b4ceef0 100644
+--- a/gtk/gtkpixelcache.c
++++ b/gtk/gtkpixelcache.c
+@@ -327,13 +327,15 @@ _gtk_pixel_cache_repaint (GtkPixelCache *cache,
+ 			  gpointer user_data)
+ {
+   cairo_t *backing_cr;
++  cairo_region_t *region_dirty = cache->surface_dirty;
++  cache->surface_dirty = NULL;
+ 
+   if (cache->surface &&
+-      cache->surface_dirty &&
+-      !cairo_region_is_empty (cache->surface_dirty))
++      region_dirty &&
++      !cairo_region_is_empty (region_dirty))
+     {
+       backing_cr = cairo_create (cache->surface);
+-      gdk_cairo_region (backing_cr, cache->surface_dirty);
++      gdk_cairo_region (backing_cr, region_dirty);
+       cairo_clip (backing_cr);
+       cairo_translate (backing_cr,
+ 		       -cache->surface_x - canvas_rect->x - view_rect->x,
+@@ -370,11 +372,8 @@ _gtk_pixel_cache_repaint (GtkPixelCache *cache,
+       cairo_destroy (backing_cr);
+     }
+ 
+-  if (cache->surface_dirty)
+-    {
+-      cairo_region_destroy (cache->surface_dirty);
+-      cache->surface_dirty = NULL;
+-    }
++  if (region_dirty)
++    cairo_region_destroy (region_dirty);
+ }
+ 
+ static gboolean
+-- 
+1.8.4.2
+

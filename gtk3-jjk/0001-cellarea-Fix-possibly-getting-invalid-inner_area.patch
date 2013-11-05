@@ -1,0 +1,38 @@
+From f5c84577fd27ef5e6951658288e178e3dd925adc Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Tue, 5 Nov 2013 14:20:32 +0100
+Subject: [PATCH] cellarea: Fix possibly getting invalid inner_area
+
+gtk_cell_area_inner_cell_area() could set an invalid inner_area if
+cell_area was very small (e.g. width=1), as it could lead to a negative
+width once the 2*focus_line_width was removed, which in turn would lead
+to an assertion failing later on/the app aborting.
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ gtk/gtkcellarea.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/gtk/gtkcellarea.c b/gtk/gtkcellarea.c
+index 9bd4e10..6b614ae 100644
+--- a/gtk/gtkcellarea.c
++++ b/gtk/gtkcellarea.c
+@@ -3549,6 +3549,15 @@ gtk_cell_area_inner_cell_area (GtkCellArea        *area,
+   inner_area->width  -= focus_line_width * 2;
+   inner_area->y      += focus_line_width;
+   inner_area->height -= focus_line_width * 2;
++
++  if (inner_area->x >= cell_area->x + cell_area->width)
++      inner_area->x = cell_area->x;
++  if (inner_area->y >= cell_area->y + cell_area->height)
++      inner_area->y = cell_area->y;
++  if (inner_area->width < 0)
++      inner_area->width = 0;
++  if (inner_area->height < 0)
++      inner_area->height = 0;
+ }
+ 
+ /**
+-- 
+1.8.4.2
+
