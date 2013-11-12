@@ -1,4 +1,4 @@
-From 7859c24b7a9413c68563dfe6157c3653d623bddc Mon Sep 17 00:00:00 2001
+From 41cd8b1e8261e27a831e0269b61607076c953836 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Mon, 14 Oct 2013 20:08:30 +0200
 Subject: [PATCH] Fix GtkToolButton possibly being empty
@@ -25,5 +25,5 @@ index 7acfc9f..0aeea1b 100644
      {
        need_label = TRUE;
 -- 
-1.8.4
+1.8.4.2
 

@@ -1,4 +1,4 @@
-From ef364306c64f593be2cbfc709547f9287b80b0fd Mon Sep 17 00:00:00 2001
+From 7a027b6c8fdfb98d1d7964d0dbc16576a59b36b0 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 16:43:50 +0200
 Subject: [PATCH 3/3] treeview: Change how toggle in handled on rubber banding
@@ -17,7 +17,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  2 files changed, 23 insertions(+), 4 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index c6a7cc5..ac187df 100644
+index fba2533..89702d2 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -800,6 +800,8 @@ static void     update_prelight                              (GtkTreeView
@@ -94,5 +94,5 @@ index 875948a..339c5f4 100644
  
  /**
 -- 
-1.8.4
+1.8.4.2
 

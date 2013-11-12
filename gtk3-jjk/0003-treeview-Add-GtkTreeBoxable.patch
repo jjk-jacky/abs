@@ -1,4 +1,4 @@
-From d91843417e0878b90a9c1cbe27af8766fac42d7a Mon Sep 17 00:00:00 2001
+From eaa5f5a7b0b0630e701c8d90468b43fd4fc0364d Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 17:20:27 +0200
 Subject: [PATCH 3/3] treeview: Add GtkTreeBoxable
@@ -952,7 +952,7 @@ index 584376d..5493c35 100644
  
  
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 612be87..02756ea 100644
+index 0e37c62..f496a09 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -55,6 +55,7 @@
@@ -1175,7 +1175,7 @@ index 612be87..02756ea 100644
  
  /* Internal tree functions
   */
-@@ -11406,6 +11540,10 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
+@@ -11404,6 +11538,10 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
        g_signal_handlers_disconnect_by_func (tree_view->priv->model,
  					    gtk_tree_view_rows_reordered,
  					    tree_view);
@@ -1186,7 +1186,7 @@ index 612be87..02756ea 100644
  
        for (; tmplist; tmplist = tmplist->next)
  	_gtk_tree_view_column_unset_model (tmplist->data,
-@@ -11480,6 +11618,11 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
+@@ -11478,6 +11616,11 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
  			"rows-reordered",
  			G_CALLBACK (gtk_tree_view_rows_reordered),
  			tree_view);
@@ -1199,5 +1199,5 @@ index 612be87..02756ea 100644
        flags = gtk_tree_model_get_flags (tree_view->priv->model);
        if ((flags & GTK_TREE_MODEL_LIST_ONLY) == GTK_TREE_MODEL_LIST_ONLY)
 -- 
-1.8.4
+1.8.4.2
 

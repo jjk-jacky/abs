@@ -1,4 +1,4 @@
-From 2e5d1997291dd699863136ef5af2f949a8da7ee2 Mon Sep 17 00:00:00 2001
+From ae2f5d5ccd3c0506958afcd1e7757cb0883a5c09 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 15:08:33 +0200
 Subject: [PATCH] GtkTreeView: Fix issues when removing a column
@@ -35,5 +35,5 @@ index e1846d5..90696ff 100644
    if (priv->property_changed_signal)
      {
 -- 
-1.8.4
+1.8.4.2
 

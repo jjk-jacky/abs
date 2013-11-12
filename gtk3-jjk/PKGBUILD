@@ -3,8 +3,8 @@
 
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
-pkgver=3.10.2
-pkgrel=4
+pkgver=3.10.3
+pkgrel=1
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -14,13 +14,12 @@ depends=(atk cairo gtk-update-icon-cache libxcursor libxinerama libxrandr
 makedepends=(gobject-introspection mesa gtk-doc)
 provides=($_pkgname)
 conflicts=($_pkgname)
-options=('!libtool' '!strip' 'debug')
+options=('!strip' 'debug')
 license=(LGPL)
 source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.tar.xz
         settings.ini
         0001-cellrenderertext-Fix-possible-overwriting-of-markup.patch
         0001-treestore-Fix-segfault-when-reordering-non-existing-.patch
-        0001-gtkcellareabox-Fix-renderer-not-always-drawn-when-vi.patch
         0001-Some-fixes-in-gtk_tree_view_is_blank_at_pos.patch
         0002-Add-gtk_tree_view_is_blank_at_pos_full.patch
         0001-Add-class-focused-row-to-the-focused-row-regardless-.patch
@@ -34,47 +33,43 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0001-treeview-is_rubber_banding_active-only-based-on-stat.patch
         0002-treeview-Add-gtk_tree_view_start_rubber_banding.patch
         0003-treeview-Change-how-toggle-in-handled-on-rubber-band.patch
-        0001-Revert-Deprecate-and-ignore-gtk-menu-images-setting.patch
-        0002-Revert-Deprecate-and-ignore-gtk-button-images-settin.patch
         0001-Fix-GtkToolButton-possibly-being-empty.patch
         0001-Revert-treeview-Store-editable-position-differently.patch
-        0001-Fix-key-Page_Down-identified-as-Next.patch
         0001-cellarea-Fix-possibly-getting-invalid-inner_area.patch
         0001-gtkpixelcache-Fix-possibly-ignoring-queued-redraw.patch
+        0001-treeview-Fix-possible-column-rendering-issue.patch
+        0001-treeview-Remove-some-dead-code.patch
         fix-708148.patch
         0001-Add-GTK_IS_JJK.patch)
-sha256sums=('93af12d28e5f6ccc373ea59f31147e2884c9b3c15dc4841ce3b5cee45b13814c'
+sha256sums=('8fb41deb898ad00ee858d5c04e2f80d295fbd6a8e9688cd7c0ba56ab84c6b727'
             'de961084b35507da5415640db733457161e1672ee54639828dfa399ea3d220b1'
-            '940925a5f1d17d3a94cc14d97b4b035f2020c2fbcd6bc80afd244f5f5ccfe94d'
-            '0f762da916bd9480028df1260df8a127865cc61ee88ef35987a15818103a33e3'
-            'eed27f3e1915dffd0b5ab9c016849beb6963d58575b16c643a89109a7ca4716b'
-            '545f52973179f2fbe7dc7a61cee8df84256c4c74726e91b6a205ff95834eec69'
-            '9d45bc62f62276f5e4060d314ce38765170b7f30538665898667f43e2b641578'
-            'a7e5a413d606867c2b67f07653ed5e971d273a5b630cbb7798ba758772b6b76c'
-            'f11754f8f812e895e14fff06d074973b7755034cb2a3c882ea176f8b2ab63e25'
-            'dabbb3db4b0618ff7db1da585bb8e5786a859510a13887e97a30b35a97eae110'
-            'd65411f209bf581c0c7de262f53621d8934d7a1603130ef6671a097b6b6676ff'
-            '5bfa575d44e92ba5a5841152e93b06f6bfef9373122be9f08c8d49ed66c8c0d8'
-            '72b95ee04f52c8bd9089d2910a7691a9dd517416cb1df8f60396b0b58efe5e53'
-            'c76bc7cb66aadb6b5364737b360a1caf69c428d394c50ecbf8a40e308d9abc3f'
-            'ff5aeeaad056b9aa30d7634886ce479e93f7ace83c6eead9206a1885729f2ed0'
-            '178d547fbd1bb91b77a6b9bb9f6b79bcb3ea60cdc979c3b8fc25bf2230b3939c'
-            '4702dd3032a094bec6805843a52073ddf9659ac6daaea65891f70cf643798919'
-            '7ec1abd2ac10482093a1668521e9979f3777dea5bcbfa8f8d6fd332b0fae8727'
-            '9bfdfe3b3015605a35001878c04d8228ed5f242544b24abb5cad6a4707b0d0c1'
-            'b561dde328d8d36c993f25efbbe6067776f6594d1631274fbe004b4e8d67146c'
-            'df86481bf44fa0baba896382aa6177983dc27c81bbdbdfabc858dce0766b29d7'
-            '49d40ba555f8ea07ccbf7ef6eb8be4c08f5ddb5eabdd39d8fe6f24dcd128f54e'
-            '0b0eb70ceffbc420ac65d5a0145220fb979caa57d60d02eee1622d9d109d7cf9'
-            'a5c0ca82ef599fef4ecc6989035b4229e905f479a0e5fb236b5d5fe6aac34163'
+            '4f867b6aa6c81867fc56c0c6f9061d336234e23fa5bd8830032a904b05c04a41'
+            'd67a39fde275e6d8be0bc52588e3d5c2140fa11fe73022deaad5c97990689811'
+            '73758c97f017322c643e11bbbf85bc3f71d04af8156948e1d59678da2c12cd2a'
+            'd918c7e9e08850a2f99eaa53d2e8d873c06d455a686238d5fbc940b59ada48d9'
+            '38a18c144f7a22760a630bac4a67126d8d2889b75e76e1d1ca776715773d6fff'
+            'b1d306806db164bdeec1b01c5b8b296fbec3173dff3941b013db134bb933788e'
+            '7488b2bf20579074c6a3f9ef8b58ebd5c45cf21b23813dbe909b59bd43d80dcc'
+            '3efab352b399dc73a2a8bb61277fb3a721999de2b32ce73614b75c667d1501b0'
+            '2618b494ead5ed327cca570ca512cf480287cdc6b463c96dc7a4a3305cd5a41f'
+            '222518481e63281a07bc54fe2c16ff94ee18110b1e51571316dcf35fdab79485'
+            '78b89fa87ce876eeb6b9b4fce4ca439936ff0591e154a5615afb68e508a79207'
+            '281eb70fdcec59859cd195b5a2afbb0abff8d846c9e1ac59ef59fe8cb8863d38'
+            '92c7a768f9a9e664128d4671f9c50c08a091ac1765ffeb4d02e8c38b8d52e810'
+            '095a83ce851772c659735e31cf9deedd298614c3ab47d2a977c0d17933bea3d6'
+            '8d3216f839ac58dfef075785da70f07958aa0cfe13a438ed5c12b83163c1d0dc'
+            'd7e42b16bf116b1395591a83f8c61e9e4e01ed9f370965ca690ec11a5255c99d'
+            'a52bdb3819256b062eb1e571267571268389efc3d53b4024db9dccdd407f4328'
+            '6ace73fa96de82af6b2e752040bd886e821b33ecb151bbe6b7b51b8d8a106456'
             '15a26985ee733bb30ccbf4863e99539e4c6c6565f7bde2bf7a072f4bd1520a49'
+            '590387fbd4701c511d2d91c1bbc0d18a03722be7602686da5bddd5293adcc57d'
+            'c2ed59e8181ee3b8632e38e6517855a712818b0e6ee6868bafd0d1288e87c45d'
             '8a8b500f6850466b646f788ee45756bbba21dea6f75babddca1d4b32ea1b0b03'
-            'efe759bc260b5aeb9a22c97a653d6b2a2a491ede71bfbff15fa4779a979f38a1')
+            'bafcc5c42cad39566edf54bf30ddaa9fc37f47f326a7d0ae62b58206d84f43dc')
 prepare() {
     cd "gtk+-$pkgver"
 
     patch -p1 -i ../0001-Add-GTK_IS_JJK.patch
-    patch -p1 -i ../0001-gtkcellareabox-Fix-renderer-not-always-drawn-when-vi.patch
     patch -p1 -i ../0001-Some-fixes-in-gtk_tree_view_is_blank_at_pos.patch
     patch -p1 -i ../0002-Add-gtk_tree_view_is_blank_at_pos_full.patch
     patch -p1 -i ../0001-treestore-Fix-segfault-when-reordering-non-existing-.patch
@@ -92,13 +87,11 @@ prepare() {
     patch -p1 -i ../0003-treeview-Change-how-toggle-in-handled-on-rubber-band.patch
     patch -p1 -i ../0001-Fix-GtkToolButton-possibly-being-empty.patch
     patch -p1 -i ../0001-Revert-treeview-Store-editable-position-differently.patch
-    patch -p1 -i ../0001-Fix-key-Page_Down-identified-as-Next.patch
     patch -p1 -i ../fix-708148.patch
     patch -p1 -i ../0001-cellarea-Fix-possibly-getting-invalid-inner_area.patch
     patch -p1 -i ../0001-gtkpixelcache-Fix-possibly-ignoring-queued-redraw.patch
-
-    patch -p1 -i ../0001-Revert-Deprecate-and-ignore-gtk-menu-images-setting.patch
-    patch -p1 -i ../0002-Revert-Deprecate-and-ignore-gtk-button-images-settin.patch
+    patch -p1 -i ../0001-treeview-Fix-possible-column-rendering-issue.patch
+    patch -p1 -i ../0001-treeview-Remove-some-dead-code.patch
 
     NOCONFIGURE=1 ./autogen.sh
 }

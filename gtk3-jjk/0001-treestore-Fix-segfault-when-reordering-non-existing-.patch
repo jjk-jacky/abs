@@ -1,4 +1,4 @@
-From dbaa25089710fb0951e641b6775ad0d2173cb5fd Mon Sep 17 00:00:00 2001
+From 54308eb45bbe4f730c6222dbe578fcb8391c5731 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 15:07:28 +0200
 Subject: [PATCH] treestore: Fix segfault when reordering non-existing children
@@ -29,5 +29,5 @@ index bbf6e5d..6db1f56 100644
    node = level;
    while (node)
 -- 
-1.8.4
+1.8.4.2
 

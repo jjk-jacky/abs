@@ -1,0 +1,144 @@
+From 75e7dee11e611979d2327846825caf5b5d536331 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Sat, 26 Oct 2013 00:51:27 +0200
+Subject: [PATCH] treeview: Remove some dead code
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ gtk/gtktreeview.c | 48 ++++++++----------------------------------------
+ 1 file changed, 8 insertions(+), 40 deletions(-)
+
+diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
+index e38dab0..f8b244f 100644
+--- a/gtk/gtktreeview.c
++++ b/gtk/gtktreeview.c
+@@ -8740,11 +8740,10 @@ gtk_tree_view_row_changed (GtkTreeModel *model,
+   GtkTreeView *tree_view = (GtkTreeView *)data;
+   GtkRBTree *tree;
+   GtkRBNode *node;
+-  gboolean free_path = FALSE;
+   GList *list;
+   GtkTreePath *cursor_path;
+ 
+-  g_return_if_fail (path != NULL || iter != NULL);
++  g_return_if_fail (path != NULL && iter != NULL);
+ 
+   if (tree_view->priv->cursor_node != NULL)
+     cursor_path = _gtk_tree_path_new_from_rbtree (tree_view->priv->cursor_tree,
+@@ -8759,14 +8758,6 @@ gtk_tree_view_row_changed (GtkTreeModel *model,
+   if (cursor_path != NULL)
+     gtk_tree_path_free (cursor_path);
+ 
+-  if (path == NULL)
+-    {
+-      path = gtk_tree_model_get_path (model, iter);
+-      free_path = TRUE;
+-    }
+-  else if (iter == NULL)
+-    gtk_tree_model_get_iter (model, iter, path);
+-
+   if (_gtk_tree_view_find_node (tree_view,
+ 				path,
+ 				&tree,
+@@ -8808,8 +8799,6 @@ gtk_tree_view_row_changed (GtkTreeModel *model,
+   if (!tree_view->priv->fixed_height_mode &&
+       gtk_widget_get_realized (GTK_WIDGET (tree_view)))
+     install_presize_handler (tree_view);
+-  if (free_path)
+-    gtk_tree_path_free (path);
+ }
+ 
+ static void
+@@ -8825,10 +8814,9 @@ gtk_tree_view_row_inserted (GtkTreeModel *model,
+   gint depth;
+   gint i = 0;
+   gint height;
+-  gboolean free_path = FALSE;
+   gboolean node_visible = TRUE;
+ 
+-  g_return_if_fail (path != NULL || iter != NULL);
++  g_return_if_fail (path != NULL && iter != NULL);
+ 
+   if (tree_view->priv->fixed_height_mode
+       && tree_view->priv->fixed_height >= 0)
+@@ -8836,14 +8824,6 @@ gtk_tree_view_row_inserted (GtkTreeModel *model,
+   else
+     height = 0;
+ 
+-  if (path == NULL)
+-    {
+-      path = gtk_tree_model_get_path (model, iter);
+-      free_path = TRUE;
+-    }
+-  else if (iter == NULL)
+-    gtk_tree_model_get_iter (model, iter, path);
+-
+   if (tree_view->priv->tree == NULL)
+     tree_view->priv->tree = _gtk_rbtree_new ();
+ 
+@@ -8922,8 +8902,6 @@ gtk_tree_view_row_inserted (GtkTreeModel *model,
+     }
+   else
+     install_presize_handler (tree_view);
+-  if (free_path)
+-    gtk_tree_path_free (path);
+ }
+ 
+ static void
+@@ -8937,19 +8915,13 @@ gtk_tree_view_row_has_child_toggled (GtkTreeModel *model,
+   gboolean has_child;
+   GtkRBTree *tree;
+   GtkRBNode *node;
+-  gboolean free_path = FALSE;
+ 
+-  g_return_if_fail (path != NULL || iter != NULL);
++  /* iter can be NULL when called from gtk_tree_view_row_inserted() */
++  g_return_if_fail (path != NULL);
+ 
+   if (iter)
+     real_iter = *iter;
+-
+-  if (path == NULL)
+-    {
+-      path = gtk_tree_model_get_path (model, iter);
+-      free_path = TRUE;
+-    }
+-  else if (iter == NULL)
++  else
+     gtk_tree_model_get_iter (model, &real_iter, path);
+ 
+   if (_gtk_tree_view_find_node (tree_view,
+@@ -8957,16 +8929,16 @@ gtk_tree_view_row_has_child_toggled (GtkTreeModel *model,
+ 				&tree,
+ 				&node))
+     /* We aren't actually showing the node */
+-    goto done;
++    return;
+ 
+   if (tree == NULL)
+-    goto done;
++    return;
+ 
+   has_child = gtk_tree_model_iter_has_child (model, &real_iter);
+   /* Sanity check.
+    */
+   if (GTK_RBNODE_FLAG_SET (node, GTK_RBNODE_IS_PARENT) == has_child)
+-    goto done;
++    return;
+ 
+   if (has_child)
+     {
+@@ -8999,10 +8971,6 @@ gtk_tree_view_row_has_child_toggled (GtkTreeModel *model,
+     {
+       _gtk_tree_view_queue_draw_node (tree_view, tree, node, NULL);
+     }
+-
+- done:
+-  if (free_path)
+-    gtk_tree_path_free (path);
+ }
+ 
+ static void
+-- 
+1.8.4.2
+

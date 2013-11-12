@@ -1,4 +1,4 @@
-From 9a56f373ffd2277f3520c9a34c84edf5be352a80 Mon Sep 17 00:00:00 2001
+From d5c5acc9fbbe2da010a867f10ebf68d1813ac168 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 15:09:15 +0200
 Subject: [PATCH] Fix scrolling menu not working properly; Bug #701077
@@ -27,5 +27,5 @@ index f6b0c7a..ecfdb0f 100644
  
    /* if no item is selected, select the first one */
 -- 
-1.8.4
+1.8.4.2
 

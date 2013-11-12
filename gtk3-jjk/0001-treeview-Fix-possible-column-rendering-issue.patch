@@ -1,0 +1,57 @@
+From f5e15d6ad6067be4d082a29e3ee7a4f4d7dc7005 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Fri, 25 Oct 2013 23:46:15 +0200
+Subject: [PATCH] treeview: Fix possible column rendering issue
+
+In fixed row heigth mode, there was a possibility that renderers could
+not be drawn even though visible, because no size request was performed
+on the column after a row-changed.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=696965
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ gtk/gtktreeview.c | 28 +++++++++++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
+
+diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
+index e38dab0..49973b9 100644
+--- a/gtk/gtktreeview.c
++++ b/gtk/gtktreeview.c
+@@ -8784,7 +8784,33 @@ gtk_tree_view_row_changed (GtkTreeModel *model,
+     {
+       _gtk_rbtree_node_set_height (tree, node, tree_view->priv->fixed_height);
+       if (gtk_widget_get_realized (GTK_WIDGET (tree_view)))
+-	gtk_tree_view_node_queue_redraw (tree_view, tree, node);
++        {
++          gtk_tree_view_node_queue_redraw (tree_view, tree, node);
++
++          /* though in fixed height mode (which implies fixed sizing columns)
++           * the allocated space will not change, we still need to trigger a
++           * size request on the column('s cell area), in case some
++           * calculations need to be performed/caches updated; For instance,
++           * if a renderer changed visibility, else it might not be drawn.
++           * See bug #696965 */
++          for (list = tree_view->priv->columns; list; list = list->next)
++            {
++              GtkTreeViewColumn *column;
++
++              column = list->data;
++              if (!gtk_tree_view_column_get_visible (column))
++                  continue;
++
++              gtk_tree_view_column_cell_set_cell_data (column,
++                      tree_view->priv->model,
++                      iter,
++                      GTK_RBNODE_FLAG_SET (node, GTK_RBNODE_IS_PARENT),
++                      node->children ? TRUE : FALSE);
++              gtk_tree_view_column_cell_get_size (column,
++                      NULL, NULL, NULL,
++                      NULL, NULL);
++            }
++        }
+     }
+   else
+     {
+-- 
+1.8.4.2
+

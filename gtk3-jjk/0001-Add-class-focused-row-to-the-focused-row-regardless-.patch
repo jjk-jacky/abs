@@ -1,4 +1,4 @@
-From 9689fad268dba920c171c6f6d91ad1278fc21fc1 Mon Sep 17 00:00:00 2001
+From 00988cad09cd269e63bf31434189ab8b732b9948 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 15:08:09 +0200
 Subject: [PATCH] Add class "focused-row" to the focused row, regardless of
@@ -57,7 +57,7 @@ index 29f3ebf..1d8e997 100644
   *
   * A CSS class defining a frame delimiting content, such as
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index d228360..c95c475 100644
+index e38dab0..de62da1 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -5073,6 +5073,12 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
@@ -74,5 +74,5 @@ index d228360..c95c475 100644
            gtk_style_context_add_region (context, GTK_STYLE_REGION_COLUMN, column_flags);
  
 -- 
-1.8.4
+1.8.4.2
 

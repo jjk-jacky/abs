@@ -1,4 +1,4 @@
-From a6311e2e502b1c778299cf9b220b8addb44a462e Mon Sep 17 00:00:00 2001
+From b7a0e2607bbee3690f261181e4ae5949fdb3f874 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 17:17:59 +0200
 Subject: [PATCH 2/3] treeview: Add gtk_tree_view_set_row_class_column
@@ -28,7 +28,7 @@ index 05975d3..11f015f 100644
  gtk_tree_view_get_select_highlight_column
  gtk_tree_view_set_select_row_underline
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 4696eb9..612be87 100644
+index b397438..0e37c62 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -455,6 +455,9 @@ struct _GtkTreeViewPrivate
@@ -76,7 +76,7 @@ index 4696eb9..612be87 100644
  	  if (node == tree_view->priv->cursor_node && has_can_focus_cell
                && ((column == tree_view->priv->focus_column
                     && tree_view->priv->draw_keyfocus &&
-@@ -11411,6 +11428,7 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
+@@ -11409,6 +11426,7 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
        g_object_unref (tree_view->priv->model);
  
        tree_view->priv->search_column = -1;
@@ -84,7 +84,7 @@ index 4696eb9..612be87 100644
        tree_view->priv->fixed_height_check = 0;
        tree_view->priv->fixed_height = -1;
        tree_view->priv->dy = tree_view->priv->top_row_dy = 0;
-@@ -12377,6 +12395,61 @@ gtk_tree_view_get_expander_column (GtkTreeView *tree_view)
+@@ -12375,6 +12393,61 @@ gtk_tree_view_get_expander_column (GtkTreeView *tree_view)
  }
  
  /**
@@ -146,7 +146,7 @@ index 4696eb9..612be87 100644
   * gtk_tree_view_set_select_highlight_column:
   * @tree_view: A #GtkTreeView
   * @column: %NULL, or the column to have the select highlight drawn into
-@@ -12476,7 +12549,6 @@ gtk_tree_view_get_select_row_underline (GtkTreeView *tree_view)
+@@ -12474,7 +12547,6 @@ gtk_tree_view_get_select_row_underline (GtkTreeView *tree_view)
    return tree_view->priv->select_row_underline;
  }
  
@@ -171,5 +171,5 @@ index fd1a654..b5cc6ca 100644
  								    GtkTreeViewColumn         *column);
  GDK_AVAILABLE_IN_3_10
 -- 
-1.8.4
+1.8.4.2
 
