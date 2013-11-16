@@ -3,7 +3,7 @@
 
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
-pkgver=3.10.3
+pkgver=3.10.4
 pkgrel=1
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
@@ -36,12 +36,12 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0001-Fix-GtkToolButton-possibly-being-empty.patch
         0001-Revert-treeview-Store-editable-position-differently.patch
         0001-cellarea-Fix-possibly-getting-invalid-inner_area.patch
-        0001-gtkpixelcache-Fix-possibly-ignoring-queued-redraw.patch
         0001-treeview-Fix-possible-column-rendering-issue.patch
         0001-treeview-Remove-some-dead-code.patch
+        0001-tooltip-Fix-possibly-briefly-appearing-at-0x0.patch
         fix-708148.patch
         0001-Add-GTK_IS_JJK.patch)
-sha256sums=('8fb41deb898ad00ee858d5c04e2f80d295fbd6a8e9688cd7c0ba56ab84c6b727'
+sha256sums=('4fd411fc6377d969d7f8e99c14d078822e8dbe940a417be299e456a3d2c4a52b'
             'de961084b35507da5415640db733457161e1672ee54639828dfa399ea3d220b1'
             '4f867b6aa6c81867fc56c0c6f9061d336234e23fa5bd8830032a904b05c04a41'
             'd67a39fde275e6d8be0bc52588e3d5c2140fa11fe73022deaad5c97990689811'
@@ -61,9 +61,9 @@ sha256sums=('8fb41deb898ad00ee858d5c04e2f80d295fbd6a8e9688cd7c0ba56ab84c6b727'
             'd7e42b16bf116b1395591a83f8c61e9e4e01ed9f370965ca690ec11a5255c99d'
             'a52bdb3819256b062eb1e571267571268389efc3d53b4024db9dccdd407f4328'
             '6ace73fa96de82af6b2e752040bd886e821b33ecb151bbe6b7b51b8d8a106456'
-            '15a26985ee733bb30ccbf4863e99539e4c6c6565f7bde2bf7a072f4bd1520a49'
             '590387fbd4701c511d2d91c1bbc0d18a03722be7602686da5bddd5293adcc57d'
             'c2ed59e8181ee3b8632e38e6517855a712818b0e6ee6868bafd0d1288e87c45d'
+            '257a859231d4ff7f2b93cd733a90943af7c3961f50fa7fc515565eb2bea620a1'
             '8a8b500f6850466b646f788ee45756bbba21dea6f75babddca1d4b32ea1b0b03'
             'bafcc5c42cad39566edf54bf30ddaa9fc37f47f326a7d0ae62b58206d84f43dc')
 prepare() {
@@ -89,9 +89,9 @@ prepare() {
     patch -p1 -i ../0001-Revert-treeview-Store-editable-position-differently.patch
     patch -p1 -i ../fix-708148.patch
     patch -p1 -i ../0001-cellarea-Fix-possibly-getting-invalid-inner_area.patch
-    patch -p1 -i ../0001-gtkpixelcache-Fix-possibly-ignoring-queued-redraw.patch
     patch -p1 -i ../0001-treeview-Fix-possible-column-rendering-issue.patch
     patch -p1 -i ../0001-treeview-Remove-some-dead-code.patch
+    patch -p1 -i ../0001-tooltip-Fix-possibly-briefly-appearing-at-0x0.patch
 
     NOCONFIGURE=1 ./autogen.sh
 }
