@@ -5,8 +5,8 @@
 
 _pkgname=ffmpeg
 pkgname=$_pkgname-jjk
-pkgver=2.1
-pkgrel=2
+pkgver=2.1.1
+pkgrel=1
 pkgdesc="Complete and free Internet live audio and video broadcasting solution for Linux/Unix"
 arch=('i686' 'x86_64')
 url="http://ffmpeg.org/"
@@ -21,7 +21,7 @@ makedepends=('yasm')
 provides=($_pkgname)
 conflicts=($_pkgname)
 source=(http://ffmpeg.org/releases/$_pkgname-$pkgver.tar.bz2)
-sha256sums=('926603fd974e9b38071a5cfc6fd0d93857801d1968145dfce7fdc627ab1d68df')
+sha256sums=('bef95e5b9aac45adec7ef434537504a63b4bbc22a8ce6a96a68e19c5efbadae2')
 
 build() {
   cd $_pkgname-$pkgver
