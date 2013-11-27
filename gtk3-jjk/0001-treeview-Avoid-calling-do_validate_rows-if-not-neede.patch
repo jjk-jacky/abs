@@ -1,0 +1,40 @@
+From 4262475d552e9582153f3deef6beff698d9d1e6c Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Wed, 27 Nov 2013 15:36:07 +0100
+Subject: [PATCH] treeview: Avoid calling do_validate_rows() if not needed
+
+There's no need to always call do_validate_rows() from
+get_preferred_width(), as this is only intended originally to make sure
+we get a size.
+
+Additionally, this was causing issues of missing size request when
+adding rows: because all rows were validated from the call in
+get_preferred_width() it would turn validate_rows() call into a no-op,
+except it was supposed to queue a size request.
+
+See https://mail.gnome.org/archives/gtk-app-devel-list/2013-November/msg00049.html
+for an example
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ gtk/gtktreeview.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
+index e38dab0..38b5ef8 100644
+--- a/gtk/gtktreeview.c
++++ b/gtk/gtktreeview.c
+@@ -2484,7 +2484,9 @@ gtk_tree_view_get_preferred_width (GtkWidget *widget,
+   /* we validate some rows initially just to make sure we have some size.
+    * In practice, with a lot of static lists, this should get a good width.
+    */
+-  do_validate_rows (tree_view, FALSE);
++  if (!gtk_widget_get_realized (widget))
++    do_validate_rows (tree_view, FALSE);
++
+   
+   tree_view->priv->minimum_width = 0;
+   tree_view->priv->natural_width = 0;
+-- 
+1.8.4.2
+
