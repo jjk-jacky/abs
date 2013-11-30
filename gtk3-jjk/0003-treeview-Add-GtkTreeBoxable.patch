@@ -1,6 +1,6 @@
-From eaa5f5a7b0b0630e701c8d90468b43fd4fc0364d Mon Sep 17 00:00:00 2001
+From c593405752965ebc8cdf5cb95db67e7cc9742de7 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
-Date: Tue, 15 Oct 2013 17:20:27 +0200
+Date: Tue, 15 Oct 2013 15:09:32 +0200
 Subject: [PATCH 3/3] treeview: Add GtkTreeBoxable
 
 When a model implements GtkTreeBoxable, the GtkTreeView will do some special
@@ -24,12 +24,12 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  docs/reference/gtk/gtk3.types.in     |   1 +
  gtk/Makefile.am                      |   2 +
  gtk/gtkstylecontext.h                |  10 ++
- gtk/gtktreeboxable.c                 | 246 +++++++++++++++++++++++++++
- gtk/gtktreeboxable.h                 | 103 ++++++++++++
- gtk/gtktreestore.c                   | 311 +++++++++++++++++++++++++++++++++++
+ gtk/gtktreeboxable.c                 | 246 ++++++++++++++++++++++++++
+ gtk/gtktreeboxable.h                 | 103 +++++++++++
+ gtk/gtktreestore.c                   | 331 ++++++++++++++++++++++++++++++++++-
  gtk/gtktreestore.h                   |   1 +
- gtk/gtktreeview.c                    | 147 ++++++++++++++++-
- 10 files changed, 841 insertions(+), 2 deletions(-)
+ gtk/gtktreeview.c                    | 146 ++++++++++++++-
+ 10 files changed, 856 insertions(+), 6 deletions(-)
  create mode 100644 gtk/gtktreeboxable.c
  create mode 100644 gtk/gtktreeboxable.h
 
@@ -492,7 +492,7 @@ index 0000000..c893c60
 +
 +#endif /* __GTK_TREE_BOXABLE_H__ */
 diff --git a/gtk/gtktreestore.c b/gtk/gtktreestore.c
-index bbf6e5d..77113fc 100644
+index bbf6e5d..69b588a 100644
 --- a/gtk/gtktreestore.c
 +++ b/gtk/gtktreestore.c
 @@ -71,6 +71,8 @@ struct _GtkTreeStorePrivate
@@ -576,7 +576,46 @@ index bbf6e5d..77113fc 100644
    priv->columns_dirty = FALSE;
  }
  
-@@ -957,6 +996,8 @@ gtk_tree_store_set_value (GtkTreeStore *tree_store,
+@@ -461,11 +500,20 @@ gtk_tree_store_set_column_type (GtkTreeStore *tree_store,
+   priv->column_headers[column] = type;
+ }
+ 
++struct node_free
++{
++    GHashTable *box_htable;
++    GType *type;
++};
++
+ static gboolean
+ node_free (GNode *node, gpointer data)
+ {
++  struct node_free *nf = data;
++  if (nf->box_htable)
++      g_hash_table_remove (nf->box_htable, node);
+   if (node->data)
+-    _gtk_tree_data_list_free (node->data, (GType*)data);
++    _gtk_tree_data_list_free (node->data, nf->type);
+   node->data = NULL;
+ 
+   return FALSE;
+@@ -476,12 +524,15 @@ gtk_tree_store_finalize (GObject *object)
+ {
+   GtkTreeStore *tree_store = GTK_TREE_STORE (object);
+   GtkTreeStorePrivate *priv = tree_store->priv;
++  struct node_free nf = { NULL, priv->column_headers };
+ 
+   g_node_traverse (priv->root, G_POST_ORDER, G_TRAVERSE_ALL, -1,
+-		   node_free, priv->column_headers);
++		   node_free, &nf);
+   g_node_destroy (priv->root);
+   _gtk_tree_data_list_header_free (priv->sort_list);
+   g_free (priv->column_headers);
++  if (priv->box_htable)
++    g_hash_table_unref (priv->box_htable);
+ 
+   if (priv->default_sort_destroy)
+     {
+@@ -957,6 +1008,8 @@ gtk_tree_store_set_value (GtkTreeStore *tree_store,
      {
        GtkTreePath *path;
  
@@ -585,7 +624,7 @@ index bbf6e5d..77113fc 100644
        path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), iter);
        gtk_tree_model_row_changed (GTK_TREE_MODEL (tree_store), path, iter);
        gtk_tree_path_free (path);
-@@ -1117,6 +1158,8 @@ gtk_tree_store_set_valuesv (GtkTreeStore *tree_store,
+@@ -1117,6 +1170,8 @@ gtk_tree_store_set_valuesv (GtkTreeStore *tree_store,
      {
        GtkTreePath *path;
  
@@ -594,7 +633,7 @@ index bbf6e5d..77113fc 100644
        path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), iter);
        gtk_tree_model_row_changed (GTK_TREE_MODEL (tree_store), path, iter);
        gtk_tree_path_free (path);
-@@ -1157,6 +1200,8 @@ gtk_tree_store_set_valist (GtkTreeStore *tree_store,
+@@ -1157,6 +1212,8 @@ gtk_tree_store_set_valist (GtkTreeStore *tree_store,
      {
        GtkTreePath *path;
  
@@ -603,17 +642,21 @@ index bbf6e5d..77113fc 100644
        path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), iter);
        gtk_tree_model_row_changed (GTK_TREE_MODEL (tree_store), path, iter);
        gtk_tree_path_free (path);
-@@ -1227,6 +1272,9 @@ gtk_tree_store_remove (GtkTreeStore *tree_store,
+@@ -1221,8 +1278,11 @@ gtk_tree_store_remove (GtkTreeStore *tree_store,
+   next_node = G_NODE (iter->user_data)->next;
+ 
+   if (G_NODE (iter->user_data)->data)
+-    g_node_traverse (G_NODE (iter->user_data), G_POST_ORDER, G_TRAVERSE_ALL,
+-		     -1, node_free, priv->column_headers);
++    {
++      struct node_free nf = { priv->box_htable, priv->column_headers };
++      g_node_traverse (G_NODE (iter->user_data), G_POST_ORDER, G_TRAVERSE_ALL,
++		       -1, node_free, &nf);
++    }
+ 
    path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), iter);
    g_node_destroy (G_NODE (iter->user_data));
- 
-+  if (priv->box_htable)
-+      g_hash_table_remove (priv->box_htable, iter->user_data);
-+
-   gtk_tree_model_row_deleted (GTK_TREE_MODEL (tree_store), path);
- 
-   if (parent != G_NODE (priv->root))
-@@ -1304,6 +1352,8 @@ gtk_tree_store_insert (GtkTreeStore *tree_store,
+@@ -1304,6 +1364,8 @@ gtk_tree_store_insert (GtkTreeStore *tree_store,
    iter->user_data = new_node;
    g_node_insert (parent_node, position, new_node);
  
@@ -622,7 +665,7 @@ index bbf6e5d..77113fc 100644
    path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), iter);
    gtk_tree_model_row_inserted (GTK_TREE_MODEL (tree_store), path, iter);
  
-@@ -1380,6 +1430,8 @@ gtk_tree_store_insert_before (GtkTreeStore *tree_store,
+@@ -1380,6 +1442,8 @@ gtk_tree_store_insert_before (GtkTreeStore *tree_store,
    iter->stamp = priv->stamp;
    iter->user_data = new_node;
  
@@ -631,7 +674,7 @@ index bbf6e5d..77113fc 100644
    path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), iter);
    gtk_tree_model_row_inserted (GTK_TREE_MODEL (tree_store), path, iter);
  
-@@ -1462,6 +1514,8 @@ gtk_tree_store_insert_after (GtkTreeStore *tree_store,
+@@ -1462,6 +1526,8 @@ gtk_tree_store_insert_after (GtkTreeStore *tree_store,
    iter->stamp = priv->stamp;
    iter->user_data = new_node;
  
@@ -640,7 +683,7 @@ index bbf6e5d..77113fc 100644
    path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), iter);
    gtk_tree_model_row_inserted (GTK_TREE_MODEL (tree_store), path, iter);
  
-@@ -1550,6 +1604,8 @@ gtk_tree_store_insert_with_values (GtkTreeStore *tree_store,
+@@ -1550,6 +1616,8 @@ gtk_tree_store_insert_with_values (GtkTreeStore *tree_store,
    iter->user_data = new_node;
    g_node_insert (parent_node, position, new_node);
  
@@ -649,7 +692,7 @@ index bbf6e5d..77113fc 100644
    va_start (var_args, position);
    gtk_tree_store_set_valist_internal (tree_store, iter,
  				      &changed, &maybe_need_sort,
-@@ -1631,6 +1687,8 @@ gtk_tree_store_insert_with_valuesv (GtkTreeStore *tree_store,
+@@ -1631,6 +1699,8 @@ gtk_tree_store_insert_with_valuesv (GtkTreeStore *tree_store,
    iter->user_data = new_node;
    g_node_insert (parent_node, position, new_node);
  
@@ -658,7 +701,7 @@ index bbf6e5d..77113fc 100644
    gtk_tree_store_set_vector_internal (tree_store, iter,
  				      &changed, &maybe_need_sort,
  				      columns, values, n_values);
-@@ -1696,6 +1754,8 @@ gtk_tree_store_prepend (GtkTreeStore *tree_store,
+@@ -1696,6 +1766,8 @@ gtk_tree_store_prepend (GtkTreeStore *tree_store,
  
        g_node_prepend (parent_node, G_NODE (iter->user_data));
  
@@ -667,7 +710,7 @@ index bbf6e5d..77113fc 100644
        path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), iter);
        gtk_tree_model_row_inserted (GTK_TREE_MODEL (tree_store), path, iter);
  
-@@ -1755,6 +1815,8 @@ gtk_tree_store_append (GtkTreeStore *tree_store,
+@@ -1755,6 +1827,8 @@ gtk_tree_store_append (GtkTreeStore *tree_store,
  
        g_node_append (parent_node, G_NODE (iter->user_data));
  
@@ -676,7 +719,7 @@ index bbf6e5d..77113fc 100644
        path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), iter);
        gtk_tree_model_row_inserted (GTK_TREE_MODEL (tree_store), path, iter);
  
-@@ -2021,6 +2083,8 @@ copy_node_data (GtkTreeStore *tree_store,
+@@ -2021,6 +2095,8 @@ copy_node_data (GtkTreeStore *tree_store,
  
    G_NODE (dest_iter->user_data)->data = copy_head;
  
@@ -685,7 +728,7 @@ index bbf6e5d..77113fc 100644
    path = gtk_tree_store_get_path (GTK_TREE_MODEL (tree_store), dest_iter);
    gtk_tree_model_row_changed (GTK_TREE_MODEL (tree_store), path, dest_iter);
    gtk_tree_path_free (path);
-@@ -3308,6 +3372,253 @@ gtk_tree_store_has_default_sort_func (GtkTreeSortable *sortable)
+@@ -3308,6 +3384,253 @@ gtk_tree_store_has_default_sort_func (GtkTreeSortable *sortable)
    return (tree_store->priv->default_sort_func != NULL);
  }
  
@@ -952,7 +995,7 @@ index 584376d..5493c35 100644
  
  
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 0e37c62..f496a09 100644
+index 0e37c62..aef3b61 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -55,6 +55,7 @@
@@ -1024,10 +1067,10 @@ index 0e37c62..f496a09 100644
  
  	  if (!gtk_tree_view_column_get_visible (column))
              continue;
-@@ -5141,6 +5160,30 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5140,6 +5159,29 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+                   g_free (row_class);
                  }
              }
- 
 +          if (boxable)
 +            {
 +              if (gtk_tree_view_is_expander_column (tree_view, column))
@@ -1051,11 +1094,10 @@ index 0e37c62..f496a09 100644
 +                                                              &iter))
 +                gtk_style_context_add_class (context, box);
 +            }
-+
+ 
  	  if (node == tree_view->priv->cursor_node && has_can_focus_cell
                && ((column == tree_view->priv->focus_column
-                    && tree_view->priv->draw_keyfocus &&
-@@ -5171,13 +5214,91 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5171,13 +5213,91 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
  
  	  if (gtk_tree_view_is_expander_column (tree_view, column))
  	    {
@@ -1148,7 +1190,7 @@ index 0e37c62..f496a09 100644
  	          if (!rtl)
  		    cell_area.x += depth * expander_size;
  		  cell_area.width -= depth * expander_size;
-@@ -5231,6 +5352,12 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5231,6 +5351,12 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
  	    }
  	  else
  	    {
@@ -1161,7 +1203,7 @@ index 0e37c62..f496a09 100644
  	      if (is_separator)
                  {
                    gtk_style_context_save (context);
-@@ -9329,6 +9456,13 @@ gtk_tree_view_rows_reordered (GtkTreeModel *model,
+@@ -9329,6 +9455,13 @@ gtk_tree_view_rows_reordered (GtkTreeModel *model,
    gtk_tree_view_dy_to_top_row (tree_view);
  }
  
@@ -1175,7 +1217,7 @@ index 0e37c62..f496a09 100644
  
  /* Internal tree functions
   */
-@@ -11404,6 +11538,10 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
+@@ -11404,6 +11537,10 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
        g_signal_handlers_disconnect_by_func (tree_view->priv->model,
  					    gtk_tree_view_rows_reordered,
  					    tree_view);
@@ -1186,7 +1228,7 @@ index 0e37c62..f496a09 100644
  
        for (; tmplist; tmplist = tmplist->next)
  	_gtk_tree_view_column_unset_model (tmplist->data,
-@@ -11478,6 +11616,11 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
+@@ -11478,6 +11615,11 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
  			"rows-reordered",
  			G_CALLBACK (gtk_tree_view_rows_reordered),
  			tree_view);
