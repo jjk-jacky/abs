@@ -1,4 +1,4 @@
-From 2ea8effbe67d4aa4ed702d3237ffa807042d23ff Mon Sep 17 00:00:00 2001
+From 429eb850bb7312b41bf60ca47c7f49ae190f35a6 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 16:45:51 +0200
 Subject: [PATCH 1/3] Allow to disable full row highlight on selection
@@ -369,7 +369,7 @@ index 9d0c301..8678404 100644
  							  gboolean            install_handler);
  gboolean          _gtk_tree_view_column_cell_get_dirty   (GtkTreeViewColumn  *tree_column);
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index e38dab0..b397438 100644
+index a91d476..5747444 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -332,6 +332,11 @@ struct _GtkTreeViewPrivate
@@ -466,7 +466,7 @@ index e38dab0..b397438 100644
      case PROP_REORDERABLE:
        g_value_set_boolean (value, tree_view->priv->reorderable);
        break;
-@@ -4928,7 +4973,9 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -4927,7 +4972,9 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
        if (GTK_RBNODE_FLAG_SET (node, GTK_RBNODE_IS_PRELIT))
  	flags |= GTK_CELL_RENDERER_PRELIT;
  
@@ -477,7 +477,7 @@ index e38dab0..b397438 100644
          flags |= GTK_CELL_RENDERER_SELECTED;
  
        /* we *need* to set cell data on all cells before the call
-@@ -4958,6 +5005,7 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -4957,6 +5004,7 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
  	  GtkStateFlags state = 0;
            gint width;
            gboolean draw_focus;
@@ -485,7 +485,7 @@ index e38dab0..b397438 100644
  
  	  if (!gtk_tree_view_column_get_visible (column))
              continue;
-@@ -5085,6 +5133,11 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5084,6 +5132,11 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
            else
              draw_focus = FALSE;
  
@@ -497,7 +497,7 @@ index e38dab0..b397438 100644
  	  /* Draw background */
            gtk_render_background (context, cr,
                                   background_area.x,
-@@ -5135,12 +5188,19 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5134,12 +5187,19 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
                  }
  	      else
                  {
@@ -518,7 +518,7 @@ index e38dab0..b397438 100644
                  }
  
  	      if (gtk_tree_view_draw_expanders (tree_view)
-@@ -5168,14 +5228,51 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5167,14 +5227,51 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
                    gtk_style_context_restore (context);
                  }
  	      else
@@ -576,7 +576,7 @@ index e38dab0..b397438 100644
  	  if (draw_hgrid_lines)
  	    {
  	      if (background_area.y > 0)
-@@ -12277,6 +12374,106 @@ gtk_tree_view_get_expander_column (GtkTreeView *tree_view)
+@@ -12279,6 +12376,106 @@ gtk_tree_view_get_expander_column (GtkTreeView *tree_view)
    return NULL;
  }
  
@@ -683,7 +683,7 @@ index e38dab0..b397438 100644
  
  /**
   * gtk_tree_view_set_column_drag_function:
-@@ -14598,7 +14795,7 @@ gtk_tree_view_create_row_drag_icon (GtkTreeView  *tree_view,
+@@ -14600,7 +14797,7 @@ gtk_tree_view_create_row_drag_icon (GtkTreeView  *tree_view,
                                                   cr,
                                                   &background_area,
                                                   &cell_area,
@@ -759,5 +759,5 @@ index e1846d5..c85dbad 100644
    cairo_restore (cr);
  }
 -- 
-1.8.4.2
+1.8.5.1
 
