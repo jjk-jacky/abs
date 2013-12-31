@@ -1,11 +1,11 @@
-From 4262475d552e9582153f3deef6beff698d9d1e6c Mon Sep 17 00:00:00 2001
+From f0cfaeddc124a91be6352d16fe22e5b46b62d7cb Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
-Date: Wed, 27 Nov 2013 15:36:07 +0100
+Date: Tue, 31 Dec 2013 13:43:26 +0100
 Subject: [PATCH] treeview: Avoid calling do_validate_rows() if not needed
 
 There's no need to always call do_validate_rows() from
 get_preferred_width(), as this is only intended originally to make sure
-we get a size.
+we get a size (when not yet realized).
 
 Additionally, this was causing issues of missing size request when
 adding rows: because all rows were validated from the call in
@@ -15,26 +15,56 @@ except it was supposed to queue a size request.
 See https://mail.gnome.org/archives/gtk-app-devel-list/2013-November/msg00049.html
 for an example
 
+With this change in, do_validate_rows() isn't called as much, and
+specifically for fixed_row_height mode is isn't called from calls to
+presize_handler() which in turn means that by the time do_validate_rows()
+gets called, and sets the fixed_height, there's no more size request
+done (so height/scroll is wrong).
+
+We ensure the correct size is known by calling queue_resize() at the end
+of initialize_fixed_height_mode() to fix this.
+We can also avoid some work in do_presize_handler() if fixed_height hasn't
+been set yet, since it means we don't have (correct) sizes yet.
+
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
- gtk/gtktreeview.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ gtk/gtktreeview.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index e38dab0..38b5ef8 100644
+index a91d476..a3587a2 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -2484,7 +2484,9 @@ gtk_tree_view_get_preferred_width (GtkWidget *widget,
+@@ -2483,8 +2483,9 @@ gtk_tree_view_get_preferred_width (GtkWidget *widget,
    /* we validate some rows initially just to make sure we have some size.
     * In practice, with a lot of static lists, this should get a good width.
     */
 -  do_validate_rows (tree_view, FALSE);
+-  
 +  if (!gtk_widget_get_realized (widget))
 +    do_validate_rows (tree_view, FALSE);
 +
-   
    tree_view->priv->minimum_width = 0;
    tree_view->priv->natural_width = 0;
+   tree_view->priv->n_expand_columns = 0;
+@@ -6620,6 +6621,8 @@ initialize_fixed_height_mode (GtkTreeView *tree_view)
+ 
+    _gtk_rbtree_set_fixed_height (tree_view->priv->tree,
+                                  tree_view->priv->fixed_height, TRUE);
++
++   gtk_widget_queue_resize (GTK_WIDGET (tree_view));
+ }
+ 
+ /* Our strategy for finding nodes to validate is a little convoluted.  We find
+@@ -6824,7 +6827,7 @@ do_presize_handler (GtkTreeView *tree_view)
+       tree_view->priv->presize_handler_tick_cb = 0;
+     }
+ 
+-  if (tree_view->priv->fixed_height_mode)
++  if (tree_view->priv->fixed_height_mode && tree_view->priv->fixed_height > 0)
+     {
+       GtkRequisition requisition;
+ 
 -- 
-1.8.4.2
+1.8.5.2
 
