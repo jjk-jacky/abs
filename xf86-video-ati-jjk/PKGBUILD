@@ -5,14 +5,14 @@
 _pkgname=xf86-video-ati
 pkgname=$_pkgname-jjk
 pkgver=7.2.0
-pkgrel=1
+pkgrel=2
 pkgdesc="X.org ati video driver"
 arch=('i686' 'x86_64')
 url="http://xorg.freedesktop.org/"
 license=('custom')
-depends=('libdrm>=2.4.41' 'systemd-tools' 'ati-dri')
-makedepends=('xorg-server-devel' 'X-ABI-VIDEODRV_VERSION=14' 'resourceproto' 'scrnsaverproto')
-conflicts=('xorg-server<1.14.0' 'X-ABI-VIDEODRV_VERSION<14' 'X-ABI-VIDEODRV_VERSION>=15'
+depends=('libdrm>=2.4.41' 'systemd' 'ati-dri')
+makedepends=('xorg-server-devel' 'X-ABI-VIDEODRV_VERSION=15' 'resourceproto' 'scrnsaverproto')
+conflicts=('xorg-server<1.15.0' 'X-ABI-VIDEODRV_VERSION<15' 'X-ABI-VIDEODRV_VERSION>=16'
            $_pkgname)
 provides=($_pkgname)
 groups=('xorg-drivers' 'xorg')
@@ -21,13 +21,13 @@ source=(${url}/releases/individual/driver/${_pkgname}-${pkgver}.tar.bz2)
 sha256sums=('f30f5efdc8d7d18d06eda7ef2f91a8b7290f1cfbf6ff26362cd47ab8969daec4')
 
 build() {
-  cd ${srcdir}/${_pkgname}-${pkgver}
+  cd ${_pkgname}-${pkgver}
   ./configure --prefix=/usr
   make
 }
 
 package() {
-  cd "${srcdir}/${_pkgname}-${pkgver}"
+  cd ${_pkgname}-${pkgver}
   make "DESTDIR=${pkgdir}" install
   install -m755 -d "${pkgdir}/usr/share/licenses/${_pkgname}"
   install -m644 COPYING "${pkgdir}/usr/share/licenses/${_pkgname}/"
