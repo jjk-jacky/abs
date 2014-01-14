@@ -4,11 +4,11 @@
 pkgbase=systemd
 pkgname=systemd-jjk
 pkgver=208
-pkgrel=3
+pkgrel=4
 arch=('i686' 'x86_64')
 url="http://www.freedesktop.org/wiki/Software/systemd"
 license=('GPL2' 'LGPL2.1' 'MIT')
-makedepends=('acl' 'cryptsetup' 'dbus-core' 'docbook-xsl' 'gobject-introspection' 'gperf'
+makedepends=('acl' 'cryptsetup' 'libdbus' 'docbook-xsl' 'gobject-introspection' 'gperf'
              'gtk-doc' 'intltool' 'kmod' 'libcap' 'libgcrypt' 'libxslt'
              'linux-api-headers' 'pam' 'python' 'quota-tools' 'xz')
 options=('!libtool')
@@ -31,6 +31,8 @@ source=("http://www.freedesktop.org/software/$pkgbase/$pkgbase-$pkgver.tar.xz"
         '0005-mount-service-drop-FsckPassNo-support.patch'
         '0006-efi-boot-generator-hookup-to-fsck.patch'
         '0007-fsck-root-only-run-when-requested-in-fstab.patch'
+        '0001-systemd-order-remote-mounts-from-mountinfo-before-re.patch'
+        '0001-acpi-fpdt-break-on-zero-or-negative-length-read.patch'
         )
 md5sums=('df64550d92afbffb4f67a434193ee165'
          '2de72238ed5c0df62a7c3b6bdaf8cb7c'
@@ -50,7 +52,9 @@ md5sums=('df64550d92afbffb4f67a434193ee165'
          '2096f33bd36dfa0a7f0431d0a429787a'
          'd2481a6ea199b581e243a950125b0ca6'
          'c2aee634a3a6c50778968f0d5c756f40'
-         'ef8b8212d504bb73c10bf4e85f0703b2')
+         'ef8b8212d504bb73c10bf4e85f0703b2'
+         '8f1182afa1156f0076a912b23e761e02'
+         '078f10d6fc315b329844cd20fa742eee')
 
 prepare() {
   cd "$pkgbase-$pkgver"
@@ -80,6 +84,9 @@ prepare() {
   patch -Np1 <"$srcdir"/0005-mount-service-drop-FsckPassNo-support.patch
   patch -Np1 <"$srcdir"/0006-efi-boot-generator-hookup-to-fsck.patch
   patch -Np1 <"$srcdir"/0007-fsck-root-only-run-when-requested-in-fstab.patch
+  #
+  patch -Np1 <"$srcdir"/0001-systemd-order-remote-mounts-from-mountinfo-before-re.patch
+  patch -Np1 <"$srcdir"/0001-acpi-fpdt-break-on-zero-or-negative-length-read.patch
 
   autoreconf
 }
