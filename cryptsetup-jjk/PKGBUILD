@@ -22,7 +22,7 @@ md5sums=('a7aeb549a543eeac433eadfb6bc67837'
          'c279d86d6dc18322c054d2272ebb9e90'
          '21c45f9cab3e0b5165f68358884fbd0f'
          '6cf7e170ecd13e42fe829209628fdb4d'
-         'ad7813353c7c4b12b9184366cd802aac')
+         'fca43140b2ebd94cd96b20c0c8fbdbea')
 
 prepare() {
   cd $_pkgname-$pkgver
