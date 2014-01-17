@@ -1,0 +1,85 @@
+From 8c94f706005bb833d81708e90b06e20fc964a53a Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Fri, 17 Jan 2014 19:19:20 +0100
+Subject: [PATCH 2/2] treeview: Fix visual glitch on row-inserted
+
+With fixed row height, when rows are inserted but not visible there's
+a call to queue_resize_no_redraw() to avoid useless redraw operation.
+
+However, when calling gtk_tree_view_top_row_to_dy() to adjust the
+adjustment/scroll position, a redraw would be performed leading to some
+invalid visual "glitches" (e.g. rows moved to wrong place).
+
+Disabling this when called from gtk_tree_view_top_row_to_dy() avoids such
+issues.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=721597
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ gtk/gtktreeview.c | 34 ++++++++++++++++++++--------------
+ 1 file changed, 20 insertions(+), 14 deletions(-)
+
+diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
+index 9f9d152..cc962a9 100644
+--- a/gtk/gtktreeview.c
++++ b/gtk/gtktreeview.c
+@@ -11236,16 +11236,19 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
+   if (gtk_widget_get_realized (GTK_WIDGET (tree_view)))
+     {
+       gint dy;
+-	
+-      gdk_window_move (tree_view->priv->bin_window,
+-		       - gtk_adjustment_get_value (tree_view->priv->hadjustment),
+-		       gtk_tree_view_get_effective_header_height (tree_view));
+-      gdk_window_move (tree_view->priv->header_window,
+-		       - gtk_adjustment_get_value (tree_view->priv->hadjustment),
+-		       0);
++
++      if (!tree_view->priv->in_top_row_to_dy)
++        {
++          gdk_window_move (tree_view->priv->bin_window,
++                  - gtk_adjustment_get_value (tree_view->priv->hadjustment),
++                  gtk_tree_view_get_effective_header_height (tree_view));
++          gdk_window_move (tree_view->priv->header_window,
++                  - gtk_adjustment_get_value (tree_view->priv->hadjustment),
++                  0);
++        }
+       dy = tree_view->priv->dy - (int) gtk_adjustment_get_value (tree_view->priv->vadjustment);
+       if (dy)
+-	{
++        {
+           update_prelight (tree_view,
+                            tree_view->priv->event_last_x,
+                            tree_view->priv->event_last_y - dy);
+@@ -11273,11 +11276,14 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
+                         }
+                     }
+                 }
+-	    }
+-	}
+-      tree_view->priv->in_scroll = TRUE;
+-      gdk_window_scroll (tree_view->priv->bin_window, 0, dy);
+-      tree_view->priv->in_scroll = FALSE;
++          }
++        }
++      if (!tree_view->priv->in_top_row_to_dy)
++        {
++          tree_view->priv->in_scroll = TRUE;
++          gdk_window_scroll (tree_view->priv->bin_window, 0, dy);
++          tree_view->priv->in_scroll = FALSE;
++        }
+ 
+       if (tree_view->priv->dy != (int) gtk_adjustment_get_value (tree_view->priv->vadjustment))
+         {
+@@ -11286,7 +11292,7 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
+ 
+           if (!tree_view->priv->in_top_row_to_dy)
+             gtk_tree_view_dy_to_top_row (tree_view);
+-	}
++        }
+     }
+ }
+ 
+-- 
+1.8.5.3
+

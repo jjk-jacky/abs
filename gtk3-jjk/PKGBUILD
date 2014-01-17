@@ -4,7 +4,7 @@
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
 pkgver=3.10.6
-pkgrel=4
+pkgrel=5
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -35,12 +35,16 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0003-treeview-Change-how-toggle-in-handled-on-rubber-band.patch
         0001-Fix-GtkToolButton-possibly-being-empty.patch
         0001-Revert-treeview-Store-editable-position-differently.patch
+        0002-treeview-Fix-visual-glitch-on-row-inserted.patch
         0001-cellarea-Fix-possibly-getting-invalid-inner_area.patch
         0001-treeview-Fix-possible-column-rendering-issue.patch
         0001-treeview-Remove-some-dead-code.patch
         0001-tooltip-Fix-possibly-briefly-appearing-at-0x0.patch
         0001-treeview-Avoid-calling-do_validate_rows-if-not-neede.patch
         fix-708148.patch
+        0001-menu-Fix-possible-leak-on-destroy.patch
+        0001-treemodelfilter-Fix-using-wrong-path-on-row-deleted.patch
+        0002-menu-Add-helper-gtk_menu_popup_and_destroy.patch
         0001-Add-GTK_IS_JJK.patch)
 sha256sums=('3c24c57fc5cb7a5ea39d3a3ff7b12be63d7f21a52fd6f20f7b983e19b7b0268a'
             'de961084b35507da5415640db733457161e1672ee54639828dfa399ea3d220b1'
@@ -60,13 +64,17 @@ sha256sums=('3c24c57fc5cb7a5ea39d3a3ff7b12be63d7f21a52fd6f20f7b983e19b7b0268a'
             '095a83ce851772c659735e31cf9deedd298614c3ab47d2a977c0d17933bea3d6'
             '8d3216f839ac58dfef075785da70f07958aa0cfe13a438ed5c12b83163c1d0dc'
             'd7e42b16bf116b1395591a83f8c61e9e4e01ed9f370965ca690ec11a5255c99d'
-            'a52bdb3819256b062eb1e571267571268389efc3d53b4024db9dccdd407f4328'
+            '0d6ac822cd0c0da859da4134cc2679bbf8c8a0c56f6dc76b72fbca6a8fd38e5a'
+            '63a948d8c0451b87230319db0a6bb21fc1bd0c30bf9aa9d6e8fc6f198ad4e067'
             '6ace73fa96de82af6b2e752040bd886e821b33ecb151bbe6b7b51b8d8a106456'
             '590387fbd4701c511d2d91c1bbc0d18a03722be7602686da5bddd5293adcc57d'
             'c2ed59e8181ee3b8632e38e6517855a712818b0e6ee6868bafd0d1288e87c45d'
             '257a859231d4ff7f2b93cd733a90943af7c3961f50fa7fc515565eb2bea620a1'
             '7299909b4f7d4dad5f73dfd6b90b3896d1c6457a0242b19c18aca0648715ba7d'
             '8a8b500f6850466b646f788ee45756bbba21dea6f75babddca1d4b32ea1b0b03'
+            '15f4e25b362f6f8df87914c8b5a95cbb96f4500ed00a36b9d9ccdf2f2cc11c21'
+            'ded0df2553aab39315ce06b355bb6ba5ba320ba8b53919d716ccb9738725f0ca'
+            '27d0afcc817559d55492b24118271d5ffd7331498fd085b7c70a9a10cbc36965'
             'bafcc5c42cad39566edf54bf30ddaa9fc37f47f326a7d0ae62b58206d84f43dc')
 prepare() {
     cd "gtk+-$pkgver"
@@ -89,12 +97,16 @@ prepare() {
     patch -p1 -i ../0003-treeview-Change-how-toggle-in-handled-on-rubber-band.patch
     patch -p1 -i ../0001-Fix-GtkToolButton-possibly-being-empty.patch
     patch -p1 -i ../0001-Revert-treeview-Store-editable-position-differently.patch
+    patch -p1 -i ../0002-treeview-Fix-visual-glitch-on-row-inserted.patch
     patch -p1 -i ../fix-708148.patch
     patch -p1 -i ../0001-cellarea-Fix-possibly-getting-invalid-inner_area.patch
     patch -p1 -i ../0001-treeview-Fix-possible-column-rendering-issue.patch
     patch -p1 -i ../0001-treeview-Remove-some-dead-code.patch
     patch -p1 -i ../0001-tooltip-Fix-possibly-briefly-appearing-at-0x0.patch
     patch -p1 -i ../0001-treeview-Avoid-calling-do_validate_rows-if-not-neede.patch
+    patch -p1 -i ../0001-menu-Fix-possible-leak-on-destroy.patch
+    patch -p1 -i ../0001-treemodelfilter-Fix-using-wrong-path-on-row-deleted.patch
+    patch -p1 -i ../0002-menu-Add-helper-gtk_menu_popup_and_destroy.patch
 
     NOCONFIGURE=1 ./autogen.sh
 }

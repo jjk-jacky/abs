@@ -1,0 +1,31 @@
+From 6a8777d6378106353c82881e0a4339ebcfbbe53e Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Thu, 16 Jan 2014 15:23:20 +0100
+Subject: [PATCH] treemodelfilter: Fix using wrong path on row-deleted
+
+A "typo" led to using a wrong GtkTreePath when converting the path of the
+virtual root to check the ancestors, which would lead to either no checks being
+performed, or maybe segfaulting when using an invalid path as result.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=722058
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ gtk/gtktreemodelfilter.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gtk/gtktreemodelfilter.c b/gtk/gtktreemodelfilter.c
+index e8fd57c..3894ae4 100644
+--- a/gtk/gtktreemodelfilter.c
++++ b/gtk/gtktreemodelfilter.c
+@@ -2697,7 +2697,7 @@ gtk_tree_model_filter_row_deleted (GtkTreeModel *c_model,
+       GtkTreePath *real_path;
+ 
+       real_path = gtk_tree_model_filter_remove_root (c_path,
+-                                                     filter->priv->root);
++                                                     filter->priv->virtual_root);
+       if (real_path)
+         {
+           gtk_tree_model_filter_check_ancestors (filter, real_path);
+-- 
+1.8.5.3
+

@@ -1,0 +1,74 @@
+From 0530ad67c1ae50032f4cbf2f0ee2a7557db03516 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Thu, 16 Jan 2014 17:09:32 +0100
+Subject: [PATCH 1/2] menu: Fix possible leak on destroy
+
+Upon creation menus were forced floating, hiding the reference took on
+gtk_menu_init() by the toplevel. This could lead to leaks when the menu wasn't
+ref_sink/unref-d and e.g. simply popped up & destroyed.
+
+Instead, much like GtkWindow-s, menus are now simply returned with a strong
+reference owned by GTK.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=720401
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ gtk/gtkmenu.c        | 15 ++-------------
+ gtk/gtkmenuprivate.h |  1 -
+ 2 files changed, 2 insertions(+), 14 deletions(-)
+
+diff --git a/gtk/gtkmenu.c b/gtk/gtkmenu.c
+index fc5def0..81af75d 100644
+--- a/gtk/gtkmenu.c
++++ b/gtk/gtkmenu.c
+@@ -1091,6 +1091,8 @@ gtk_menu_init (GtkMenu *menu)
+ 
+   menu->priv = priv;
+ 
++  /* the window will sink the ref on menu. Much like GtkWindow-s, GtkMenu-s are
++   * created with a strong ref owned by GTK */
+   priv->toplevel = g_object_connect (g_object_new (GTK_TYPE_WINDOW,
+                                                    "type", GTK_WINDOW_POPUP,
+                                                    "child", menu,
+@@ -1101,12 +1103,6 @@ gtk_menu_init (GtkMenu *menu)
+   gtk_window_set_resizable (GTK_WINDOW (priv->toplevel), FALSE);
+   gtk_window_set_mnemonic_modifier (GTK_WINDOW (priv->toplevel), 0);
+ 
+-  /* Refloat the menu, so that reference counting for the menu isn't
+-   * affected by it being a child of the toplevel
+-   */
+-  g_object_force_floating (G_OBJECT (menu));
+-  priv->needs_destruction_ref = TRUE;
+-
+   priv->monitor_num = -1;
+   priv->drag_start_y = -1;
+ 
+@@ -1134,13 +1130,6 @@ gtk_menu_destroy (GtkWidget *widget)
+   if (priv->old_active_menu_item)
+     g_clear_object (&priv->old_active_menu_item);
+ 
+-  /* Add back the reference count for being a child */
+-  if (priv->needs_destruction_ref)
+-    {
+-      priv->needs_destruction_ref = FALSE;
+-      g_object_ref (widget);
+-    }
+-
+   if (priv->accel_group)
+     g_clear_object (&priv->accel_group);
+ 
+diff --git a/gtk/gtkmenuprivate.h b/gtk/gtkmenuprivate.h
+index f1a40d8..6e4f911 100644
+--- a/gtk/gtkmenuprivate.h
++++ b/gtk/gtkmenuprivate.h
+@@ -74,7 +74,6 @@ struct _GtkMenuPrivate
+ 
+   guint scroll_timeout;
+ 
+-  guint needs_destruction_ref : 1;
+   guint torn_off              : 1;
+   /* The tearoff is active when it is torn off and the not-torn-off
+    * menu is not popped up.
+-- 
+1.8.5.3
+
