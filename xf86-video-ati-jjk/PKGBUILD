@@ -4,8 +4,8 @@
 
 _pkgname=xf86-video-ati
 pkgname=$_pkgname-jjk
-pkgver=7.2.0
-pkgrel=2
+pkgver=7.3.0
+pkgrel=1
 pkgdesc="X.org ati video driver"
 arch=('i686' 'x86_64')
 url="http://xorg.freedesktop.org/"
@@ -18,11 +18,11 @@ provides=($_pkgname)
 groups=('xorg-drivers' 'xorg')
 options=('!libtool')
 source=(${url}/releases/individual/driver/${_pkgname}-${pkgver}.tar.bz2)
-sha256sums=('f30f5efdc8d7d18d06eda7ef2f91a8b7290f1cfbf6ff26362cd47ab8969daec4')
+sha256sums=('107c072c4919a996e04f47afdb53d5946a3ad574f270b8c560ef8b3a032046fe')
 
 build() {
   cd ${_pkgname}-${pkgver}
-  ./configure --prefix=/usr
+  ./configure --prefix=/usr --disable-glamor
   make
 }
 
