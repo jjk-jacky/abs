@@ -4,7 +4,7 @@
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
 pkgver=3.10.7
-pkgrel=1
+pkgrel=2
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -41,6 +41,7 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0001-treeview-Remove-some-dead-code.patch
         0001-tooltip-Fix-possibly-briefly-appearing-at-0x0.patch
         0001-treeview-Avoid-calling-do_validate_rows-if-not-neede.patch
+        0001-widget-Fix-set_focus_child-handling-during-focus-cha.patch
         fix-708148.patch
         0001-menu-Fix-possible-leak-on-destroy.patch
         0001-treemodelfilter-Fix-using-wrong-path-on-row-deleted.patch
@@ -71,6 +72,7 @@ sha256sums=('b7e9de15385031cff43897e7e59f6692eaabf500f36eef80e6b9d6486ad49427'
             'c2ed59e8181ee3b8632e38e6517855a712818b0e6ee6868bafd0d1288e87c45d'
             '257a859231d4ff7f2b93cd733a90943af7c3961f50fa7fc515565eb2bea620a1'
             '7299909b4f7d4dad5f73dfd6b90b3896d1c6457a0242b19c18aca0648715ba7d'
+            'f7fa411d731e42b436f06c02a07fcd71bb6c317e259765b506234210b322e158'
             '8a8b500f6850466b646f788ee45756bbba21dea6f75babddca1d4b32ea1b0b03'
             '15f4e25b362f6f8df87914c8b5a95cbb96f4500ed00a36b9d9ccdf2f2cc11c21'
             'ded0df2553aab39315ce06b355bb6ba5ba320ba8b53919d716ccb9738725f0ca'
@@ -104,6 +106,7 @@ prepare() {
     patch -p1 -i ../0001-treeview-Remove-some-dead-code.patch
     patch -p1 -i ../0001-tooltip-Fix-possibly-briefly-appearing-at-0x0.patch
     patch -p1 -i ../0001-treeview-Avoid-calling-do_validate_rows-if-not-neede.patch
+    patch -p1 -i ../0001-widget-Fix-set_focus_child-handling-during-focus-cha.patch
     patch -p1 -i ../0001-menu-Fix-possible-leak-on-destroy.patch
     patch -p1 -i ../0001-treemodelfilter-Fix-using-wrong-path-on-row-deleted.patch
     patch -p1 -i ../0002-menu-Add-helper-gtk_menu_popup_and_destroy.patch
