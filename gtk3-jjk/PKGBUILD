@@ -3,8 +3,8 @@
 
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
-pkgver=3.10.6
-pkgrel=5
+pkgver=3.10.7
+pkgrel=1
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -46,7 +46,7 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0001-treemodelfilter-Fix-using-wrong-path-on-row-deleted.patch
         0002-menu-Add-helper-gtk_menu_popup_and_destroy.patch
         0001-Add-GTK_IS_JJK.patch)
-sha256sums=('3c24c57fc5cb7a5ea39d3a3ff7b12be63d7f21a52fd6f20f7b983e19b7b0268a'
+sha256sums=('b7e9de15385031cff43897e7e59f6692eaabf500f36eef80e6b9d6486ad49427'
             'de961084b35507da5415640db733457161e1672ee54639828dfa399ea3d220b1'
             '4f867b6aa6c81867fc56c0c6f9061d336234e23fa5bd8830032a904b05c04a41'
             'd67a39fde275e6d8be0bc52588e3d5c2140fa11fe73022deaad5c97990689811'
