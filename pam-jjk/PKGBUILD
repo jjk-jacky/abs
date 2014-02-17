@@ -2,15 +2,18 @@
 # Maintainer: Tobias Powalowski <tpowa@archlinux.org>
 # Contributor: judd <jvinet@zeroflux.org>
 
-pkgname=pam
+_pkgname=pam
+pkgname=$_pkgname-jjk
 pkgver=1.1.8
-pkgrel=2
+pkgrel=1
 pkgdesc="PAM (Pluggable Authentication Modules) library"
 arch=('i686' 'x86_64')
 license=('GPL2')
 url="http://www.kernel.org/pub/linux/libs/pam/"
 depends=('glibc' 'db' 'cracklib' 'libtirpc' 'pambase')
 makedepends=('flex' 'w3m' 'docbook-xml>=4.4' 'docbook-xsl')
+conflicts=($_pkgname)
+provides=($_pkgname)
 backup=(etc/security/{access.conf,group.conf,limits.conf,namespace.conf,namespace.init,pam_env.conf,time.conf} etc/default/passwd etc/environment)
 source=(https://fedorahosted.org/releases/l/i/linux-pam/Linux-PAM-$pkgver.tar.bz2
         #http://www.kernel.org/pub/linux/libs/pam/library/Linux-PAM-$pkgver.tar.bz2
