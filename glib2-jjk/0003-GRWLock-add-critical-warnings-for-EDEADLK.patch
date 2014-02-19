@@ -1,0 +1,46 @@
+From d0a4382008e6a763cf9b9dbcbd1110ad8234ed13 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Wed, 19 Feb 2014 15:11:36 +0100
+Subject: [PATCH 3/3] GRWLock: add critical warnings for EDEADLK
+
+If failing to get a read or write lock due to deadlock condition detected,
+i.e. there's a bug somewhere, emit a critical warning.
+
+Can be useful, especially since otherwise there's no way of knowing we don't
+actually have a lock, even though the doc says the function either gets
+it or waits (deadlock) for it.
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ glib/gthread-posix.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/glib/gthread-posix.c b/glib/gthread-posix.c
+index 18e1607..3c83aad 100644
+--- a/glib/gthread-posix.c
++++ b/glib/gthread-posix.c
+@@ -536,7 +536,9 @@ g_rw_lock_clear (GRWLock *rw_lock)
+ void
+ g_rw_lock_writer_lock (GRWLock *rw_lock)
+ {
+-  pthread_rwlock_wrlock (g_rw_lock_get_impl (rw_lock));
++  gint r = pthread_rwlock_wrlock (g_rw_lock_get_impl (rw_lock));
++  if (G_UNLIKELY (r == EDEADLK))
++      g_critical ("g_rw_lock_writer_lock() failed due to deadlock condition");
+ }
+ 
+ /**
+@@ -602,7 +604,9 @@ g_rw_lock_writer_unlock (GRWLock *rw_lock)
+ void
+ g_rw_lock_reader_lock (GRWLock *rw_lock)
+ {
+-  pthread_rwlock_rdlock (g_rw_lock_get_impl (rw_lock));
++  gint r = pthread_rwlock_rdlock (g_rw_lock_get_impl (rw_lock));
++  if (G_UNLIKELY (r == EDEADLK))
++      g_critical ("g_rw_lock_reader_lock() failed due to deadlock condition");
+ }
+ 
+ /**
+-- 
+1.9.0
+

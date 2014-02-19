@@ -1,0 +1,36 @@
+From 1e1749952793f74d1ef8774a913be4e2d00c9495 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Wed, 19 Feb 2014 16:23:43 +0100
+Subject: [PATCH 2/3] GRWLock: Tweak re: blocking on g_rw_lock_reader_lock()
+
+There's no guarantee that it will block if another thread is blocking
+for a write lock.
+
+See https://bugzilla.gnome.org/show_bug.cgi?id=681980
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ glib/gthread-posix.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/glib/gthread-posix.c b/glib/gthread-posix.c
+index 38ee31a..18e1607 100644
+--- a/glib/gthread-posix.c
++++ b/glib/gthread-posix.c
+@@ -583,8 +583,11 @@ g_rw_lock_writer_unlock (GRWLock *rw_lock)
+  * @rw_lock: a #GRWLock
+  *
+  * Obtain a read lock on @rw_lock. If another thread currently holds
+- * the write lock on @rw_lock or blocks waiting for it, the current
+- * thread will block until the write lock was (held and) released.
++ * the write lock on @rw_lock, the current thread will block until the
++ * write lock was released.
++ *
++ * Whether the thread will also block or not if another thread is blocking
++ * for a write lock is implementation-defined.
+  *
+  * Calling g_rw_lock_reader_lock() while the current thread already
+  * owns a write lock leads to undefined behaviour. Read locks however
+-- 
+1.9.0
+

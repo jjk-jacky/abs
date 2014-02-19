@@ -4,7 +4,7 @@
 _pkgname=glib2
 pkgname=$_pkgname-jjk
 pkgver=2.38.2
-pkgrel=1
+pkgrel=2
 pkgdesc="Common C routines used by GTK+ and other libs"
 url="http://www.gtk.org/"
 arch=(i686 x86_64)
@@ -16,14 +16,23 @@ provides=($_pkgname)
 conflicts=($_pkgname)
 options=('!emptydirs' '!strip' 'debug')
 source=(http://ftp.gnome.org/pub/GNOME/sources/glib/${pkgver%.*}/glib-$pkgver.tar.xz
-        revert-warn-glib-compile-schemas.patch)
+        revert-warn-glib-compile-schemas.patch
+        0001-GRWLock-Tweak-doc-to-make-things-a-bit-clearer.patch
+        0002-GRWLock-Tweak-re-blocking-on-g_rw_lock_reader_lock.patch
+        0003-GRWLock-add-critical-warnings-for-EDEADLK.patch)
 sha256sums=('056a9854c0966a0945e16146b3345b7a82562a5ba4d5516fd10398732aea5734'
-            '049240975cd2f1c88fbe7deb28af14d4ec7d2640495f7ca8980d873bb710cc97')
+            '049240975cd2f1c88fbe7deb28af14d4ec7d2640495f7ca8980d873bb710cc97'
+            '9b2190204e3883c1edcb567896dd9a7938841dc4bd7d2c656c2439607a10d6ae'
+            '2cb04d675442c37dd20ae3d4db3a939d2b9098593475b753494a9b2ba49a5027'
+            '97ff38cff1a898d7ac8a40560a067e52aaba0b0d3a39de811ddf456b15c97d5d')
 
 prepare() {
   cd "glib-$pkgver"
 
   patch -Rp1 -i "$srcdir/revert-warn-glib-compile-schemas.patch"
+  patch -p1 -i ../0001-GRWLock-Tweak-doc-to-make-things-a-bit-clearer.patch
+  patch -p1 -i ../0002-GRWLock-Tweak-re-blocking-on-g_rw_lock_reader_lock.patch
+  patch -p1 -i ../0003-GRWLock-add-critical-warnings-for-EDEADLK.patch
 }
 
 build() {
