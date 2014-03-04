@@ -8,19 +8,17 @@ _pkgbase=pulseaudio
 pkgbase=$_pkgbase-jjk
 pkgname=(pulseaudio-jjk libpulse-jjk)
 pkgdesc="A featureful, general-purpose sound server"
-pkgver=4.0
-pkgrel=2
+pkgver=5.0
+pkgrel=1
 arch=(i686 x86_64)
 url="http://www.freedesktop.org/wiki/Software/PulseAudio"
 license=(GPL LGPL)
 makedepends=(libasyncns libcap attr libxtst libsm libsamplerate libtool rtkit
              gdbm systemd dbus avahi gconf intltool
              openssl orc json-c gtk3)
-options=(!emptydirs !libtool)
-source=(http://freedesktop.org/software/$_pkgbase/releases/$_pkgbase-$pkgver.tar.xz
-        pulseaudio.xinit)
-sha256sums=('35ceb36bb1822fe54f0b5e4863b4f486769fdfb8ff2111f01fd8778928f9cdae'
-            'a0db6cdc74fbf0ca10e2343c08e1e228f109221c6c0ff91b0bfade5c4bdf03cf')
+options=(!emptydirs)
+source=(http://freedesktop.org/software/$_pkgbase/releases/$_pkgbase-$pkgver.tar.xz)
+sha256sums=('99c13a8b1249ddbd724f195579df79484e9af6418cecf6a15f003a7f36caf939')
 
 build() {
   cd $_pkgbase-$pkgver
@@ -33,6 +31,8 @@ build() {
     --with-database=gdbm \
     --disable-tcpwrap \
     --disable-rpath \
+    --disable-bluez4 \
+    --disable-bluez5 \
     --disable-default-build-tests \
     --disable-jack \
     --disable-esound \
@@ -64,22 +64,15 @@ package_pulseaudio-jjk() {
   cd $_pkgbase-$pkgver
   make -j1 DESTDIR="$pkgdir" install
 
-  # Speed up pulseaudio shutdown
-  # Lower resample quality, saves CPU
+  # Speed up pulseaudio shutdown so that it exists immediately with
+  # the last user session (module-systemd-logon keeps it alive)
   sed -e '/exit-idle-time/iexit-idle-time=0' \
-      -e '/resample-method/iresample-method=speex-float-0' \
       -i "$pkgdir/etc/pulse/daemon.conf"
 
   # Disable cork-request module, can result in e.g. media players unpausing
   # when there's a Skype call incoming
   sed -e 's|/usr/bin/pactl load-module module-x11-cork-request|#&|' \
       -i "$pkgdir/usr/bin/start-pulseaudio-x11"
-
-  # Make ConsoleKit optional
-  sed -e $'/load-module module-console-kit/{i.nofail\n;a.fail\n;}' \
-      -i "$pkgdir/etc/pulse/default.pa"
-
-  install -Dm755 "$srcdir/pulseaudio.xinit" "$pkgdir/etc/X11/xinit/xinitrc.d/pulseaudio"
 
   rm "$pkgdir/etc/dbus-1/system.d/pulseaudio-system.conf"
 
