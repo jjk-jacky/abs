@@ -1,7 +1,7 @@
-From 6c556c861674e23857c5397fe8388e4299ad8f4a Mon Sep 17 00:00:00 2001
+From cd66813b9e410d4033fe95f2af294bbf46bd0622 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <i.am.jack.mail@gmail.com>
 Date: Mon, 29 Oct 2012 16:44:30 +0100
-Subject: [PATCH 2/2] Make swap unit follow device node when swap is off
+Subject: [PATCH] Make swap unit follow device node when swap is off
 
 Swap units will now be following the unit of the devnode when the swap is off
 (and usual following therefore not in place), thus allowing things to work
@@ -20,10 +20,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 44 insertions(+)
 
 diff --git a/src/core/swap.c b/src/core/swap.c
-index 53323f4..9ff2399 100644
+index 7004ede..e8de995 100644
 --- a/src/core/swap.c
 +++ b/src/core/swap.c
-@@ -1157,6 +1157,7 @@ int swap_fd_event(Manager *m, int events) {
+@@ -1191,6 +1191,7 @@ static int swap_dispatch_io(sd_event_source *source, int fd, uint32_t revents, v
  static Unit *swap_following(Unit *u) {
          Swap *s = SWAP(u);
          Swap *other, *first = NULL;
@@ -31,7 +31,7 @@ index 53323f4..9ff2399 100644
  
          assert(s);
  
-@@ -1177,6 +1178,49 @@ static Unit *swap_following(Unit *u) {
+@@ -1211,6 +1212,49 @@ static Unit *swap_following(Unit *u) {
                  first = other;
          }
  
@@ -82,5 +82,5 @@ index 53323f4..9ff2399 100644
  }
  
 -- 
-1.8.4
+1.9.0
 

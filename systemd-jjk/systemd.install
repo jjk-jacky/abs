@@ -25,6 +25,11 @@ post_common() {
   udevadm hwdb --update
   journalctl --update-catalog
 
+  # don't reexec on 210-1 upgrade
+  if [ "$(vercmp 210-1 "$2")" -eq 1 ]; then
+    return
+  fi
+
   if sd_booted; then
     systemctl --system daemon-reexec
   fi
@@ -56,6 +61,19 @@ post_upgrade() {
 
   if [ "$(vercmp 208-4 "$2")" -eq 1 ]; then
     add_journal_acls
+  fi
+
+  if [ "$(vercmp 210-1 "$2")" -eq 1 ]; then
+    local old_rule=etc/udev/rules.d/80-net-name-slot.rules
+    local new_rule=etc/udev/rules.d/80-net-setup-link.rules
+    if [[ -e $old_rule ]]; then
+      printf ':: Renaming %s to %s in order\n' "${old_rule##*/}" "${new_rule##*/}"
+      printf ' to preserve existing network naming behavior.\n'
+      mv -v "$old_rule" "$new_rule"
+    else
+      echo ':: No changes have been made to your network naming configuration.'
+      echo ' Interfaces should continue to maintain the same names.'
+    fi
   fi
 }
 
