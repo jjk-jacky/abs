@@ -65,7 +65,7 @@ package_ati-dri-jjk() {
 
 package_mesa-jjk() {
   pkgdesc="an open-source implementation of the OpenGL specification"
-  depends=('libdrm' 'libxxf86vm' 'libxdamage' 'systemd' 'elfutils')
+  depends=('libdrm' 'libxxf86vm' 'libxdamage' 'libxshmfence' 'systemd' 'elfutils')
   optdepends=('opengl-man-pages: for the OpenGL API man pages')
   provides=('libglapi' 'libgbm' 'libgles' 'libegl' 'khrplatform-devel'
             "mesa=${pkgver}")
