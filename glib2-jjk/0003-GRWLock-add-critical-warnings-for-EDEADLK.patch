@@ -1,4 +1,4 @@
-From d0a4382008e6a763cf9b9dbcbd1110ad8234ed13 Mon Sep 17 00:00:00 2001
+From 71ef99cee79a8001babef0dbf8c38df784f908e6 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Wed, 19 Feb 2014 15:11:36 +0100
 Subject: [PATCH 3/3] GRWLock: add critical warnings for EDEADLK
@@ -16,10 +16,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/glib/gthread-posix.c b/glib/gthread-posix.c
-index 18e1607..3c83aad 100644
+index 27ff773..73e9206 100644
 --- a/glib/gthread-posix.c
 +++ b/glib/gthread-posix.c
-@@ -536,7 +536,9 @@ g_rw_lock_clear (GRWLock *rw_lock)
+@@ -534,7 +534,9 @@ g_rw_lock_clear (GRWLock *rw_lock)
  void
  g_rw_lock_writer_lock (GRWLock *rw_lock)
  {
@@ -30,7 +30,7 @@ index 18e1607..3c83aad 100644
  }
  
  /**
-@@ -602,7 +604,9 @@ g_rw_lock_writer_unlock (GRWLock *rw_lock)
+@@ -600,7 +602,9 @@ g_rw_lock_writer_unlock (GRWLock *rw_lock)
  void
  g_rw_lock_reader_lock (GRWLock *rw_lock)
  {
@@ -42,5 +42,5 @@ index 18e1607..3c83aad 100644
  
  /**
 -- 
-1.9.0
+1.9.1
 

@@ -1,4 +1,4 @@
-From 1e1749952793f74d1ef8774a913be4e2d00c9495 Mon Sep 17 00:00:00 2001
+From 5602f8409a5a13dc59e9223d0919bcb7a3017085 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Wed, 19 Feb 2014 16:23:43 +0100
 Subject: [PATCH 2/3] GRWLock: Tweak re: blocking on g_rw_lock_reader_lock()
@@ -14,10 +14,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/glib/gthread-posix.c b/glib/gthread-posix.c
-index 38ee31a..18e1607 100644
+index b573db8..27ff773 100644
 --- a/glib/gthread-posix.c
 +++ b/glib/gthread-posix.c
-@@ -583,8 +583,11 @@ g_rw_lock_writer_unlock (GRWLock *rw_lock)
+@@ -581,8 +581,11 @@ g_rw_lock_writer_unlock (GRWLock *rw_lock)
   * @rw_lock: a #GRWLock
   *
   * Obtain a read lock on @rw_lock. If another thread currently holds
@@ -32,5 +32,5 @@ index 38ee31a..18e1607 100644
   * Calling g_rw_lock_reader_lock() while the current thread already
   * owns a write lock leads to undefined behaviour. Read locks however
 -- 
-1.9.0
+1.9.1
 
