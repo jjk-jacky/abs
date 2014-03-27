@@ -1,4 +1,4 @@
-From 54308eb45bbe4f730c6222dbe578fcb8391c5731 Mon Sep 17 00:00:00 2001
+From b15190cb9cc3f4e7d34f5e0db5b14fc922b44a61 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 15:07:28 +0200
 Subject: [PATCH] treestore: Fix segfault when reordering non-existing children
@@ -12,10 +12,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 6 insertions(+)
 
 diff --git a/gtk/gtktreestore.c b/gtk/gtktreestore.c
-index bbf6e5d..6db1f56 100644
+index 1ef7a39..18a152a 100644
 --- a/gtk/gtktreestore.c
 +++ b/gtk/gtktreestore.c
-@@ -2285,6 +2285,12 @@ gtk_tree_store_reorder (GtkTreeStore *tree_store,
+@@ -2280,6 +2280,12 @@ gtk_tree_store_reorder (GtkTreeStore *tree_store,
    else
      level = G_NODE (parent->user_data)->children;
  
@@ -29,5 +29,5 @@ index bbf6e5d..6db1f56 100644
    node = level;
    while (node)
 -- 
-1.8.4.2
+1.9.1
 

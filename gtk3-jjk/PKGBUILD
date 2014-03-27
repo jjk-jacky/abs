@@ -3,8 +3,8 @@
 
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
-pkgver=3.10.7
-pkgrel=2
+pkgver=3.12.0
+pkgrel=1
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -28,12 +28,10 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0002-treeview-Add-gtk_tree_view_set_row_class_column.patch
         0003-treeview-Add-GtkTreeBoxable.patch
         0001-Add-gtk_tree_selection_invert_range.patch
-        0001-GtkTreeView-Fix-issues-when-removing-a-column.patch
         0001-Fix-scrolling-menu-not-working-properly-Bug-701077.patch
         0001-treeview-is_rubber_banding_active-only-based-on-stat.patch
         0002-treeview-Add-gtk_tree_view_start_rubber_banding.patch
         0003-treeview-Change-how-toggle-in-handled-on-rubber-band.patch
-        0001-Fix-GtkToolButton-possibly-being-empty.patch
         0001-Revert-treeview-Store-editable-position-differently.patch
         0002-treeview-Fix-visual-glitch-on-row-inserted.patch
         0001-cellarea-Fix-possibly-getting-invalid-inner_area.patch
@@ -41,43 +39,40 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0001-treeview-Remove-some-dead-code.patch
         0001-tooltip-Fix-possibly-briefly-appearing-at-0x0.patch
         0001-treeview-Avoid-calling-do_validate_rows-if-not-neede.patch
-        0001-widget-Fix-set_focus_child-handling-during-focus-cha.patch
         fix-708148.patch
         0001-menu-Fix-possible-leak-on-destroy.patch
         0001-treemodelfilter-Fix-using-wrong-path-on-row-deleted.patch
         0002-menu-Add-helper-gtk_menu_popup_and_destroy.patch
         0001-Add-GTK_IS_JJK.patch)
-sha256sums=('b7e9de15385031cff43897e7e59f6692eaabf500f36eef80e6b9d6486ad49427'
+sha256sums=('eb69741cd4029b5a1ac9cf04d9de55dcf9e30777a63891750f5d20cc554b6e4b'
             'de961084b35507da5415640db733457161e1672ee54639828dfa399ea3d220b1'
-            '4f867b6aa6c81867fc56c0c6f9061d336234e23fa5bd8830032a904b05c04a41'
-            'd67a39fde275e6d8be0bc52588e3d5c2140fa11fe73022deaad5c97990689811'
-            '73758c97f017322c643e11bbbf85bc3f71d04af8156948e1d59678da2c12cd2a'
-            'd918c7e9e08850a2f99eaa53d2e8d873c06d455a686238d5fbc940b59ada48d9'
-            '38a18c144f7a22760a630bac4a67126d8d2889b75e76e1d1ca776715773d6fff'
-            'b1d306806db164bdeec1b01c5b8b296fbec3173dff3941b013db134bb933788e'
-            '25bc8d77fab4380f2b77ebb35ec6014030962f20be2335b7508bee0ca29beac5'
-            'd8a7c975f271e35bbcb0e928d03de321351214c8d5f33616faabb6f1622fee74'
-            '29323133db124c6034f51abbb7b4e6f86c1bb93eb159a68947ed3fe52c03b4d3'
-            '222518481e63281a07bc54fe2c16ff94ee18110b1e51571316dcf35fdab79485'
-            '78b89fa87ce876eeb6b9b4fce4ca439936ff0591e154a5615afb68e508a79207'
-            '281eb70fdcec59859cd195b5a2afbb0abff8d846c9e1ac59ef59fe8cb8863d38'
-            '92c7a768f9a9e664128d4671f9c50c08a091ac1765ffeb4d02e8c38b8d52e810'
-            '095a83ce851772c659735e31cf9deedd298614c3ab47d2a977c0d17933bea3d6'
-            '8d3216f839ac58dfef075785da70f07958aa0cfe13a438ed5c12b83163c1d0dc'
-            'd7e42b16bf116b1395591a83f8c61e9e4e01ed9f370965ca690ec11a5255c99d'
-            '0d6ac822cd0c0da859da4134cc2679bbf8c8a0c56f6dc76b72fbca6a8fd38e5a'
-            '63a948d8c0451b87230319db0a6bb21fc1bd0c30bf9aa9d6e8fc6f198ad4e067'
-            '6ace73fa96de82af6b2e752040bd886e821b33ecb151bbe6b7b51b8d8a106456'
-            '590387fbd4701c511d2d91c1bbc0d18a03722be7602686da5bddd5293adcc57d'
-            'c2ed59e8181ee3b8632e38e6517855a712818b0e6ee6868bafd0d1288e87c45d'
-            '257a859231d4ff7f2b93cd733a90943af7c3961f50fa7fc515565eb2bea620a1'
-            '7299909b4f7d4dad5f73dfd6b90b3896d1c6457a0242b19c18aca0648715ba7d'
-            'f7fa411d731e42b436f06c02a07fcd71bb6c317e259765b506234210b322e158'
+            '8120899a66c633f5aa1d897adf40139eaa6554dc58f2bda582424e8dddc2f724'
+            'aa5917c4dd42d86ce078f12cb356d7417e134001b5dbc42e113ccf97443e230e'
+            'a078367bdfb61c92225fdcc971af00fbea081e29e9070ff0572504b2cf55941a'
+            'a612d2e7c863ddf2a3a36ace6803bfc1ea5303bd9e78540665e3335c221e969d'
+            '437bb66b4406e661f9d1ed67bc3f8fb63dc48bd536ddff4c954158d58f001d90'
+            '8e652d42a27bddaa575b294a00a35f12f762f3a7f996b71e88bcb6863ad63812'
+            'f267421f5a88281c4aaceb7f2d32210af78af30321be83b0f4474e686f50a9ab'
+            'f1ecebb4df0b5135d64accdcdb890d7130ab10d1118282fd2c00292aaef3aeed'
+            '16a1fb557655dd83125d0bf45af1ae32df3dd18e829f165ce7c212e7fca72b4d'
+            '7d5cfcfa90ade72db68b887e1514fe25399e43769a9a7a243ffdf7bdcc7aa3e8'
+            '2ec172b4f7f81868c5b1ee6891b9869cb44d65ff30d3650b9a1ba8aac7824e1f'
+            'd4ee2cd07a3822f1f10677641c3fa7bbc3e90b379fbf8657164b76229a40159c'
+            'ed9b39613f9124ad2c2aa525d3f7f63ca988c1e92fa1915929683221eec7e961'
+            'f192a61fae6f9579b24e9057bd111b3de61d9e05c675454700be00bc2d2462ee'
+            '0391ca4e41917468b6642edd8710a77a3146d46fc00be85602431b810e375b29'
+            'b8eb466c1b3313e099760c930870c987377e7ded41ecb2ef8de9dcc255a016fe'
+            'b6b764db6bf5c89b8636bc491be11a13573ff5af6c12cd31906389694ac7d379'
+            '4d85f2818bfb48d65a65c470dd86ec704a724982e048c90a22ad91ddd2ae8ca1'
+            'adaaa8188edf53364f21006b352a72b1008d27cdaf1b8ac8ce3b70ed60ca9b54'
+            'ab1164549c508f2b492966bacaeebc6302d64ecbe0c3884eb82048b1d292ce92'
+            'ed8c7b271c2f4528dc81b9429a933dd0f058c91b6268a3c4930992a4686583cd'
             '8a8b500f6850466b646f788ee45756bbba21dea6f75babddca1d4b32ea1b0b03'
-            '15f4e25b362f6f8df87914c8b5a95cbb96f4500ed00a36b9d9ccdf2f2cc11c21'
-            'ded0df2553aab39315ce06b355bb6ba5ba320ba8b53919d716ccb9738725f0ca'
-            '27d0afcc817559d55492b24118271d5ffd7331498fd085b7c70a9a10cbc36965'
-            'bafcc5c42cad39566edf54bf30ddaa9fc37f47f326a7d0ae62b58206d84f43dc')
+            'e3b82c6447fbd337356bc147ec64e8909ffc8fe11211180753ad74c2619f79d9'
+            '75d75f8d86793f7f8c1c7b891165ed73ebb465e548b57612fb8ea2e414db781f'
+            '3dbf42fe7cfaeb695507f3c7ba8531d7b6ef33eaf4b54249d99f31748c0d7d09'
+            '01802065c6118b8612a2a1df2a257b96124261f0f118b896aa7cfe640c9330d7')
+
 prepare() {
     cd "gtk+-$pkgver"
 
@@ -92,12 +87,10 @@ prepare() {
     patch -p1 -i ../0002-treeview-Add-gtk_tree_view_set_row_class_column.patch
     patch -p1 -i ../0003-treeview-Add-GtkTreeBoxable.patch
     patch -p1 -i ../0001-Add-gtk_tree_selection_invert_range.patch
-    patch -p1 -i ../0001-GtkTreeView-Fix-issues-when-removing-a-column.patch
     patch -p1 -i ../0001-Fix-scrolling-menu-not-working-properly-Bug-701077.patch
     patch -p1 -i ../0001-treeview-is_rubber_banding_active-only-based-on-stat.patch
     patch -p1 -i ../0002-treeview-Add-gtk_tree_view_start_rubber_banding.patch
     patch -p1 -i ../0003-treeview-Change-how-toggle-in-handled-on-rubber-band.patch
-    patch -p1 -i ../0001-Fix-GtkToolButton-possibly-being-empty.patch
     patch -p1 -i ../0001-Revert-treeview-Store-editable-position-differently.patch
     patch -p1 -i ../0002-treeview-Fix-visual-glitch-on-row-inserted.patch
     patch -p1 -i ../fix-708148.patch
@@ -106,7 +99,6 @@ prepare() {
     patch -p1 -i ../0001-treeview-Remove-some-dead-code.patch
     patch -p1 -i ../0001-tooltip-Fix-possibly-briefly-appearing-at-0x0.patch
     patch -p1 -i ../0001-treeview-Avoid-calling-do_validate_rows-if-not-neede.patch
-    patch -p1 -i ../0001-widget-Fix-set_focus_child-handling-during-focus-cha.patch
     patch -p1 -i ../0001-menu-Fix-possible-leak-on-destroy.patch
     patch -p1 -i ../0001-treemodelfilter-Fix-using-wrong-path-on-row-deleted.patch
     patch -p1 -i ../0002-menu-Add-helper-gtk_menu_popup_and_destroy.patch

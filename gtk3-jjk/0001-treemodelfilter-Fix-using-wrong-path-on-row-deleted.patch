@@ -1,4 +1,4 @@
-From 6a8777d6378106353c82881e0a4339ebcfbbe53e Mon Sep 17 00:00:00 2001
+From 0ae226b8d2192746ce120562b336f9ef93b5c332 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 16 Jan 2014 15:23:20 +0100
 Subject: [PATCH] treemodelfilter: Fix using wrong path on row-deleted
@@ -14,10 +14,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/gtk/gtktreemodelfilter.c b/gtk/gtktreemodelfilter.c
-index e8fd57c..3894ae4 100644
+index 7e4a871..8844d9f 100644
 --- a/gtk/gtktreemodelfilter.c
 +++ b/gtk/gtktreemodelfilter.c
-@@ -2697,7 +2697,7 @@ gtk_tree_model_filter_row_deleted (GtkTreeModel *c_model,
+@@ -2693,7 +2693,7 @@ gtk_tree_model_filter_row_deleted (GtkTreeModel *c_model,
        GtkTreePath *real_path;
  
        real_path = gtk_tree_model_filter_remove_root (c_path,
@@ -27,5 +27,5 @@ index e8fd57c..3894ae4 100644
          {
            gtk_tree_model_filter_check_ancestors (filter, real_path);
 -- 
-1.8.5.3
+1.9.1
 

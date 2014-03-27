@@ -1,4 +1,4 @@
-From 8c94f706005bb833d81708e90b06e20fc964a53a Mon Sep 17 00:00:00 2001
+From d4a52fa4bf74f961f38740f1eb85a4990817f848 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 17 Jan 2014 19:19:20 +0100
 Subject: [PATCH 2/2] treeview: Fix visual glitch on row-inserted
@@ -20,10 +20,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 20 insertions(+), 14 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 9f9d152..cc962a9 100644
+index a942343..99ed152 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -11236,16 +11236,19 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
+@@ -11271,16 +11271,19 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
    if (gtk_widget_get_realized (GTK_WIDGET (tree_view)))
      {
        gint dy;
@@ -51,7 +51,7 @@ index 9f9d152..cc962a9 100644
            update_prelight (tree_view,
                             tree_view->priv->event_last_x,
                             tree_view->priv->event_last_y - dy);
-@@ -11273,11 +11276,14 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
+@@ -11308,11 +11311,14 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
                          }
                      }
                  }
@@ -71,7 +71,7 @@ index 9f9d152..cc962a9 100644
  
        if (tree_view->priv->dy != (int) gtk_adjustment_get_value (tree_view->priv->vadjustment))
          {
-@@ -11286,7 +11292,7 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
+@@ -11321,7 +11327,7 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
  
            if (!tree_view->priv->in_top_row_to_dy)
              gtk_tree_view_dy_to_top_row (tree_view);
@@ -81,5 +81,5 @@ index 9f9d152..cc962a9 100644
  }
  
 -- 
-1.8.5.3
+1.9.1
 

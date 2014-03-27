@@ -1,4 +1,4 @@
-From 93084b8ada2bd7c12dc7c50e2626264046b50423 Mon Sep 17 00:00:00 2001
+From ae0feadcf8c070c7b5ce106d39120a725498f112 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Wed, 16 Oct 2013 19:52:35 +0200
 Subject: [PATCH 1/2] Revert "treeview: Store editable position differently"
@@ -12,20 +12,21 @@ This reverts commit 6f9dc0ffd73ba2be7f457b1311f024d1bed0e1db.
 
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
- gtk/gtktreeview.c | 191 +++++++++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 152 insertions(+), 39 deletions(-)
+ gtk/gtktreeview.c | 202 ++++++++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 152 insertions(+), 50 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index a91d476..9f9d152 100644
+index bf2c1b1..a942343 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -263,9 +263,10 @@ typedef struct _GtkTreeViewChild GtkTreeViewChild;
+@@ -248,10 +248,10 @@ typedef struct _GtkTreeViewChild GtkTreeViewChild;
  struct _GtkTreeViewChild
  {
    GtkWidget *widget;
 -  GtkRBNode *node;
 -  GtkRBTree *tree;
 -  GtkTreeViewColumn *column;
+-  GtkBorder border;
 +  gint x;
 +  gint y;
 +  gint width;
@@ -33,12 +34,13 @@ index a91d476..9f9d152 100644
  };
  
  
-@@ -864,8 +865,10 @@ static void     gtk_tree_view_search_init               (GtkWidget        *entry
+@@ -850,9 +850,10 @@ static void     gtk_tree_view_search_init               (GtkWidget        *entry
  							 GtkTreeView      *tree_view);
  static void     gtk_tree_view_put                       (GtkTreeView      *tree_view,
  							 GtkWidget        *child_widget,
 -                                                         GtkTreePath      *path,
--                                                         GtkTreeViewColumn*column);
+-                                                         GtkTreeViewColumn*column,
+-                                                         const GtkBorder  *border);
 +							 gint              x,
 +							 gint              y,
 +							 gint              width,
@@ -46,7 +48,7 @@ index a91d476..9f9d152 100644
  static gboolean gtk_tree_view_start_editing             (GtkTreeView      *tree_view,
  							 GtkTreePath      *cursor_path,
  							 gboolean          edit_only);
-@@ -2744,6 +2747,23 @@ gtk_tree_view_size_allocate (GtkWidget     *widget,
+@@ -2772,6 +2773,23 @@ gtk_tree_view_size_allocate (GtkWidget     *widget,
  
    gtk_widget_set_allocation (widget, allocation);
  
@@ -70,7 +72,7 @@ index a91d476..9f9d152 100644
    /* We size-allocate the columns first because the width of the
     * tree view (used in updating the adjustments below) might change.
     */
-@@ -2849,24 +2869,6 @@ gtk_tree_view_size_allocate (GtkWidget     *widget,
+@@ -2877,24 +2895,6 @@ gtk_tree_view_size_allocate (GtkWidget     *widget,
            tree_view->priv->prev_width_before_expander = width_before_expander;
          }
      }
@@ -85,24 +87,25 @@ index a91d476..9f9d152 100644
 -      /* totally ignore our child's requisition */
 -      path = _gtk_tree_path_new_from_rbtree (child->tree, child->node);
 -      gtk_tree_view_get_cell_area (tree_view, path, child->column, &rect);
--      allocation.x = rect.x;
--      allocation.y = rect.y;
--      allocation.width = rect.width;
--      allocation.height = rect.height;
+-      allocation.x = rect.x + child->border.left;
+-      allocation.y = rect.y + child->border.top;
+-      allocation.width = rect.width - (child->border.left + child->border.right);
+-      allocation.height = rect.height - (child->border.top + child->border.bottom);
 -      gtk_tree_path_free (path);
 -      gtk_widget_size_allocate (child->widget, &allocation);
 -    }
  }
  
  /* Grabs the focus and unsets the GTK_TREE_VIEW_DRAW_KEYFOCUS flag */
-@@ -8700,10 +8702,13 @@ gtk_tree_view_real_move_cursor (GtkTreeView       *tree_view,
+@@ -8736,11 +8736,13 @@ gtk_tree_view_real_move_cursor (GtkTreeView       *tree_view,
  }
  
  static void
 -gtk_tree_view_put (GtkTreeView       *tree_view,
 -		   GtkWidget         *child_widget,
 -                   GtkTreePath       *path,
--                   GtkTreeViewColumn *column)
+-                   GtkTreeViewColumn *column,
+-                   const GtkBorder   *border)
 +gtk_tree_view_put (GtkTreeView *tree_view,
 +		   GtkWidget   *child_widget,
 +		   /* in bin_window coordinates */
@@ -113,7 +116,7 @@ index a91d476..9f9d152 100644
  {
    GtkTreeViewChild *child;
    
-@@ -8713,14 +8718,10 @@ gtk_tree_view_put (GtkTreeView       *tree_view,
+@@ -8750,15 +8752,10 @@ gtk_tree_view_put (GtkTreeView       *tree_view,
    child = g_slice_new (GtkTreeViewChild);
  
    child->widget = child_widget;
@@ -125,6 +128,7 @@ index a91d476..9f9d152 100644
 -      g_assert_not_reached ();
 -    }
 -  child->column = column;
+-  child->border = *border;
 +  child->x = x;
 +  child->y = y;
 +  child->width = width;
@@ -132,7 +136,7 @@ index a91d476..9f9d152 100644
  
    tree_view->priv->children = g_list_append (tree_view->priv->children, child);
  
-@@ -11153,6 +11154,80 @@ gtk_tree_view_start_interactive_search (GtkTreeView *tree_view)
+@@ -11192,6 +11189,80 @@ gtk_tree_view_start_interactive_search (GtkTreeView *tree_view)
                                                        TRUE);
  }
  
@@ -213,7 +217,7 @@ index a91d476..9f9d152 100644
  /* Callbacks */
  static void
  gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
-@@ -11174,6 +11249,31 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
+@@ -11213,6 +11284,31 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
            update_prelight (tree_view,
                             tree_view->priv->event_last_x,
                             tree_view->priv->event_last_y - dy);
@@ -245,13 +249,15 @@ index a91d476..9f9d152 100644
  	}
        tree_view->priv->in_scroll = TRUE;
        gdk_window_scroll (tree_view->priv->bin_window, 0, dy);
-@@ -15553,21 +15653,34 @@ _gtk_tree_view_add_editable (GtkTreeView       *tree_view,
+@@ -15600,6 +15696,7 @@ _gtk_tree_view_add_editable (GtkTreeView       *tree_view,
                               GtkCellEditable   *cell_editable,
                               GdkRectangle      *cell_area)
  {
 +  gint pre_val = gtk_adjustment_get_value (tree_view->priv->vadjustment);
    GtkRequisition requisition;
- 
+   GdkRectangle full_area;
+   GtkBorder border;
+@@ -15607,23 +15704,28 @@ _gtk_tree_view_add_editable (GtkTreeView       *tree_view,
    tree_view->priv->edited_column = column;
  
    gtk_tree_view_real_set_cursor (tree_view, path, CLAMP_NODE);
@@ -262,10 +268,17 @@ index a91d476..9f9d152 100644
  
    tree_view->priv->draw_keyfocus = TRUE;
  
+-  gtk_tree_view_get_cell_area (tree_view, path, column, &full_area);
+-  border.left = cell_area->x - full_area.x;
+-  border.top = cell_area->y - full_area.y;
+-  border.right = (full_area.x + full_area.width) - (cell_area->x + cell_area->width);
+-  border.bottom = (full_area.y + full_area.height) - (cell_area->y + cell_area->height);
+-
 -  gtk_tree_view_put (tree_view,
 -                     GTK_WIDGET (cell_editable),
 -                     path,
--                     column);
+-                     column,
+-                     &border);
 +  if (requisition.height < cell_area->height)
 +    {
 +      gint diff = cell_area->height - requisition.height;
@@ -285,5 +298,5 @@ index a91d476..9f9d152 100644
  
  static void
 -- 
-1.8.5.3
+1.9.1
 

@@ -1,4 +1,4 @@
-From 8b71c0c58bc0cf6acf48e9718d7d4a942959bf7e Mon Sep 17 00:00:00 2001
+From d7515189c630457143b7f7b2fa663ff0766d19e8 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 5 Nov 2013 14:20:32 +0100
 Subject: [PATCH] cellarea: Fix possibly getting invalid inner_area
@@ -14,10 +14,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 9 insertions(+)
 
 diff --git a/gtk/gtkcellarea.c b/gtk/gtkcellarea.c
-index 9bd4e10..6b614ae 100644
+index 09d7654..5ddc01e 100644
 --- a/gtk/gtkcellarea.c
 +++ b/gtk/gtkcellarea.c
-@@ -3549,6 +3549,15 @@ gtk_cell_area_inner_cell_area (GtkCellArea        *area,
+@@ -3536,6 +3536,15 @@ gtk_cell_area_inner_cell_area (GtkCellArea        *area,
    inner_area->width  -= focus_line_width * 2;
    inner_area->y      += focus_line_width;
    inner_area->height -= focus_line_width * 2;
@@ -34,5 +34,5 @@ index 9bd4e10..6b614ae 100644
  
  /**
 -- 
-1.8.4.2
+1.9.1
 

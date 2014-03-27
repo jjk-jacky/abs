@@ -1,4 +1,4 @@
-From e1884f43408c09059166c53e37da2f6d0c3aa8dc Mon Sep 17 00:00:00 2001
+From 9c9d82ceea9f34d5c0ff595bf0f8e9fb17c640d0 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 16 Jan 2014 17:44:31 +0100
 Subject: [PATCH 2/2] menu: Add helper gtk_menu_popup_and_destroy()
@@ -20,10 +20,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  3 files changed, 46 insertions(+)
 
 diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
-index 27bb480..da1abd6 100644
+index 3231a19..4863292 100644
 --- a/docs/reference/gtk/gtk3-sections.txt
 +++ b/docs/reference/gtk/gtk3-sections.txt
-@@ -2163,6 +2163,7 @@ gtk_menu_reorder_child
+@@ -2182,6 +2182,7 @@ gtk_menu_reorder_child
  gtk_menu_attach
  gtk_menu_popup_for_device
  gtk_menu_popup
@@ -32,10 +32,10 @@ index 27bb480..da1abd6 100644
  gtk_menu_get_accel_group
  gtk_menu_set_accel_path
 diff --git a/gtk/gtkmenu.c b/gtk/gtkmenu.c
-index 81af75d..41c051c 100644
+index dc91e85..8e5782c 100644
 --- a/gtk/gtkmenu.c
 +++ b/gtk/gtkmenu.c
-@@ -1756,6 +1756,10 @@ gtk_menu_popup_for_device (GtkMenu             *menu,
+@@ -1754,6 +1754,10 @@ gtk_menu_popup_for_device (GtkMenu             *menu,
   * a mouse click or key press) that caused the initiation of the popup.
   * Only if no such event is available, gtk_get_current_event_time() can
   * be used instead.
@@ -46,7 +46,7 @@ index 81af75d..41c051c 100644
   */
  void
  gtk_menu_popup (GtkMenu             *menu,
-@@ -1777,6 +1781,41 @@ gtk_menu_popup (GtkMenu             *menu,
+@@ -1775,6 +1779,41 @@ gtk_menu_popup (GtkMenu             *menu,
  }
  
  /**
@@ -89,14 +89,14 @@ index 81af75d..41c051c 100644
   * @menu: a #GtkMenu
   *
 diff --git a/gtk/gtkmenu.h b/gtk/gtkmenu.h
-index bf57cf7..d86ef95 100644
+index 25dd8bd..f93cb77 100644
 --- a/gtk/gtkmenu.h
 +++ b/gtk/gtkmenu.h
 @@ -129,6 +129,12 @@ void	   gtk_menu_popup		  (GtkMenu	       *menu,
  					   gpointer		data,
  					   guint		button,
  					   guint32		activate_time);
-+GDK_AVAILABLE_IN_3_10
++GDK_AVAILABLE_IN_3_12
 +void        gtk_menu_popup_and_destroy    (GtkMenu             *menu,
 +                                           GtkMenuPositionFunc  func,
 +                                           gpointer             data,
@@ -106,5 +106,5 @@ index bf57cf7..d86ef95 100644
  void       gtk_menu_popup_for_device      (GtkMenu             *menu,
                                             GdkDevice           *device,
 -- 
-1.8.5.3
+1.9.1
 

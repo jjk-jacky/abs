@@ -1,4 +1,4 @@
-From 75e7dee11e611979d2327846825caf5b5d536331 Mon Sep 17 00:00:00 2001
+From aad6d6554361155601e049e5e9cbccdcdb446b55 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sat, 26 Oct 2013 00:51:27 +0200
 Subject: [PATCH] treeview: Remove some dead code
@@ -9,10 +9,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 8 insertions(+), 40 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index e38dab0..f8b244f 100644
+index bf2c1b1..ef2f9c3 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -8740,11 +8740,10 @@ gtk_tree_view_row_changed (GtkTreeModel *model,
+@@ -8780,11 +8780,10 @@ gtk_tree_view_row_changed (GtkTreeModel *model,
    GtkTreeView *tree_view = (GtkTreeView *)data;
    GtkRBTree *tree;
    GtkRBNode *node;
@@ -25,7 +25,7 @@ index e38dab0..f8b244f 100644
  
    if (tree_view->priv->cursor_node != NULL)
      cursor_path = _gtk_tree_path_new_from_rbtree (tree_view->priv->cursor_tree,
-@@ -8759,14 +8758,6 @@ gtk_tree_view_row_changed (GtkTreeModel *model,
+@@ -8799,14 +8798,6 @@ gtk_tree_view_row_changed (GtkTreeModel *model,
    if (cursor_path != NULL)
      gtk_tree_path_free (cursor_path);
  
@@ -40,7 +40,7 @@ index e38dab0..f8b244f 100644
    if (_gtk_tree_view_find_node (tree_view,
  				path,
  				&tree,
-@@ -8808,8 +8799,6 @@ gtk_tree_view_row_changed (GtkTreeModel *model,
+@@ -8848,8 +8839,6 @@ gtk_tree_view_row_changed (GtkTreeModel *model,
    if (!tree_view->priv->fixed_height_mode &&
        gtk_widget_get_realized (GTK_WIDGET (tree_view)))
      install_presize_handler (tree_view);
@@ -49,7 +49,7 @@ index e38dab0..f8b244f 100644
  }
  
  static void
-@@ -8825,10 +8814,9 @@ gtk_tree_view_row_inserted (GtkTreeModel *model,
+@@ -8865,10 +8854,9 @@ gtk_tree_view_row_inserted (GtkTreeModel *model,
    gint depth;
    gint i = 0;
    gint height;
@@ -61,7 +61,7 @@ index e38dab0..f8b244f 100644
  
    if (tree_view->priv->fixed_height_mode
        && tree_view->priv->fixed_height >= 0)
-@@ -8836,14 +8824,6 @@ gtk_tree_view_row_inserted (GtkTreeModel *model,
+@@ -8876,14 +8864,6 @@ gtk_tree_view_row_inserted (GtkTreeModel *model,
    else
      height = 0;
  
@@ -76,7 +76,7 @@ index e38dab0..f8b244f 100644
    if (tree_view->priv->tree == NULL)
      tree_view->priv->tree = _gtk_rbtree_new ();
  
-@@ -8922,8 +8902,6 @@ gtk_tree_view_row_inserted (GtkTreeModel *model,
+@@ -8962,8 +8942,6 @@ gtk_tree_view_row_inserted (GtkTreeModel *model,
      }
    else
      install_presize_handler (tree_view);
@@ -85,7 +85,7 @@ index e38dab0..f8b244f 100644
  }
  
  static void
-@@ -8937,19 +8915,13 @@ gtk_tree_view_row_has_child_toggled (GtkTreeModel *model,
+@@ -8977,19 +8955,13 @@ gtk_tree_view_row_has_child_toggled (GtkTreeModel *model,
    gboolean has_child;
    GtkRBTree *tree;
    GtkRBNode *node;
@@ -108,7 +108,7 @@ index e38dab0..f8b244f 100644
      gtk_tree_model_get_iter (model, &real_iter, path);
  
    if (_gtk_tree_view_find_node (tree_view,
-@@ -8957,16 +8929,16 @@ gtk_tree_view_row_has_child_toggled (GtkTreeModel *model,
+@@ -8997,16 +8969,16 @@ gtk_tree_view_row_has_child_toggled (GtkTreeModel *model,
  				&tree,
  				&node))
      /* We aren't actually showing the node */
@@ -128,7 +128,7 @@ index e38dab0..f8b244f 100644
  
    if (has_child)
      {
-@@ -8999,10 +8971,6 @@ gtk_tree_view_row_has_child_toggled (GtkTreeModel *model,
+@@ -9039,10 +9011,6 @@ gtk_tree_view_row_has_child_toggled (GtkTreeModel *model,
      {
        _gtk_tree_view_queue_draw_node (tree_view, tree, node, NULL);
      }
@@ -140,5 +140,5 @@ index e38dab0..f8b244f 100644
  
  static void
 -- 
-1.8.4.2
+1.9.1
 

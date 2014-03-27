@@ -1,4 +1,4 @@
-From e0dfb26a06ef535d0548fe404527d0827596075e Mon Sep 17 00:00:00 2001
+From 54ca09040ac8c968cc251ae2a47e2ae58406ff22 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 16:33:42 +0200
 Subject: [PATCH 2/2] Add gtk_tree_view_is_blank_at_pos_full()
@@ -18,10 +18,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  5 files changed, 138 insertions(+), 3 deletions(-)
 
 diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
-index 27bb480..32991c9 100644
+index 3231a19..36b1f09 100644
 --- a/docs/reference/gtk/gtk3-sections.txt
 +++ b/docs/reference/gtk/gtk3-sections.txt
-@@ -4618,6 +4618,7 @@ gtk_tree_view_set_reorderable
+@@ -4655,6 +4655,7 @@ gtk_tree_view_set_reorderable
  gtk_tree_view_get_reorderable
  gtk_tree_view_get_path_at_pos
  gtk_tree_view_is_blank_at_pos
@@ -44,20 +44,20 @@ index 9d0c301..37e1859 100644
  void		  _gtk_tree_view_column_cell_render      (GtkTreeViewColumn  *tree_column,
  							  cairo_t            *cr,
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 452e1b3..d26ff65 100644
+index 3b0013f..e810fb5 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -14002,6 +14002,9 @@ gtk_tree_view_get_visible_range (GtkTreeView  *tree_view,
+@@ -14047,6 +14047,9 @@ gtk_tree_view_get_visible_range (GtkTreeView  *tree_view,
   * likewise as for gtk_tree_view_get_path_at_pos().  Please see
   * gtk_tree_view_get_path_at_pos() for more information.
   *
 + * If you also want to get the cell renderer, please see
 + * gtk_tree_view_is_blank_at_pos_full().
 + *
-  * Return value: %TRUE if the area at the given coordinates is blank,
+  * Returns: %TRUE if the area at the given coordinates is blank,
   * %FALSE otherwise.
   *
-@@ -14039,7 +14042,123 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
+@@ -14084,7 +14087,123 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
  
    if (path)
      *path = real_path;
@@ -160,7 +160,7 @@ index 452e1b3..d26ff65 100644
 +  GdkRectangle cell_area, background_area;
 +
 +  g_return_val_if_fail (GTK_IS_TREE_VIEW (tree_view), FALSE);
- 
++
 +  if (renderer)
 +    *renderer = NULL;
 +
@@ -175,13 +175,13 @@ index 452e1b3..d26ff65 100644
 +        *column = NULL;
 +      return TRUE;
 +  }
-+
+ 
 +  if (path)
 +    *path = real_path;
    if (column)
      *column = real_column;
  
-@@ -14080,7 +14199,8 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
+@@ -14125,7 +14244,8 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
    return _gtk_tree_view_column_is_blank_at_pos (real_column,
                                                  &cell_area,
                                                  &background_area,
@@ -192,7 +192,7 @@ index 452e1b3..d26ff65 100644
  
  static void
 diff --git a/gtk/gtktreeview.h b/gtk/gtktreeview.h
-index 5ccc300..840c540 100644
+index 121e10a..e1fc9a2 100644
 --- a/gtk/gtktreeview.h
 +++ b/gtk/gtktreeview.h
 @@ -396,6 +396,15 @@ gboolean               gtk_tree_view_is_blank_at_pos               (GtkTreeView
@@ -212,10 +212,10 @@ index 5ccc300..840c540 100644
  /* Drag-and-Drop support */
  GDK_AVAILABLE_IN_ALL
 diff --git a/gtk/gtktreeviewcolumn.c b/gtk/gtktreeviewcolumn.c
-index 26fc2ff..c315fa0 100644
+index f5d10c8..6b5ca5bc 100644
 --- a/gtk/gtktreeviewcolumn.c
 +++ b/gtk/gtktreeviewcolumn.c
-@@ -1565,7 +1565,8 @@ _gtk_tree_view_column_is_blank_at_pos (GtkTreeViewColumn *column,
+@@ -1566,7 +1566,8 @@ _gtk_tree_view_column_is_blank_at_pos (GtkTreeViewColumn *column,
                                         GdkRectangle      *cell_area,
                                         GdkRectangle      *background_area,
                                         gint               x,
@@ -225,7 +225,7 @@ index 26fc2ff..c315fa0 100644
  {
    GtkCellRenderer *match;
    GdkRectangle cell_alloc, aligned_area, inner_area;
-@@ -1575,6 +1576,9 @@ _gtk_tree_view_column_is_blank_at_pos (GtkTreeViewColumn *column,
+@@ -1576,6 +1577,9 @@ _gtk_tree_view_column_is_blank_at_pos (GtkTreeViewColumn *column,
                                                   cell_area,
                                                   background_area,
                                                   x, y);
@@ -236,5 +236,5 @@ index 26fc2ff..c315fa0 100644
      return TRUE;
  
 -- 
-1.8.4.2
+1.9.1
 
