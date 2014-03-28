@@ -4,7 +4,7 @@
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
 pkgver=3.12.0
-pkgrel=1
+pkgrel=2
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -18,6 +18,7 @@ options=('!strip' 'debug')
 license=(LGPL)
 source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.tar.xz
         settings.ini
+        0001-revert-changes-to-GtkMessageDialog.patch
         0001-cellrenderertext-Fix-possible-overwriting-of-markup.patch
         0001-treestore-Fix-segfault-when-reordering-non-existing-.patch
         0001-Some-fixes-in-gtk_tree_view_is_blank_at_pos.patch
@@ -46,6 +47,7 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0001-Add-GTK_IS_JJK.patch)
 sha256sums=('eb69741cd4029b5a1ac9cf04d9de55dcf9e30777a63891750f5d20cc554b6e4b'
             'de961084b35507da5415640db733457161e1672ee54639828dfa399ea3d220b1'
+            '454f8cc77ee5bb64355311ed7070aacc7b8c1ffca897a852dde295af23851362'
             '8120899a66c633f5aa1d897adf40139eaa6554dc58f2bda582424e8dddc2f724'
             'aa5917c4dd42d86ce078f12cb356d7417e134001b5dbc42e113ccf97443e230e'
             'a078367bdfb61c92225fdcc971af00fbea081e29e9070ff0572504b2cf55941a'
@@ -76,6 +78,7 @@ sha256sums=('eb69741cd4029b5a1ac9cf04d9de55dcf9e30777a63891750f5d20cc554b6e4b'
 prepare() {
     cd "gtk+-$pkgver"
 
+    patch -p1 -i ../0001-revert-changes-to-GtkMessageDialog.patch
     patch -p1 -i ../0001-Add-GTK_IS_JJK.patch
     patch -p1 -i ../0001-Some-fixes-in-gtk_tree_view_is_blank_at_pos.patch
     patch -p1 -i ../0002-Add-gtk_tree_view_is_blank_at_pos_full.patch
