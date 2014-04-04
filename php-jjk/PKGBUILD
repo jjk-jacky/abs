@@ -6,7 +6,7 @@ pkgname=('php-jjk'
          'php-fpm-jjk'
          'php-pear-jjk'
          'php-mcrypt-jjk')
-pkgver=5.5.10
+pkgver=5.5.11
 pkgrel=1
 arch=('i686' 'x86_64')
 license=('PHP')
@@ -16,7 +16,7 @@ makedepends=('file' 'libmcrypt' 'libltdl' 'libpng' 'libjpeg'
 source=("http://www.php.net/distributions/${pkgbase}-${pkgver}.tar.bz2"
         'php.ini.patch' 'php-fpm.conf.in.patch'
         'logrotate.d.php-fpm' 'php-fpm.service' 'php-fpm.tmpfiles')
-md5sums=('d608230c7890b6a0cc5b92e66e866226'
+md5sums=('c8c9ad960bae0265054b5879423f7a75'
          '799cd5f91f5253f4b47ec4fd7fccf4f1'
          '9f8263996836e27f5be1483e86ac2e33'
          '96db55a01e6087cf9d90c9dd92c80921'
