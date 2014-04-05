@@ -9,7 +9,7 @@ pkgrel=1
 arch=('i686' 'x86_64')
 makedepends=('python2' 'libxml2' 'libx11' 'glproto' 'libdrm' 'dri2proto'
              'dri3proto' 'presentproto' 'libxxf86vm' 'libxdamage' 'elfutils'
-             'systemd')
+             'systemd' 'libxshmfence)
 url="http://mesa3d.sourceforge.net"
 license=('custom')
 source=(ftp://ftp.freedesktop.org/pub/mesa/10.1/MesaLib-${pkgver}.tar.bz2
