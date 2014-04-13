@@ -6,7 +6,7 @@
 _pkgname=nginx
 pkgname=$_pkgname-jjk
 pkgver=1.4.7
-pkgrel=1
+pkgrel=2
 pkgdesc="Lightweight HTTP server and IMAP/POP3 proxy server"
 arch=('i686' 'x86_64')
 depends=('pcre' 'zlib' 'openssl')
@@ -29,7 +29,7 @@ source=(http://nginx.org/download/nginx-$pkgver.tar.gz
         logrotate)
 install=install
 md5sums=('aee151d298dcbfeb88b3f7dd3e7a4d17'
-         'ce9a06bcaf66ec4a3c4eb59b636e0dfd'
+         '5c0cd4fd992596938b2d4fd98b2bac41'
          '7711fc234ef2f35151885c1994f8fe73')
 
 build() {
