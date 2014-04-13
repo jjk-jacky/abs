@@ -3,8 +3,8 @@
 
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
-pkgver=3.12.0
-pkgrel=2
+pkgver=3.12.1
+pkgrel=1
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -42,12 +42,11 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0001-treeview-Avoid-calling-do_validate_rows-if-not-neede.patch
         fix-708148.patch
         0001-menu-Fix-possible-leak-on-destroy.patch
-        0001-treemodelfilter-Fix-using-wrong-path-on-row-deleted.patch
         0002-menu-Add-helper-gtk_menu_popup_and_destroy.patch
         0001-Add-GTK_IS_JJK.patch)
-sha256sums=('eb69741cd4029b5a1ac9cf04d9de55dcf9e30777a63891750f5d20cc554b6e4b'
+sha256sums=('719aae5fdb560f64cadb7e968c8c85c0823664de890c9f765ff4c0efeb0277cd'
             'de961084b35507da5415640db733457161e1672ee54639828dfa399ea3d220b1'
-            '454f8cc77ee5bb64355311ed7070aacc7b8c1ffca897a852dde295af23851362'
+            'f96f97ffe3fc8209f32a15691a26d8997210497fa231e64d7302553c64f17c7f'
             '8120899a66c633f5aa1d897adf40139eaa6554dc58f2bda582424e8dddc2f724'
             'aa5917c4dd42d86ce078f12cb356d7417e134001b5dbc42e113ccf97443e230e'
             'a078367bdfb61c92225fdcc971af00fbea081e29e9070ff0572504b2cf55941a'
@@ -71,7 +70,6 @@ sha256sums=('eb69741cd4029b5a1ac9cf04d9de55dcf9e30777a63891750f5d20cc554b6e4b'
             'ed8c7b271c2f4528dc81b9429a933dd0f058c91b6268a3c4930992a4686583cd'
             '8a8b500f6850466b646f788ee45756bbba21dea6f75babddca1d4b32ea1b0b03'
             'e3b82c6447fbd337356bc147ec64e8909ffc8fe11211180753ad74c2619f79d9'
-            '75d75f8d86793f7f8c1c7b891165ed73ebb465e548b57612fb8ea2e414db781f'
             '3dbf42fe7cfaeb695507f3c7ba8531d7b6ef33eaf4b54249d99f31748c0d7d09'
             '01802065c6118b8612a2a1df2a257b96124261f0f118b896aa7cfe640c9330d7')
 
@@ -103,7 +101,6 @@ prepare() {
     patch -p1 -i ../0001-tooltip-Fix-possibly-briefly-appearing-at-0x0.patch
     patch -p1 -i ../0001-treeview-Avoid-calling-do_validate_rows-if-not-neede.patch
     patch -p1 -i ../0001-menu-Fix-possible-leak-on-destroy.patch
-    patch -p1 -i ../0001-treemodelfilter-Fix-using-wrong-path-on-row-deleted.patch
     patch -p1 -i ../0002-menu-Add-helper-gtk_menu_popup_and_destroy.patch
 
     NOCONFIGURE=1 ./autogen.sh

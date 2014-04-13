@@ -1,4 +1,4 @@
-From c72fce65e58be324a611c3f351a66103441268d8 Mon Sep 17 00:00:00 2001
+From 94adc786821cd06733ea4977510c7028863fe9ef Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 28 Mar 2014 15:59:50 +0100
 Subject: [PATCH] revert changes to GtkMessageDialog
@@ -6,8 +6,8 @@ Subject: [PATCH] revert changes to GtkMessageDialog
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
  gtk/gtkmessagedialog.c               | 200 ++++++++++++++++++-----------------
- gtk/resources/ui/gtkmessagedialog.ui |  73 ++++++++-----
- 2 files changed, 149 insertions(+), 124 deletions(-)
+ gtk/resources/ui/gtkmessagedialog.ui |  68 +++++++-----
+ 2 files changed, 149 insertions(+), 119 deletions(-)
 
 diff --git a/gtk/gtkmessagedialog.c b/gtk/gtkmessagedialog.c
 index e3f8ec4..d895d46 100644
@@ -495,7 +495,7 @@ index e3f8ec4..d895d46 100644
    if (parent)
      {
 diff --git a/gtk/resources/ui/gtkmessagedialog.ui b/gtk/resources/ui/gtkmessagedialog.ui
-index 5a55c0c..41b5392 100644
+index d75a414..41b5392 100644
 --- a/gtk/resources/ui/gtkmessagedialog.ui
 +++ b/gtk/resources/ui/gtkmessagedialog.ui
 @@ -3,50 +3,72 @@
@@ -607,7 +607,7 @@ index 5a55c0c..41b5392 100644
                    </object>
                    <packing>
                      <property name="expand">True</property>
-@@ -84,14 +104,9 @@
+@@ -84,7 +104,7 @@
            <packing>
              <property name="expand">False</property>
              <property name="fill">False</property>
@@ -615,14 +615,7 @@ index 5a55c0c..41b5392 100644
 +            <property name="position">1</property>
            </packing>
          </child>
--        <child internal-child="action_area">
--          <object class="GtkButtonBox">
--            <property name="border_width">0</property>
--          </object>
--        </child>
        </object>
-     </child>
-   </template>
 -- 
-1.9.1
+1.9.2
 
