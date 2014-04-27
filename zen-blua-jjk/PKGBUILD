@@ -2,7 +2,7 @@
 
 _pkgname=zen-gtk-themes
 pkgname=zen-blua-jjk
-pkgver=0.13.2
+pkgver=0.14.1
 pkgrel=1
 pkgdesc="A GTK2/GTK3 theme that attempt to keep it simple, consistent and being visually appealing."
 arch=('any')
@@ -12,7 +12,7 @@ depends=('gtk-engines' 'gtk-engine-murrine')
 
 source=("$_pkgname-$pkgver.tar.gz::https://github.com/cedl38/$_pkgname/archive/v$pkgver.tar.gz"
         jjk-tweak-titlebar-colors.patch)
-sha256sums=('aadad460e8c4c10cda72941835ff1387908bc2edbaa884441255dd22ff059546'
+sha256sums=('b33646badc488163c65194dd4766d2c6122ff7f964fa2cc44549592b7eedabea'
             '99eb5b2fb2a1475090037ca131f144105e15031b37220f344b2dd5facf8a054d')
 
 build() {
