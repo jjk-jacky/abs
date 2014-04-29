@@ -5,7 +5,7 @@
 pkgbase=mesa-jjk
 pkgname=('ati-dri-jjk' 'mesa-jjk' 'mesa-libgl-jjk')
 pkgver=10.1.1
-pkgrel=1
+pkgrel=2
 arch=('i686' 'x86_64')
 makedepends=('python2' 'libxml2' 'libx11' 'glproto' 'libdrm' 'dri2proto'
              'dri3proto' 'presentproto' 'libxxf86vm' 'libxdamage' 'elfutils'
@@ -28,11 +28,12 @@ build() {
     --with-gallium-drivers=r600,swrast \
     --with-dri-drivers=radeon,swrast \
     --with-egl-platforms=x11,drm \
-    --enable-gallium-llvm \
     --enable-egl \
-    --enable-gallium-egl \
-    --enable-shared-glapi \
+    --disable-gallium-egl \
     --enable-gbm \
+    --enable-gallium-gbm \
+    --enable-gallium-llvm \
+    --enable-shared-glapi \
     --enable-glx-tls \
     --enable-dri \
     --enable-glx \
