@@ -1,4 +1,4 @@
-From d4a52fa4bf74f961f38740f1eb85a4990817f848 Mon Sep 17 00:00:00 2001
+From 645a3b8abbb0c516fd1e2e63cd505e321bc14923 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 17 Jan 2014 19:19:20 +0100
 Subject: [PATCH 2/2] treeview: Fix visual glitch on row-inserted
@@ -16,14 +16,14 @@ issues.
 https://bugzilla.gnome.org/show_bug.cgi?id=721597
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
- gtk/gtktreeview.c | 34 ++++++++++++++++++++--------------
- 1 file changed, 20 insertions(+), 14 deletions(-)
+ gtk/gtktreeview.c | 26 ++++++++++++++++----------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index a942343..99ed152 100644
+index fd65baf..c171bfe 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -11271,16 +11271,19 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
+@@ -11281,13 +11281,16 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
    if (gtk_widget_get_realized (GTK_WIDGET (tree_view)))
      {
        gint dy;
@@ -45,23 +45,15 @@ index a942343..99ed152 100644
 +                  0);
 +        }
        dy = tree_view->priv->dy - (int) gtk_adjustment_get_value (tree_view->priv->vadjustment);
-       if (dy)
--	{
-+        {
-           update_prelight (tree_view,
-                            tree_view->priv->event_last_x,
-                            tree_view->priv->event_last_y - dy);
-@@ -11308,11 +11311,14 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
-                         }
+       if (dy && tree_view->priv->edited_column)
+         {
+@@ -11313,9 +11316,12 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
                      }
                  }
--	    }
--	}
+         }
 -      tree_view->priv->in_scroll = TRUE;
 -      gdk_window_scroll (tree_view->priv->bin_window, 0, dy);
 -      tree_view->priv->in_scroll = FALSE;
-+          }
-+        }
 +      if (!tree_view->priv->in_top_row_to_dy)
 +        {
 +          tree_view->priv->in_scroll = TRUE;
@@ -69,17 +61,8 @@ index a942343..99ed152 100644
 +          tree_view->priv->in_scroll = FALSE;
 +        }
  
-       if (tree_view->priv->dy != (int) gtk_adjustment_get_value (tree_view->priv->vadjustment))
+       if (dy != 0)
          {
-@@ -11321,7 +11327,7 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
- 
-           if (!tree_view->priv->in_top_row_to_dy)
-             gtk_tree_view_dy_to_top_row (tree_view);
--	}
-+        }
-     }
- }
- 
 -- 
-1.9.1
+1.9.2
 

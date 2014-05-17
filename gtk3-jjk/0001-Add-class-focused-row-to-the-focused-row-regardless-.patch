@@ -1,4 +1,4 @@
-From 96bb16b681bddf37f4061e8ebca6e0cee39a39b2 Mon Sep 17 00:00:00 2001
+From aca033c0ec320136bddc9655bd3f7689065ef80c Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 15:08:09 +0200
 Subject: [PATCH] Add class "focused-row" to the focused row, regardless of
@@ -36,7 +36,7 @@ index 4cd36b9..53168a9 100644
    if (item->selected)
      {
 diff --git a/gtk/gtkstylecontext.h b/gtk/gtkstylecontext.h
-index c188604..b5215a1 100644
+index 1bab439..341304f 100644
 --- a/gtk/gtkstylecontext.h
 +++ b/gtk/gtkstylecontext.h
 @@ -556,6 +556,16 @@ struct _GtkStyleContextClass
@@ -57,10 +57,10 @@ index c188604..b5215a1 100644
   *
   * A CSS class defining a frame delimiting content, such as
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index bf2c1b1..691c8ca 100644
+index 9c06762..4fbe531 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -5107,6 +5107,12 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5115,6 +5115,12 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
            gtk_style_context_set_state (context, state);
  
            gtk_style_context_add_class (context, GTK_STYLE_CLASS_CELL);
@@ -74,5 +74,5 @@ index bf2c1b1..691c8ca 100644
            gtk_style_context_add_region (context, GTK_STYLE_REGION_COLUMN, column_flags);
  
 -- 
-1.9.1
+1.9.2
 

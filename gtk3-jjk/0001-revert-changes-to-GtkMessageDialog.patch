@@ -1,4 +1,4 @@
-From 94adc786821cd06733ea4977510c7028863fe9ef Mon Sep 17 00:00:00 2001
+From f38071d5490b6cbdb1cdb05a58bec0d98feb2aa4 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 28 Mar 2014 15:59:50 +0100
 Subject: [PATCH] revert changes to GtkMessageDialog

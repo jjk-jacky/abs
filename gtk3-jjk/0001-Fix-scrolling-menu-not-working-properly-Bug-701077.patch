@@ -1,4 +1,4 @@
-From 2f8d074aa5e4fe46826c72f1a401abd562c294ae Mon Sep 17 00:00:00 2001
+From cfacd46c3b642f3ef5a2f24a46935ebad4d67330 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 15:09:15 +0200
 Subject: [PATCH] Fix scrolling menu not working properly; Bug #701077
@@ -13,10 +13,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 3 insertions(+)
 
 diff --git a/gtk/gtkmenu.c b/gtk/gtkmenu.c
-index acebe76..5991bcb 100644
+index 63bc72d..b7b3820 100644
 --- a/gtk/gtkmenu.c
 +++ b/gtk/gtkmenu.c
-@@ -1705,6 +1705,9 @@ gtk_menu_popup_for_device (GtkMenu             *menu,
+@@ -1704,6 +1704,9 @@ gtk_menu_popup_for_device (GtkMenu             *menu,
     */
    gtk_menu_position (menu, TRUE);
  
@@ -27,5 +27,5 @@ index acebe76..5991bcb 100644
  
    /* if no item is selected, select the first one */
 -- 
-1.9.1
+1.9.2
 

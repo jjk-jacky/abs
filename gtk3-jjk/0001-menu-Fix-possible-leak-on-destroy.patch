@@ -1,4 +1,4 @@
-From b22777852f8bb34bfbe05bec6f5390aa8ad11126 Mon Sep 17 00:00:00 2001
+From 4df421721437039a45f761f156c745220e2dc147 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 16 Jan 2014 17:09:32 +0100
 Subject: [PATCH 1/2] menu: Fix possible leak on destroy
@@ -18,10 +18,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  2 files changed, 2 insertions(+), 14 deletions(-)
 
 diff --git a/gtk/gtkmenu.c b/gtk/gtkmenu.c
-index acebe76..dc91e85 100644
+index 63bc72d..fbfa9ee 100644
 --- a/gtk/gtkmenu.c
 +++ b/gtk/gtkmenu.c
-@@ -1089,6 +1089,8 @@ gtk_menu_init (GtkMenu *menu)
+@@ -1088,6 +1088,8 @@ gtk_menu_init (GtkMenu *menu)
  
    menu->priv = priv;
  
@@ -30,7 +30,7 @@ index acebe76..dc91e85 100644
    priv->toplevel = g_object_connect (g_object_new (GTK_TYPE_WINDOW,
                                                     "type", GTK_WINDOW_POPUP,
                                                     "child", menu,
-@@ -1099,12 +1101,6 @@ gtk_menu_init (GtkMenu *menu)
+@@ -1098,12 +1100,6 @@ gtk_menu_init (GtkMenu *menu)
    gtk_window_set_resizable (GTK_WINDOW (priv->toplevel), FALSE);
    gtk_window_set_mnemonic_modifier (GTK_WINDOW (priv->toplevel), 0);
  
@@ -43,7 +43,7 @@ index acebe76..dc91e85 100644
    priv->monitor_num = -1;
    priv->drag_start_y = -1;
  
-@@ -1132,13 +1128,6 @@ gtk_menu_destroy (GtkWidget *widget)
+@@ -1131,13 +1127,6 @@ gtk_menu_destroy (GtkWidget *widget)
    if (priv->old_active_menu_item)
      g_clear_object (&priv->old_active_menu_item);
  
@@ -70,5 +70,5 @@ index f1a40d8..6e4f911 100644
    /* The tearoff is active when it is torn off and the not-torn-off
     * menu is not popped up.
 -- 
-1.9.1
+1.9.2
 

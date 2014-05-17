@@ -1,4 +1,4 @@
-From 9c9d82ceea9f34d5c0ff595bf0f8e9fb17c640d0 Mon Sep 17 00:00:00 2001
+From e4dee3184072d85d797fa8af62a25e5090259318 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 16 Jan 2014 17:44:31 +0100
 Subject: [PATCH 2/2] menu: Add helper gtk_menu_popup_and_destroy()
@@ -32,10 +32,10 @@ index 3231a19..4863292 100644
  gtk_menu_get_accel_group
  gtk_menu_set_accel_path
 diff --git a/gtk/gtkmenu.c b/gtk/gtkmenu.c
-index dc91e85..8e5782c 100644
+index fbfa9ee..2b3b7c5 100644
 --- a/gtk/gtkmenu.c
 +++ b/gtk/gtkmenu.c
-@@ -1754,6 +1754,10 @@ gtk_menu_popup_for_device (GtkMenu             *menu,
+@@ -1753,6 +1753,10 @@ gtk_menu_popup_for_device (GtkMenu             *menu,
   * a mouse click or key press) that caused the initiation of the popup.
   * Only if no such event is available, gtk_get_current_event_time() can
   * be used instead.
@@ -46,7 +46,7 @@ index dc91e85..8e5782c 100644
   */
  void
  gtk_menu_popup (GtkMenu             *menu,
-@@ -1775,6 +1779,41 @@ gtk_menu_popup (GtkMenu             *menu,
+@@ -1774,6 +1778,41 @@ gtk_menu_popup (GtkMenu             *menu,
  }
  
  /**
@@ -106,5 +106,5 @@ index 25dd8bd..f93cb77 100644
  void       gtk_menu_popup_for_device      (GtkMenu             *menu,
                                             GdkDevice           *device,
 -- 
-1.9.1
+1.9.2
 

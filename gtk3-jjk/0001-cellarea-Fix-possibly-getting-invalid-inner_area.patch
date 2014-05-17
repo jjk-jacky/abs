@@ -1,4 +1,4 @@
-From d7515189c630457143b7f7b2fa663ff0766d19e8 Mon Sep 17 00:00:00 2001
+From cc6da0a2ea4488d9d216f050a654d4d3fce744d6 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 5 Nov 2013 14:20:32 +0100
 Subject: [PATCH] cellarea: Fix possibly getting invalid inner_area
@@ -34,5 +34,5 @@ index 09d7654..5ddc01e 100644
  
  /**
 -- 
-1.9.1
+1.9.2
 

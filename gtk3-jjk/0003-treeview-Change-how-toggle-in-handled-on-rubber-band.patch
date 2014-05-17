@@ -1,4 +1,4 @@
-From d39dc0345cd78ad514252f32d4e65192ac120445 Mon Sep 17 00:00:00 2001
+From 1ef085169ebc59016ae1fa28350217901e8d18b0 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 16:43:50 +0200
 Subject: [PATCH 3/3] treeview: Change how toggle in handled on rubber banding
@@ -17,10 +17,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  2 files changed, 23 insertions(+), 4 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 966a66c..b1914f8 100644
+index 82be016..7545741 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -786,6 +786,8 @@ static void     update_prelight                              (GtkTreeView
+@@ -783,6 +783,8 @@ static void     update_prelight                              (GtkTreeView
  static void     gtk_tree_view_queue_draw_region              (GtkWidget          *widget,
  							      const cairo_region_t *region);
  
@@ -29,7 +29,7 @@ index 966a66c..b1914f8 100644
  static inline gint gtk_tree_view_get_effective_header_height (GtkTreeView *tree_view);
  
  static inline gint gtk_tree_view_get_cell_area_y_offset      (GtkTreeView *tree_view,
-@@ -967,6 +969,7 @@ gtk_tree_view_class_init (GtkTreeViewClass *class)
+@@ -965,6 +967,7 @@ gtk_tree_view_class_init (GtkTreeViewClass *class)
    class->expand_collapse_cursor_row = gtk_tree_view_real_expand_collapse_cursor_row;
    class->select_cursor_parent = gtk_tree_view_real_select_cursor_parent;
    class->start_interactive_search = gtk_tree_view_start_interactive_search;
@@ -37,7 +37,7 @@ index 966a66c..b1914f8 100644
  
    /* Properties */
  
-@@ -4252,9 +4255,6 @@ gtk_tree_view_update_rubber_band_selection_range (GtkTreeView *tree_view,
+@@ -4260,9 +4263,6 @@ gtk_tree_view_update_rubber_band_selection_range (GtkTreeView *tree_view,
  						 gboolean     skip_start,
  						 gboolean     skip_end)
  {
@@ -47,7 +47,7 @@ index 966a66c..b1914f8 100644
    /* We skip the first node and jump inside the loop */
    if (skip_start)
      goto skip_first;
-@@ -4533,6 +4533,25 @@ gtk_tree_view_paint_rubber_band (GtkTreeView  *tree_view,
+@@ -4541,6 +4541,25 @@ gtk_tree_view_paint_rubber_band (GtkTreeView  *tree_view,
    cairo_restore (cr);
  }
  
@@ -94,5 +94,5 @@ index 88c285c..5df824b 100644
  
  /**
 -- 
-1.9.1
+1.9.2
 

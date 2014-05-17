@@ -1,4 +1,4 @@
-From f2966d0a32e900e48c1f31e1a4b92eecf4a18232 Mon Sep 17 00:00:00 2001
+From 29362213c1f7ff0d1f04cb84a5743137c3cbd1fb Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 15:07:45 +0200
 Subject: [PATCH] cellrenderertext: Fix possible overwriting of markup
@@ -31,5 +31,5 @@ index fc17b38..6f39ff3 100644
  
  static PangoLayout*
 -- 
-1.9.1
+1.9.2
 
