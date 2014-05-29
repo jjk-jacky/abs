@@ -6,7 +6,7 @@
 
 _pkgname=xmlrpc-c
 pkgname=$_pkgname-jjk
-pkgver=1.36.00
+pkgver=1.38.02
 pkgrel=1
 pkgdesc='XML-RPC for C and C++'
 arch=('x86_64' 'i686')
@@ -15,10 +15,14 @@ license=('custom')
 provides=($_pkgname)
 conflicts=($_pkgname)
 depends=('curl' 'libxml2')
-makedepends=('libtool' 'setconf')
+makedepends=('libtool' 'setconf' 'python')
 options=('!makeflags' '!libtool' '!emptydirs')
-source=('svn://svn.code.sf.net/p/xmlrpc-c/code/advanced#revision=2545')
+source=('svn://svn.code.sf.net/p/xmlrpc-c/code/advanced')
 sha1sums=('SKIP')
+
+pkgver() {
+  python -c 'print("%01d.%02d.%02d" % tuple(map(int, (x.rsplit(" ",1)[1] for x in open("advanced/version.mk").read().split("\n")[-4:-1]))))'
+}
 
 build() {
   cd "$srcdir/advanced"
