@@ -15,9 +15,9 @@ depends=(
       'alsa-lib' 'bzip2' 'fontconfig' 'lame'
       'libpulse' 'libva' 'libvorbis' 'libvpx'
       'openjpeg' 'rtmpdump' 'sdl'
-      'v4l-utils' 'x264' 'xvidcore' 'zlib'
+      'v4l-utils' 'libx264' 'xvidcore' 'zlib'
       )
-makedepends=('yasm')
+makedepends=('yasm' 'x264')
 provides=($_pkgname)
 conflicts=($_pkgname)
 source=(http://ffmpeg.org/releases/$_pkgname-$pkgver.tar.bz2)
