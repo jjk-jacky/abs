@@ -30,6 +30,15 @@ ac_add_options --disable-updater
 ac_add_options --disable-installer
 ac_add_options --disable-debug-symbols
 
+ac_add_options --disable-gstreamer
+
+ac_add_options --disable-accessibility
+ac_add_options --disable-parental-controls
+ac_add_options --disable-webrtc
+ac_add_options --disable-logging
+ac_add_options --disable-necko-wifi
+ac_add_options --disable-websms-backend
+
 # PGO
 mk_add_options PROFILE_GEN_SCRIPT='EXTRA_TEST_ARGS=10 $(MAKE) -C $(MOZ_OBJDIR) pgo-profile-run'
 
