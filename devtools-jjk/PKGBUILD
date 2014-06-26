@@ -1,7 +1,8 @@
 # $Id$
 # Maintainer: Pierre Schmitz <pierre@archlinux.de>
 
-pkgname=devtools
+_pkgname=devtools
+pkgname=$_pkgname-jjk
 pkgver=20140510
 pkgrel=1
 pkgdesc='Tools for Arch Linux package maintainers'
@@ -9,17 +10,24 @@ arch=('any')
 license=('GPL')
 url='http://projects.archlinux.org/devtools.git/'
 depends=('namcap' 'openssh' 'subversion' 'rsync' 'arch-install-scripts')
-source=("ftp://ftp.archlinux.org/other/${pkgname}/${pkgname}-${pkgver}.tar.gz"
-        "ftp://ftp.archlinux.org/other/${pkgname}/${pkgname}-${pkgver}.tar.gz.sig")
+conflicts=("$_pkgname")
+provides=("$_pkgname")
+source=("ftp://ftp.archlinux.org/other/${_pkgname}/${_pkgname}-${pkgver}.tar.gz"
+        0001-makechrootpkg-Add-P-for-private-network.patch)
 md5sums=('702376263627e594b5a7ff1970353de4'
-         'SKIP')
+         '3bc6faf64087d8d479098bdc8af7e687')
+
+prepare() {
+	cd ${srcdir}/${_pkgname}-${pkgver}
+	patch -p1 -i ../0001-makechrootpkg-Add-P-for-private-network.patch
+}
 
 build() {
-	cd ${srcdir}/${pkgname}-${pkgver}
+	cd ${srcdir}/${_pkgname}-${pkgver}
 	make PREFIX=/usr
 }
 
 package() {
-	cd ${srcdir}/${pkgname}-${pkgver}
+	cd ${srcdir}/${_pkgname}-${pkgver}
 	make PREFIX=/usr DESTDIR=${pkgdir} install
 }

@@ -1,0 +1,65 @@
+From b13c322f83411f4ed6964d58531f60f23e905614 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Thu, 26 Jun 2014 10:50:59 +0200
+Subject: [PATCH] makechrootpkg: Add -P for --private-network
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ makechrootpkg.in | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/makechrootpkg.in b/makechrootpkg.in
+index 97c7780..955ec0c 100644
+--- a/makechrootpkg.in
++++ b/makechrootpkg.in
+@@ -12,6 +12,7 @@ m4_include(lib/common.sh)
+ 
+ shopt -s nullglob
+ 
++nspawn_args=
+ makepkg_args='-s --noconfirm -L --holdver'
+ repack=false
+ update_first=false
+@@ -63,10 +64,12 @@ usage() {
+ 	echo "           Default: $copy"
+ 	echo '-n         Run namcap on the package'
+ 	echo '-T         Build in a temporary directory'
++	echo '-P         Use ---private-network when installing/building package'
++	echo '           (i.e. disables network in chroot)'
+ 	exit 1
+ }
+ 
+-while getopts 'hcur:I:l:nTD:d:' arg; do
++while getopts 'hcur:I:l:nTPD:d:' arg; do
+ 	case "$arg" in
+ 		h) usage ;;
+ 		c) clean_first=true ;;
+@@ -78,6 +81,7 @@ while getopts 'hcur:I:l:nTD:d:' arg; do
+ 		l) copy="$OPTARG" ;;
+ 		n) run_namcap=true; makepkg_args="$makepkg_args -i" ;;
+ 		T) temp_chroot=true; copy+="-$$" ;;
++		P) nspawn_args="$nspawn_args --private-network" ;;
+ 	esac
+ done
+ 
+@@ -185,7 +189,7 @@ install_packages() {
+ 		pkgname="${install_pkg##*/}"
+ 		cp "$install_pkg" "$copydir/$pkgname"
+ 
+-		arch-nspawn "$copydir" \
++		arch-nspawn "$copydir" $nspawn_args \
+ 			"${bindmounts_ro[@]}" "${bindmounts_rw[@]}" \
+ 			pacman -U /$pkgname --noconfirm
+ 		(( ret += !! $? ))
+@@ -375,7 +379,7 @@ prepare_chroot
+ 
+ download_sources
+ 
+-if arch-nspawn "$copydir" \
++if arch-nspawn "$copydir" $nspawn_args \
+ 	--bind-ro="$PWD:/startdir_host" \
+ 	--bind-ro="$SRCDEST:/srcdest_host" \
+ 	"${bindmounts_ro[@]}" "${bindmounts_rw[@]}" \
+-- 
+2.0.0
+
