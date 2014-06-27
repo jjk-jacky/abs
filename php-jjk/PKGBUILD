@@ -6,17 +6,18 @@ pkgname=('php-jjk'
          'php-fpm-jjk'
          'php-pear-jjk'
          'php-mcrypt-jjk')
-pkgver=5.5.13
+pkgver=5.5.14
 pkgrel=1
 arch=('i686' 'x86_64')
 license=('PHP')
 url='http://www.php.net'
 makedepends=('file' 'libmcrypt' 'libltdl' 'libpng' 'libjpeg'
-             'curl' 'openssl' 'bzip2' 'db' 'gmp' 'freetype2')
+             'curl' 'openssl' 'bzip2' 'db' 'gmp' 'freetype2'
+             'systemd' 'pcre' 'libxml2')
 source=("http://www.php.net/distributions/${pkgbase}-${pkgver}.tar.bz2"
         'php.ini.patch' 'php-fpm.conf.in.patch'
         'logrotate.d.php-fpm' 'php-fpm.service' 'php-fpm.tmpfiles')
-md5sums=('e26e90af25ee6505dc18855e0180ffe9'
+md5sums=('b53e5f47c59ffbe26d20957636695baa'
          '510f9092ebfe6e378e12817e197a88b6'
          '6bc1fc4ceee039d21ff3b56aa845cc5a'
          'fef3e47e73a165f0c2cd26d2940cce3d'
@@ -82,10 +83,7 @@ build() {
         --with-openssl=shared \
         --with-pcre-regex=/usr \
         --with-pdo-mysql=shared,mysqlnd \
-        --with-pdo-sqlite=shared,/usr \
         --with-png-dir=/usr \
-        --with-sqlite3=shared,/usr \
-        --with-unixODBC=shared,/usr \
         --with-xmlrpc=shared \
         --with-zlib \
         "
