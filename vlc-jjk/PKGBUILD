@@ -5,8 +5,8 @@
 
 _pkgname=vlc
 pkgname=$_pkgname-jjk
-pkgver=2.1.4
-pkgrel=2
+pkgver=2.1.5
+pkgrel=1
 pkgdesc="A multi-platform MPEG, VCD/DVD, and DivX player"
 arch=('i686' 'x86_64')
 url="http://www.videolan.org/vlc/"
@@ -57,7 +57,7 @@ options=('!libtool' '!emptydirs')
 install=vlc.install
 source=("http://download.videolan.org/pub/videolan/${_pkgname}/${pkgver/.a}/${_pkgname}-${pkgver/.a/a}.tar.xz"
         '0001-Add-dpms-module-to-switch-it-off-while-playing.patch')
-md5sums=('7ed67d22f7425011078772bfc62ac222'
+md5sums=('3941b561f590cc95ca5e795213cba2f2'
          '79e9506f5032f90cfc198444f137fe3a')
 
 prepare() {
