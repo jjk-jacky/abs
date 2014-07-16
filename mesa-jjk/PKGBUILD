@@ -5,7 +5,7 @@
 pkgbase=mesa-jjk
 pkgname=('ati-dri-jjk' 'mesa-jjk' 'mesa-libgl-jjk')
 pkgver=10.2.3
-pkgrel=1
+pkgrel=2
 arch=('i686' 'x86_64')
 makedepends=('python2' 'libxml2' 'libx11' 'glproto' 'libdrm' 'dri2proto'
              'dri3proto' 'presentproto' 'libxxf86vm' 'libxdamage' 'elfutils'
