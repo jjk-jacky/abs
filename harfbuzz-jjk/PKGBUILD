@@ -3,7 +3,7 @@
 
 _pkgname=harfbuzz
 pkgname=$_pkgname-jjk
-pkgver=0.9.31
+pkgver=0.9.32
 pkgrel=1
 pkgdesc="OpenType text shaping engine."
 arch=('i686' 'x86_64')
@@ -16,7 +16,7 @@ provides=('harfbuzz')
 conflicts=('harfbuzz')
 options=(!libtool)
 source=(http://www.freedesktop.org/software/harfbuzz/release/${_pkgname}-${pkgver}.tar.bz2)
-sha256sums=('86a2a45bd8f71b8f1695ff2084c718fca7adedd0ae012d0be682238e8af49e73')
+sha256sums=('430c81744e2d87b36f529b16f18efd0d0140aee9df59b2ee312f5de1994b9db4')
 
 build() {
   cd "${srcdir}/${_pkgname}-${pkgver}"
