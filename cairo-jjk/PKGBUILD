@@ -22,6 +22,12 @@ sha1sums=('4f6e337d5d3edd7ea79d1426f575331552b003ec')
 
 build() {
   cd "$srcdir/$_pkgname-$pkgver"
+
+  # fix compilew/ gcc 4.9 -- see FS#40313
+  # upstream https://bugs.freedesktop.org/show_bug.cgi?id=77060
+  CFLAGS="$CFLAGS -fno-lto"
+  export CFLAGS
+
   ./configure --prefix=/usr \
       --sysconfdir=/etc \
       --localstatedir=/var \
