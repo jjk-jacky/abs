@@ -4,7 +4,7 @@
 
 _pkgname=firefox
 pkgname=$_pkgname-jjk
-pkgver=30.0
+pkgver=31.0
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=('i686' 'x86_64')
@@ -25,7 +25,7 @@ options=('!emptydirs' '!makeflags')
 source=(https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/source/firefox-$pkgver.source.tar.bz2{,.asc}
         mozconfig firefox.desktop firefox-install-dir.patch vendor.js
         firefox-20.0.1-fixed-loading-icon.png)
-sha256sums=('1e95740a8cf7095e210fb6a2313c4d0fba4fdf44ee7c327d01f202638403c22c'
+sha256sums=('95c789f2f171c4c7bd832999a22bfa9461ac47ba33e97a46392c90e576baf9db'
             'SKIP'
             '698ec4ce86fcad9d080e09de93805b86509c8801b2ca9af476bbbc9ed8f59110'
             'd2a7610393ba259c35e3227b92e02ec91095a95189f56ac93ccdf6732772719c'
