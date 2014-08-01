@@ -12,7 +12,8 @@ license=('LGPL' 'MPL')
 url="http://cairographics.org/"
 makedepends=('mesa' 'libgl' 'librsvg' 'gtk2' 'poppler-glib' 'libspectre' 'gtk-doc'
              'valgrind')
-depends=('libpng' 'libxrender' 'libxext' 'fontconfig' 'pixman>=0.28.0' 'glib2' 'libgl' 'sh')
+depends=('libpng' 'libxrender' 'libxext' 'fontconfig' 'pixman>=0.28.0' 'glib2'
+         'libgl' 'sh' 'lzo')
 provides=('cairo-xcb' 'cairo')
 replaces=('cairo-xcb' 'cairo')
 conflicts=('cairo')
