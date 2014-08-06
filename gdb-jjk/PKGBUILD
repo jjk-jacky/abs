@@ -2,31 +2,34 @@
 # Maintainer: Allan McRae <allan@archlinux.org>
 # Contributor: Jan de Groot <jgc@archlinux.org>
 
-pkgname=gdb
+_pkgname=gdb
+pkgname=$_pkgname-jjk
 pkgver=7.8
 pkgrel=1
 pkgdesc="The GNU Debugger"
 arch=('i686' 'x86_64')
 url="http://www.gnu.org/software/gdb/"
 license=('GPL3')
-depends=('ncurses' 'expat' 'python2' 'xz' 'guile')
+depends=('ncurses' 'expat' 'python2' 'xz')
 makedepends=('texinfo')
+provides=($_pkgname)
+conflicts=($_pkgname)
 backup=('etc/gdb/gdbinit')
 install=gdb.install
-source=(http://ftp.gnu.org/gnu/gdb/${pkgname}-${pkgver}.tar.xz{,.sig})
+source=(http://ftp.gnu.org/gnu/gdb/${_pkgname}-${pkgver}.tar.xz{,.sig})
 md5sums=('bd958fe9019d7c7896f29f6724a764ed'
          'SKIP')
 
 prepare() {
-  cd ${srcdir}/${pkgname}-${pkgver}
+  cd ${srcdir}/${_pkgname}-${pkgver}
 
   # hack! - libiberty configure tests for header files using "$CPP $CPPFLAGS"
   sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/" libiberty/configure
 }
 
 build() {
-  cd ${srcdir}/${pkgname}-${pkgver}
-  
+  cd ${srcdir}/${_pkgname}-${pkgver}
+
   ./configure --prefix=/usr --disable-nls \
     --with-system-readline \
     --with-python=/usr/bin/python2 \
@@ -35,7 +38,7 @@ build() {
 }
 
 package() {
-  cd ${srcdir}/${pkgname}-${pkgver}
+  cd ${srcdir}/${_pkgname}-${pkgver}
   make DESTDIR=${pkgdir} install
 
   # install "custom" system gdbinit
