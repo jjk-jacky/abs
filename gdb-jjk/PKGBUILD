@@ -48,4 +48,5 @@ package() {
   # resolve conflicts with binutils
   rm ${pkgdir}/usr/include/{ansidecl,bfd,bfdlink,dis-asm,symcat}.h
   rm ${pkgdir}/usr/share/info/{bfd,configure,standards}.info
+  rm ${pkgdir}/usr/lib/lib{bfd,opcodes}.a
 }
