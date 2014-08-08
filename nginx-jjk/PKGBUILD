@@ -78,6 +78,13 @@ package() {
     cd "$srcdir"/$_pkgname-$pkgver
     make DESTDIR="$pkgdir" install
 
+    install -Dm644 contrib/vim/ftdetect/nginx.vim \
+        "$pkgdir"/usr/share/vim/vimfiles/ftdetect/nginx.vim
+    install -Dm644 contrib/vim/syntax/nginx.vim \
+        "$pkgdir"/usr/share/vim/vimfiles/syntax/nginx.vim
+    install -Dm644 contrib/vim/indent/nginx.vim \
+        "$pkgdir"/usr/share/vim/vimfiles/indent/nginx.vim
+
     sed -e 's|\<user\s\+\w\+;|user html;|g' \
         -e '44s|html|/usr/share/nginx/html|' \
         -e '54s|html|/usr/share/nginx/html|' \
