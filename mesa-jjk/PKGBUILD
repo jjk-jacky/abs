@@ -4,7 +4,7 @@
 
 pkgbase=mesa-jjk
 pkgname=('ati-dri-jjk' 'mesa-jjk' 'mesa-libgl-jjk')
-pkgver=10.2.7
+pkgver=10.3.0
 pkgrel=1
 arch=('i686' 'x86_64')
 makedepends=('python2' 'libxml2' 'libx11' 'glproto' 'libdrm' 'dri2proto'
@@ -12,11 +12,11 @@ makedepends=('python2' 'libxml2' 'libx11' 'glproto' 'libdrm' 'dri2proto'
              'systemd' 'libxshmfence')
 url="http://mesa3d.sourceforge.net"
 license=('custom')
-source=(ftp://ftp.freedesktop.org/pub/mesa/${pkgver}/MesaLib-${pkgver}.tar.bz2{,.sig}
+source=(ftp://ftp.freedesktop.org/pub/mesa/${pkgver:0:-2}/MesaLib-${pkgver}.tar.bz2{,.sig}
         LICENSE)
 validpgpkeys=('CEF8DDC8019CA66D4E3094F3600233BA9E54DC61'
               '8703B6700E7EE06D7A39B8D6EDAE37B02CEB490D')
-sha256sums=('27b958063a4c002071f14ed45c7d2a1ee52cd85e4ac8876e8a1c273495a7d43f'
+sha256sums=('0283bfe710fa449ed82e465cfa09612a269e19abb7e0382082608062ce7960b5'
             'SKIP'
             '7fdc119cf53c8ca65396ea73f6d10af641ba41ea1dd2bd44a824726e01c8b3f2')
 
@@ -37,9 +37,9 @@ build() {
     --enable-gbm \
     --enable-gallium-llvm \
     --enable-shared-glapi \
+    --enable-glx \
     --enable-glx-tls \
     --enable-dri \
-    --enable-glx \
     --enable-gles1 \
     --enable-gles2 \
     --enable-texture-float
@@ -53,9 +53,9 @@ build() {
 package_ati-dri-jjk() {
   pkgdesc="Mesa drivers for AMD/ATI Radeon"
   depends=("mesa-libgl-jjk=${pkgver}")
-  conflicts=('xf86-video-ati<6.9.0-6' 'ati-dri')
-  provides=('ati-dri')
-  replaces=('ati-dri')
+  conflicts=('xf86-video-ati<6.9.0-6' 'ati-dri' 'mesa-dri')
+  provides=('ati-dri' 'mesa-dri')
+  replaces=('ati-dri' 'mesa-dri')
 
   install -m755 -d ${pkgdir}/usr/lib/xorg/modules/dri
   mv -v ${srcdir}/fakeinstall/usr/lib/xorg/modules/dri/{r600,radeon}_dri.so ${pkgdir}/usr/lib/xorg/modules/dri/
@@ -66,7 +66,8 @@ package_ati-dri-jjk() {
 
 package_mesa-jjk() {
   pkgdesc="an open-source implementation of the OpenGL specification"
-  depends=('libdrm' 'libxxf86vm' 'libxdamage' 'libxshmfence' 'systemd' 'elfutils')
+  depends=('libdrm' 'libxxf86vm' 'libxdamage' 'libxshmfence' 'systemd' 'elfutils'
+           'libgl')
   optdepends=('opengl-man-pages: for the OpenGL API man pages')
   provides=('libglapi' 'libgbm' 'libgles' 'libegl' 'khrplatform-devel'
             "mesa=${pkgver}")
@@ -86,9 +87,9 @@ package_mesa-jjk() {
 
 package_mesa-libgl-jjk() {
   pkgdesc="Mesa 3-D graphics library"
-  depends=("mesa-jjk=${pkgver}")
-  provides=("libgl=${pkgver}" "mesa-libgl=${pkgver}")
-  replaces=('libgl' 'mesa-libgl')
+  depends=('mesa')
+  provides=('libgl')
+  replaces=('libgl')
 
   # See FS#26284
   install -m755 -d "${pkgdir}/usr/lib/xorg/modules/extensions"
