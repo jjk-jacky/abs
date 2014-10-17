@@ -5,7 +5,7 @@
 
 _pkgname=postfix
 pkgname=$_pkgname-jjk
-pkgver=2.11.1
+pkgver=2.11.2
 pkgrel=1
 pkgdesc='Fast, easy to administer, secure mail server'
 url='http://www.postfix.org/'
@@ -13,11 +13,10 @@ license=('custom')
 arch=('i686' 'x86_64')
 depends=('pcre' 'tinycdb')
 backup=('etc/postfix/'{access,aliases,canonical,generic,header_checks,main.cf,master.cf,relocated,transport,virtual})
-source=("ftp://ftp.porcupine.org/mirrors/postfix-release/official/${_pkgname}-${pkgver}.tar.gz"{,.sig}
+source=("ftp://ftp.porcupine.org/mirrors/postfix-release/official/${_pkgname}-${pkgver}.tar.gz"
         'aliases.patch'
         'service')
-sha1sums=('4034171013bde30600724f79c37f82d69a802ad0'
-          'SKIP'
+sha1sums=('97cd1710cf1c253ac8d892780daa03f7a4d6a940'
           '5fc3de6c7df1e5851a0a379e825148868808318b'
           'dd12885d367bebaf0fc9d2e9823a7f82086b6ee9')
 provides=($_pkgname 'smtp-server' 'smtp-forwarder')
