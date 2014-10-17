@@ -30,6 +30,7 @@ build() {
     --prefix=/usr \
     --disable-debug \
     --disable-static \
+    --disable-stripping \
     --enable-avresample \
     --enable-fontconfig \
     --enable-gpl \
