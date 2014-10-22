@@ -1,6 +1,6 @@
 _pkgname=lxpolkit
 pkgname=$_pkgname-jjk
-pkgver=0.5.0
+pkgver=0.5.1
 pkgrel=1
 pkgdesc='Simple polkit authentication agent for LXDE'
 arch=('i686' 'x86_64')
@@ -11,10 +11,8 @@ makedepends=('intltool' 'dbus-glib')
 provides=($_pkgname)
 replaces=($_pkgname)
 conflicts=($_pkgname 'lxsession')
-source=(http://downloads.sourceforge.net/lxde/lxsession-$pkgver.tar.xz
-        lxpolkit.desktop)
-md5sums=('6ef8b1487e60376e2381b2dec9c94734'
-         '595c68910a3d09391bfe36cead4797b1')
+source=(http://downloads.sourceforge.net/lxde/lxsession-$pkgver.tar.xz)
+md5sums=('39bf77d637fbe40318f91d0d888127fc')
 
 build() {
     cd "lxsession-$pkgver"
@@ -33,5 +31,6 @@ package() {
         "$pkgdir/usr/share/lxsession/ui/"
 #    mv "$srcdir/pkg/usr/share/locale" "$pkgdir/usr/share"
     install -m755 -d "$pkgdir/etc/xdg/autostart"
-    install -m644 "$srcdir/lxpolkit.desktop" "$pkgdir/etc/xdg/autostart/"
+    mv "$srcdir/pkg/etc/xdg/autostart/lxpolkit.desktop" \
+        "$pkgdir/etc/xdg/autostart/"
 }
