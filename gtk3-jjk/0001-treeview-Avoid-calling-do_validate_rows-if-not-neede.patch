@@ -1,4 +1,4 @@
-From 75399974fdbac91380ac8b04fcce2499740f73b8 Mon Sep 17 00:00:00 2001
+From abfea23eb810a6ecd20695abe06a5fa6758425a8 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 31 Dec 2013 13:43:26 +0100
 Subject: [PATCH] treeview: Avoid calling do_validate_rows() if not needed
@@ -28,26 +28,24 @@ been set yet, since it means we don't have (correct) sizes yet.
 
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
- gtk/gtktreeview.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ gtk/gtktreeview.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 9c06762..9bce0b7 100644
+index 9308028..652da4d 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -2519,8 +2519,9 @@ gtk_tree_view_get_preferred_width (GtkWidget *widget,
+@@ -2615,7 +2615,8 @@ gtk_tree_view_get_preferred_width (GtkWidget *widget,
    /* we validate some rows initially just to make sure we have some size.
     * In practice, with a lot of static lists, this should get a good width.
     */
 -  do_validate_rows (tree_view, FALSE);
--  
 +  if (!gtk_widget_get_realized (widget))
 +    do_validate_rows (tree_view, FALSE);
-+
-   tree_view->priv->minimum_width = 0;
-   tree_view->priv->natural_width = 0;
-   tree_view->priv->n_expand_columns = 0;
-@@ -6662,6 +6663,8 @@ initialize_fixed_height_mode (GtkTreeView *tree_view)
+ 
+   /* keep this in sync with size_allocate below */
+   for (list = tree_view->priv->columns; list; list = list->next)
+@@ -6760,6 +6761,8 @@ initialize_fixed_height_mode (GtkTreeView *tree_view)
  
     _gtk_rbtree_set_fixed_height (tree_view->priv->tree,
                                   tree_view->priv->fixed_height, TRUE);
@@ -56,7 +54,7 @@ index 9c06762..9bce0b7 100644
  }
  
  /* Our strategy for finding nodes to validate is a little convoluted.  We find
-@@ -6866,7 +6869,7 @@ do_presize_handler (GtkTreeView *tree_view)
+@@ -6985,7 +6988,7 @@ do_presize_handler (GtkTreeView *tree_view)
        tree_view->priv->presize_handler_tick_cb = 0;
      }
  
@@ -66,5 +64,5 @@ index 9c06762..9bce0b7 100644
        GtkRequisition requisition;
  
 -- 
-1.9.2
+2.1.2
 

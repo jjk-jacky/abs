@@ -1,4 +1,4 @@
-From bb87bcd3f2c7632c1aa4d900097c65cd5ac9e5c1 Mon Sep 17 00:00:00 2001
+From fc8e91b484cf2e076e29fd9490162dd1a3fa1892 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 16:42:05 +0200
 Subject: [PATCH] Add gtk_tree_selection_invert_range()
@@ -14,10 +14,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  3 files changed, 40 insertions(+), 2 deletions(-)
 
 diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
-index 3231a19..4f43027 100644
+index 11a9a00..a7750f5 100644
 --- a/docs/reference/gtk/gtk3-sections.txt
 +++ b/docs/reference/gtk/gtk3-sections.txt
-@@ -4424,6 +4424,7 @@ gtk_tree_selection_select_all
+@@ -4451,6 +4451,7 @@ gtk_tree_selection_select_all
  gtk_tree_selection_unselect_all
  gtk_tree_selection_select_range
  gtk_tree_selection_unselect_range
@@ -26,7 +26,7 @@ index 3231a19..4f43027 100644
  GTK_TREE_SELECTION
  GTK_IS_TREE_SELECTION
 diff --git a/gtk/gtktreeselection.c b/gtk/gtktreeselection.c
-index 06c3dd8..e959423 100644
+index f797ee3..ef8549e 100644
 --- a/gtk/gtktreeselection.c
 +++ b/gtk/gtktreeselection.c
 @@ -1287,7 +1287,8 @@ gtk_tree_selection_unselect_all (GtkTreeSelection *selection)
@@ -103,5 +103,5 @@ index be1567f..a792cd7 100644
  
  G_END_DECLS
 -- 
-1.9.2
+2.1.2
 

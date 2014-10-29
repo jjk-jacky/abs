@@ -1,0 +1,173 @@
+From a88253ddf82bf07d773c42330ced23b4cedfc099 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Sun, 28 Sep 2014 15:05:13 +0200
+Subject: [PATCH 1/5] treeview: Add signal test-rubber-banding
+
+To allow more control over when/whether or not to start a rubber banding
+operation. E.g. one could only allow it from a specific column, or never
+from one column, only/never on blank space, etc
+
+The test to see if the row is selected or not is put as default handler,
+to allow treeview-based widget to override it if needed.
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ gtk/gtktreeview.c | 71 +++++++++++++++++++++++++++++++++++++++++++++----------
+ gtk/gtktreeview.h |  4 +++-
+ 2 files changed, 62 insertions(+), 13 deletions(-)
+
+diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
+index 9308028..3fe82b2 100644
+--- a/gtk/gtktreeview.c
++++ b/gtk/gtktreeview.c
+@@ -519,6 +519,7 @@ enum
+   EXPAND_COLLAPSE_CURSOR_ROW,
+   SELECT_CURSOR_PARENT,
+   START_INTERACTIVE_SEARCH,
++  TEST_RUBBER_BANDING,
+   LAST_SIGNAL
+ };
+ 
+@@ -918,6 +919,11 @@ static void gtk_tree_view_drag_gesture_end                  (GtkGestureDrag *ges
+                                                              gdouble         offset_y,
+                                                              GtkTreeView    *tree_view);
+ 
++/* rubber banding */
++static gboolean gtk_tree_view_test_rubber_banding           (GtkTreeView    *tree_view,
++                                                             gint            bin_x,
++                                                             gint            bin_y);
++
+ static guint tree_view_signals [LAST_SIGNAL] = { 0 };
+ 
+ 
+@@ -994,6 +1000,7 @@ gtk_tree_view_class_init (GtkTreeViewClass *class)
+   class->expand_collapse_cursor_row = gtk_tree_view_real_expand_collapse_cursor_row;
+   class->select_cursor_parent = gtk_tree_view_real_select_cursor_parent;
+   class->start_interactive_search = gtk_tree_view_start_interactive_search;
++  class->test_rubber_banding = gtk_tree_view_test_rubber_banding;
+ 
+   /* Properties */
+ 
+@@ -1546,6 +1553,29 @@ G_GNUC_END_IGNORE_DEPRECATIONS
+ 		  _gtk_marshal_BOOLEAN__VOID,
+ 		  G_TYPE_BOOLEAN, 0);
+ 
++  /**
++   * GtkTreeView::test-rubber-banding:
++   * @tree_view: the object on which the signal is emitted
++   * @bin_x: the X position of the mouse pointer
++   * @bin_y: the Y position of the mouse pointer
++   *
++   * Allows to determine whether a rubber banding operation shall be started or
++   * not from the given position
++   *
++   * Returns: %FALSE to allow rubber banding to start, %TRUE to reject
++   */
++  tree_view_signals[TEST_RUBBER_BANDING] =
++    g_signal_new (I_("test-rubber-banding"),
++		  G_TYPE_FROM_CLASS (o_class),
++		  G_SIGNAL_RUN_LAST,
++		  G_STRUCT_OFFSET (GtkTreeViewClass, test_rubber_banding),
++		  _gtk_boolean_handled_accumulator, NULL,
++		  _gtk_marshal_BOOLEAN__INT_INT,
++		  G_TYPE_BOOLEAN, 2,
++		  G_TYPE_INT,
++		  G_TYPE_INT);
++
++
+   /* Key bindings */
+   gtk_tree_view_add_move_binding (binding_set, GDK_KEY_Up, 0, TRUE,
+ 				  GTK_MOVEMENT_DISPLAY_LINES, -1);
+@@ -3311,6 +3341,20 @@ gtk_tree_view_multipress_gesture_pressed (GtkGestureMultiPress *gesture,
+     gtk_event_controller_reset (GTK_EVENT_CONTROLLER (gesture));
+ }
+ 
++static gboolean
++gtk_tree_view_test_rubber_banding (GtkTreeView *tree_view,
++                                   gint         bin_x,
++                                   gint         bin_y)
++{
++  GtkRBTree *tree;
++  GtkRBNode *node;
++
++  _gtk_rbtree_find_offset (tree_view->priv->tree, bin_y + tree_view->priv->dy,
++                           &tree, &node);
++
++  return GTK_RBNODE_FLAG_SET (node, GTK_RBNODE_IS_SELECTED);
++}
++
+ static void
+ gtk_tree_view_drag_gesture_begin (GtkGestureDrag *gesture,
+                                   gdouble         start_x,
+@@ -3318,8 +3362,6 @@ gtk_tree_view_drag_gesture_begin (GtkGestureDrag *gesture,
+                                   GtkTreeView    *tree_view)
+ {
+   gint bin_x, bin_y;
+-  GtkRBTree *tree;
+-  GtkRBNode *node;
+ 
+   if (tree_view->priv->tree == NULL)
+     {
+@@ -3331,22 +3373,27 @@ gtk_tree_view_drag_gesture_begin (GtkGestureDrag *gesture,
+                                                      &bin_x, &bin_y);
+   tree_view->priv->press_start_x = tree_view->priv->rubber_band_x = bin_x;
+   tree_view->priv->press_start_y = tree_view->priv->rubber_band_y = bin_y;
+-  _gtk_rbtree_find_offset (tree_view->priv->tree, bin_y + tree_view->priv->dy,
+-                           &tree, &node);
+ 
+   if (tree_view->priv->rubber_banding_enable
+-      && !GTK_RBNODE_FLAG_SET (node, GTK_RBNODE_IS_SELECTED)
+       && gtk_tree_selection_get_mode (tree_view->priv->selection) == GTK_SELECTION_MULTIPLE)
+     {
+-      gboolean modify, extend;
++      gboolean no_rubber;
+ 
+-      tree_view->priv->press_start_y += tree_view->priv->dy;
+-      tree_view->priv->rubber_band_y += tree_view->priv->dy;
+-      tree_view->priv->rubber_band_status = RUBBER_BAND_MAYBE_START;
++      g_signal_emit (tree_view, tree_view_signals[TEST_RUBBER_BANDING], 0,
++              bin_x, bin_y, &no_rubber);
+ 
+-      get_current_selection_modifiers (GTK_WIDGET (tree_view), &modify, &extend);
+-      tree_view->priv->rubber_band_modify = modify;
+-      tree_view->priv->rubber_band_extend = extend;
++      if (!no_rubber)
++        {
++          gboolean modify, extend;
++
++          tree_view->priv->press_start_y += tree_view->priv->dy;
++          tree_view->priv->rubber_band_y += tree_view->priv->dy;
++          tree_view->priv->rubber_band_status = RUBBER_BAND_MAYBE_START;
++
++          get_current_selection_modifiers (GTK_WIDGET (tree_view), &modify, &extend);
++          tree_view->priv->rubber_band_modify = modify;
++          tree_view->priv->rubber_band_extend = extend;
++        }
+     }
+ }
+ 
+diff --git a/gtk/gtktreeview.h b/gtk/gtktreeview.h
+index c3233b4..1b50bc3 100644
+--- a/gtk/gtktreeview.h
++++ b/gtk/gtktreeview.h
+@@ -93,6 +93,9 @@ struct _GtkTreeViewClass
+ 				           GtkTreePath       *path);
+   void     (* columns_changed)            (GtkTreeView       *tree_view);
+   void     (* cursor_changed)             (GtkTreeView       *tree_view);
++  gboolean (* test_rubber_banding)        (GtkTreeView       *tree_view,
++                                           gint               bin_x,
++                                           gint               bin_y);
+ 
+   /* Key Binding signals */
+   gboolean (* move_cursor)                (GtkTreeView       *tree_view,
+@@ -118,7 +121,6 @@ struct _GtkTreeViewClass
+   void (*_gtk_reserved5) (void);
+   void (*_gtk_reserved6) (void);
+   void (*_gtk_reserved7) (void);
+-  void (*_gtk_reserved8) (void);
+ };
+ 
+ /**
+-- 
+2.1.2
+

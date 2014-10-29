@@ -1,4 +1,4 @@
-From e4dee3184072d85d797fa8af62a25e5090259318 Mon Sep 17 00:00:00 2001
+From 5646136af610b9078581b7e5e7178b77ad996262 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 16 Jan 2014 17:44:31 +0100
 Subject: [PATCH 2/2] menu: Add helper gtk_menu_popup_and_destroy()
@@ -20,10 +20,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  3 files changed, 46 insertions(+)
 
 diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
-index 3231a19..4863292 100644
+index 11a9a00..b0cc3d6 100644
 --- a/docs/reference/gtk/gtk3-sections.txt
 +++ b/docs/reference/gtk/gtk3-sections.txt
-@@ -2182,6 +2182,7 @@ gtk_menu_reorder_child
+@@ -2199,6 +2199,7 @@ gtk_menu_reorder_child
  gtk_menu_attach
  gtk_menu_popup_for_device
  gtk_menu_popup
@@ -32,10 +32,10 @@ index 3231a19..4863292 100644
  gtk_menu_get_accel_group
  gtk_menu_set_accel_path
 diff --git a/gtk/gtkmenu.c b/gtk/gtkmenu.c
-index fbfa9ee..2b3b7c5 100644
+index 05a934a..66fbe49 100644
 --- a/gtk/gtkmenu.c
 +++ b/gtk/gtkmenu.c
-@@ -1753,6 +1753,10 @@ gtk_menu_popup_for_device (GtkMenu             *menu,
+@@ -1776,6 +1776,10 @@ gtk_menu_popup_for_device (GtkMenu             *menu,
   * a mouse click or key press) that caused the initiation of the popup.
   * Only if no such event is available, gtk_get_current_event_time() can
   * be used instead.
@@ -46,7 +46,7 @@ index fbfa9ee..2b3b7c5 100644
   */
  void
  gtk_menu_popup (GtkMenu             *menu,
-@@ -1774,6 +1778,41 @@ gtk_menu_popup (GtkMenu             *menu,
+@@ -1797,6 +1801,41 @@ gtk_menu_popup (GtkMenu             *menu,
  }
  
  /**
@@ -89,10 +89,10 @@ index fbfa9ee..2b3b7c5 100644
   * @menu: a #GtkMenu
   *
 diff --git a/gtk/gtkmenu.h b/gtk/gtkmenu.h
-index 25dd8bd..f93cb77 100644
+index d854ed2..3dbfdc4 100644
 --- a/gtk/gtkmenu.h
 +++ b/gtk/gtkmenu.h
-@@ -129,6 +129,12 @@ void	   gtk_menu_popup		  (GtkMenu	       *menu,
+@@ -144,6 +144,12 @@ void	   gtk_menu_popup		  (GtkMenu	       *menu,
  					   gpointer		data,
  					   guint		button,
  					   guint32		activate_time);
@@ -106,5 +106,5 @@ index 25dd8bd..f93cb77 100644
  void       gtk_menu_popup_for_device      (GtkMenu             *menu,
                                             GdkDevice           *device,
 -- 
-1.9.2
+2.1.2
 

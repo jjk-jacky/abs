@@ -1,4 +1,4 @@
-From 1bec789a3acd6e5cc966d57a66396405bf850945 Mon Sep 17 00:00:00 2001
+From 9bfabafcf1b46192ce71e057ed9291788e9b6e13 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 16:45:51 +0200
 Subject: [PATCH 1/3] Allow to disable full row highlight on selection
@@ -17,7 +17,7 @@ Subject: [PATCH 1/3] Allow to disable full row highlight on selection
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
  docs/reference/gtk/gtk3-sections.txt |   5 +
- gtk/gtkcellarea.c                    | 144 +++++++++++++++++++++--
+ gtk/gtkcellarea.c                    | 135 ++++++++++++++++++++--
  gtk/gtkcellarea.h                    |  19 ++++
  gtk/gtkcellview.c                    |   4 +-
  gtk/gtkiconview.c                    |   6 +-
@@ -25,13 +25,13 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  gtk/gtktreeview.c                    | 215 +++++++++++++++++++++++++++++++++--
  gtk/gtktreeview.h                    |  10 ++
  gtk/gtktreeviewcolumn.c              |  21 ++--
- 9 files changed, 395 insertions(+), 40 deletions(-)
+ 9 files changed, 390 insertions(+), 36 deletions(-)
 
 diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
-index 3231a19..662c5e9 100644
+index 11a9a00..d262746 100644
 --- a/docs/reference/gtk/gtk3-sections.txt
 +++ b/docs/reference/gtk/gtk3-sections.txt
-@@ -4637,6 +4637,10 @@ gtk_tree_view_get_columns
+@@ -4664,6 +4664,10 @@ gtk_tree_view_get_columns
  gtk_tree_view_move_column_after
  gtk_tree_view_set_expander_column
  gtk_tree_view_get_expander_column
@@ -42,7 +42,7 @@ index 3231a19..662c5e9 100644
  gtk_tree_view_set_column_drag_function
  gtk_tree_view_scroll_to_point
  gtk_tree_view_scroll_to_cell
-@@ -4794,6 +4798,7 @@ gtk_cell_area_foreach
+@@ -4821,6 +4825,7 @@ gtk_cell_area_foreach
  gtk_cell_area_foreach_alloc
  gtk_cell_area_event
  gtk_cell_area_render
@@ -51,7 +51,7 @@ index 3231a19..662c5e9 100644
  gtk_cell_area_get_cell_at_position
  gtk_cell_area_create_context
 diff --git a/gtk/gtkcellarea.c b/gtk/gtkcellarea.c
-index 09d7654..e521299 100644
+index 753f00e..5ed9dd6 100644
 --- a/gtk/gtkcellarea.c
 +++ b/gtk/gtkcellarea.c
 @@ -209,8 +209,8 @@
@@ -120,29 +120,17 @@ index 09d7654..e521299 100644
 -         gtk_cell_area_is_focus_sibling (data->area, focus_cell, renderer)))))
 +  if (do_focus || data->paint_select_highlight)
      {
-       gint focus_line_width;
        GdkRectangle cell_focus;
-@@ -1144,14 +1157,53 @@ render_cell (GtkCellRenderer        *renderer,
-       cell_focus.width += 2 * focus_line_width;
-       cell_focus.height += 2 * focus_line_width;
  
--      if (data->first_focus)
-+      if (do_focus)
-         {
--          data->first_focus = FALSE;
--          data->focus_rect  = cell_focus;
-+          if (data->first_focus)
-+            {
-+              data->first_focus = FALSE;
-+              data->focus_rect  = cell_focus;
-+            }
-+          else
-+              gdk_rectangle_union (&data->focus_rect, &cell_focus, &data->focus_rect);
+@@ -1140,7 +1153,45 @@ render_cell (GtkCellRenderer        *renderer,
          }
--      else
-+      if (data->paint_select_highlight)
+       else
          {
 -          gdk_rectangle_union (&data->focus_rect, &cell_focus, &data->focus_rect);
++           gdk_rectangle_union (&data->focus_rect, &cell_focus, &data->focus_rect);
++        }
++      if (data->paint_select_highlight)
++        {
 +          GtkStyleContext *style_context;
 +          GtkStateFlags renderer_state = 0;
 +          gfloat xalign;
@@ -181,7 +169,7 @@ index 09d7654..e521299 100644
          }
      }
  
-@@ -1171,6 +1223,21 @@ gtk_cell_area_real_render (GtkCellArea          *area,
+@@ -1160,6 +1211,21 @@ gtk_cell_area_real_render (GtkCellArea          *area,
                             GtkCellRendererState  flags,
                             gboolean              paint_focus)
  {
@@ -203,7 +191,7 @@ index 09d7654..e521299 100644
    CellRenderData render_data =
      {
        area,
-@@ -1179,6 +1246,7 @@ gtk_cell_area_real_render (GtkCellArea          *area,
+@@ -1168,6 +1234,7 @@ gtk_cell_area_real_render (GtkCellArea          *area,
        { 0, },
        flags,
        paint_focus,
@@ -211,7 +199,7 @@ index 09d7654..e521299 100644
        FALSE, TRUE
      };
  
-@@ -1831,6 +1899,10 @@ gtk_cell_area_event (GtkCellArea          *area,
+@@ -1820,6 +1887,10 @@ gtk_cell_area_event (GtkCellArea          *area,
   * the given coordinates.
   *
   * Since: 3.0
@@ -222,7 +210,7 @@ index 09d7654..e521299 100644
   */
  void
  gtk_cell_area_render (GtkCellArea          *area,
-@@ -1860,6 +1932,54 @@ gtk_cell_area_render (GtkCellArea          *area,
+@@ -1849,6 +1920,54 @@ gtk_cell_area_render (GtkCellArea          *area,
                 g_type_name (G_TYPE_FROM_INSTANCE (area)));
  }
  
@@ -278,7 +266,7 @@ index 09d7654..e521299 100644
  get_cell_allocation (GtkCellRenderer        *renderer,
                       const GdkRectangle     *cell_area,
 diff --git a/gtk/gtkcellarea.h b/gtk/gtkcellarea.h
-index eaa6373..9cbc78e 100644
+index 854e32f..926a9a4 100644
 --- a/gtk/gtkcellarea.h
 +++ b/gtk/gtkcellarea.h
 @@ -206,6 +206,15 @@ struct _GtkCellAreaClass
@@ -315,10 +303,10 @@ index eaa6373..9cbc78e 100644
  GDK_AVAILABLE_IN_ALL
  void                  gtk_cell_area_get_cell_allocation            (GtkCellArea          *area,
 diff --git a/gtk/gtkcellview.c b/gtk/gtkcellview.c
-index 5870f10..eaad54c 100644
+index fe75936..1efde37 100644
 --- a/gtk/gtkcellview.c
 +++ b/gtk/gtkcellview.c
-@@ -806,8 +806,8 @@ gtk_cell_view_draw (GtkWidget *widget,
+@@ -800,8 +800,8 @@ gtk_cell_view_draw (GtkWidget *widget,
      state = 0;
        
    /* Render the cells */
@@ -330,10 +318,10 @@ index 5870f10..eaad54c 100644
    return FALSE;
  }
 diff --git a/gtk/gtkiconview.c b/gtk/gtkiconview.c
-index 4cd36b9..d2b3591 100644
+index e1462ee..edc03d1 100644
 --- a/gtk/gtkiconview.c
 +++ b/gtk/gtkiconview.c
-@@ -3158,9 +3158,9 @@ gtk_icon_view_paint_item (GtkIconView     *icon_view,
+@@ -3153,9 +3153,9 @@ gtk_icon_view_paint_item (GtkIconView     *icon_view,
    cell_area.height = item->cell_area.height;
  
    context = g_ptr_array_index (priv->row_contexts, item->row);
@@ -347,10 +335,10 @@ index 4cd36b9..d2b3591 100644
    gtk_style_context_restore (style_context);
  }
 diff --git a/gtk/gtktreeprivate.h b/gtk/gtktreeprivate.h
-index d813352..3ca498f 100644
+index a2d6d6c..6c03361 100644
 --- a/gtk/gtktreeprivate.h
 +++ b/gtk/gtktreeprivate.h
-@@ -129,11 +129,12 @@ gboolean          _gtk_tree_view_column_is_blank_at_pos  (GtkTreeViewColumn  *co
+@@ -127,11 +127,12 @@ gboolean          _gtk_tree_view_column_is_blank_at_pos  (GtkTreeViewColumn  *co
                                                            gint                y);
  
  void		  _gtk_tree_view_column_cell_render      (GtkTreeViewColumn  *tree_column,
@@ -369,10 +357,10 @@ index d813352..3ca498f 100644
  							  gboolean            install_handler);
  gboolean          _gtk_tree_view_column_cell_get_dirty   (GtkTreeViewColumn  *tree_column);
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 9c06762..c380ef4 100644
+index 9308028..e9874b5 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -319,6 +319,11 @@ struct _GtkTreeViewPrivate
+@@ -318,6 +318,11 @@ struct _GtkTreeViewPrivate
  
    GtkTreeViewColumn *focus_column;
  
@@ -394,7 +382,7 @@ index 9c06762..c380ef4 100644
    /* for DnD */
    guint empty_view_drop : 1;
  
-@@ -531,6 +539,8 @@ enum {
+@@ -533,6 +541,8 @@ enum {
    PROP_HEADERS_VISIBLE,
    PROP_HEADERS_CLICKABLE,
    PROP_EXPANDER_COLUMN,
@@ -403,8 +391,8 @@ index 9c06762..c380ef4 100644
    PROP_REORDERABLE,
    PROP_RULES_HINT,
    PROP_ENABLE_SEARCH,
-@@ -1006,6 +1016,22 @@ gtk_tree_view_class_init (GtkTreeViewClass *class)
- 							GTK_PARAM_READWRITE));
+@@ -1035,6 +1045,22 @@ gtk_tree_view_class_init (GtkTreeViewClass *class)
+                                                         GTK_PARAM_READWRITE));
  
    g_object_class_install_property (o_class,
 +                                   PROP_SELECT_HIGHLIGHT_COLUMN,
@@ -425,8 +413,8 @@ index 9c06762..c380ef4 100644
 +  g_object_class_install_property (o_class,
                                     PROP_REORDERABLE,
                                     g_param_spec_boolean ("reorderable",
- 							 P_("Reorderable"),
-@@ -1270,6 +1296,13 @@ gtk_tree_view_class_init (GtkTreeViewClass *class)
+                                                          P_("Reorderable"),
+@@ -1301,6 +1327,13 @@ G_GNUC_END_IGNORE_DEPRECATIONS
  								"\1\1",
  								GTK_PARAM_READABLE));
  
@@ -440,7 +428,7 @@ index 9c06762..c380ef4 100644
    /* Signals */
    /**
     * GtkTreeView::row-activated:
-@@ -1844,6 +1877,12 @@ gtk_tree_view_set_property (GObject         *object,
+@@ -1909,6 +1942,12 @@ gtk_tree_view_set_property (GObject         *object,
      case PROP_EXPANDER_COLUMN:
        gtk_tree_view_set_expander_column (tree_view, g_value_get_object (value));
        break;
@@ -453,7 +441,7 @@ index 9c06762..c380ef4 100644
      case PROP_REORDERABLE:
        gtk_tree_view_set_reorderable (tree_view, g_value_get_boolean (value));
        break;
-@@ -1928,6 +1967,12 @@ gtk_tree_view_get_property (GObject    *object,
+@@ -2011,6 +2050,12 @@ gtk_tree_view_get_property (GObject    *object,
      case PROP_EXPANDER_COLUMN:
        g_value_set_object (value, tree_view->priv->expander_column);
        break;
@@ -466,7 +454,7 @@ index 9c06762..c380ef4 100644
      case PROP_REORDERABLE:
        g_value_set_boolean (value, tree_view->priv->reorderable);
        break;
-@@ -4970,7 +5015,9 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5038,7 +5083,9 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
        if (GTK_RBNODE_FLAG_SET (node, GTK_RBNODE_IS_PRELIT))
  	flags |= GTK_CELL_RENDERER_PRELIT;
  
@@ -477,7 +465,7 @@ index 9c06762..c380ef4 100644
          flags |= GTK_CELL_RENDERER_SELECTED;
  
        /* we *need* to set cell data on all cells before the call
-@@ -5000,6 +5047,7 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5068,6 +5115,7 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
  	  GtkStateFlags state = 0;
            gint width;
            gboolean draw_focus;
@@ -485,7 +473,7 @@ index 9c06762..c380ef4 100644
  
  	  if (!gtk_tree_view_column_get_visible (column))
              continue;
-@@ -5127,6 +5175,11 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5197,6 +5245,11 @@ G_GNUC_END_IGNORE_DEPRECATIONS
            else
              draw_focus = FALSE;
  
@@ -497,7 +485,7 @@ index 9c06762..c380ef4 100644
  	  /* Draw background */
            gtk_render_background (context, cr,
                                   background_area.x,
-@@ -5177,12 +5230,19 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5247,12 +5300,19 @@ G_GNUC_END_IGNORE_DEPRECATIONS
                  }
  	      else
                  {
@@ -518,7 +506,7 @@ index 9c06762..c380ef4 100644
                  }
  
  	      if (gtk_tree_view_draw_expanders (tree_view)
-@@ -5210,14 +5270,51 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5280,14 +5340,51 @@ G_GNUC_END_IGNORE_DEPRECATIONS
                    gtk_style_context_restore (context);
                  }
  	      else
@@ -576,7 +564,7 @@ index 9c06762..c380ef4 100644
  	  if (draw_hgrid_lines)
  	    {
  	      if (background_area.y > 0)
-@@ -12330,6 +12427,106 @@ gtk_tree_view_get_expander_column (GtkTreeView *tree_view)
+@@ -12429,6 +12526,106 @@ gtk_tree_view_get_expander_column (GtkTreeView *tree_view)
    return NULL;
  }
  
@@ -683,7 +671,7 @@ index 9c06762..c380ef4 100644
  
  /**
   * gtk_tree_view_set_column_drag_function:
-@@ -14652,7 +14849,7 @@ gtk_tree_view_create_row_drag_icon (GtkTreeView  *tree_view,
+@@ -14751,7 +14948,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
                                                   cr,
                                                   &background_area,
                                                   &cell_area,
@@ -693,7 +681,7 @@ index 9c06762..c380ef4 100644
  	}
        cell_offset += gtk_tree_view_column_get_width (column);
 diff --git a/gtk/gtktreeview.h b/gtk/gtktreeview.h
-index 121e10a..c5694b1 100644
+index c3233b4..8c5bb4d 100644
 --- a/gtk/gtktreeview.h
 +++ b/gtk/gtktreeview.h
 @@ -295,6 +295,16 @@ void                   gtk_tree_view_set_expander_column           (GtkTreeView
@@ -714,10 +702,10 @@ index 121e10a..c5694b1 100644
  void                   gtk_tree_view_set_column_drag_function      (GtkTreeView               *tree_view,
  								    GtkTreeViewColumnDropFunc  func,
 diff --git a/gtk/gtktreeviewcolumn.c b/gtk/gtktreeviewcolumn.c
-index 0e8a94c..d73477a 100644
+index 5dd5b22..de650fc 100644
 --- a/gtk/gtktreeviewcolumn.c
 +++ b/gtk/gtktreeviewcolumn.c
-@@ -2926,17 +2926,20 @@ gtk_tree_view_column_cell_get_size (GtkTreeViewColumn  *tree_column,
+@@ -2906,17 +2906,20 @@ gtk_tree_view_column_cell_get_size (GtkTreeViewColumn  *tree_column,
   * @background_area: entire cell area (including tree expanders and maybe padding on the sides)
   * @cell_area: area normally rendered by a cell renderer
   * @flags: flags that affect rendering
@@ -743,7 +731,7 @@ index 0e8a94c..d73477a 100644
  {
    GtkTreeViewColumnPrivate *priv;
  
-@@ -2949,10 +2952,10 @@ _gtk_tree_view_column_cell_render (GtkTreeViewColumn  *tree_column,
+@@ -2929,10 +2932,10 @@ _gtk_tree_view_column_cell_render (GtkTreeViewColumn  *tree_column,
  
    cairo_save (cr);
  
@@ -759,5 +747,5 @@ index 0e8a94c..d73477a 100644
    cairo_restore (cr);
  }
 -- 
-1.9.2
+2.1.2
 

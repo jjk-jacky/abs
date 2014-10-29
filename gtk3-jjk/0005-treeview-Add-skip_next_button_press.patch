@@ -1,0 +1,109 @@
+From 342a0cc3dcb203ebc2038b60fc5c068b872e1781 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Thu, 23 Oct 2014 14:46:45 +0200
+Subject: [PATCH 5/5] treeview: Add skip_next_button_press
+
+This should only be called from within a button-press-event handler,
+before chaining up.
+
+By doing so, the chain up will go up to GtkWidget and the gestures will
+be triggered, only the multipress one will skip its processing, e.g.
+there won't be a set_cursor on the row.
+However, the drag gesture (for drag/rubber) will be processed as usual.
+
+This is meant to by-pass GTK's handling of the button-press (via
+multipress gesture) while still allowing drag/rubber to take place.
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ docs/reference/gtk/gtk3-sections.txt |  1 +
+ gtk/gtktreeview.c                    | 33 +++++++++++++++++++++++++++++++++
+ gtk/gtktreeview.h                    |  2 ++
+ 3 files changed, 36 insertions(+)
+
+diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
+index 077ea4c..4d959ea 100644
+--- a/docs/reference/gtk/gtk3-sections.txt
++++ b/docs/reference/gtk/gtk3-sections.txt
+@@ -4725,6 +4725,7 @@ gtk_tree_view_get_row_separator_func
+ gtk_tree_view_set_row_separator_func
+ gtk_tree_view_get_rubber_banding
+ gtk_tree_view_set_rubber_banding
++gtk_tree_view_skip_next_button_press
+ gtk_tree_view_stop_rubber_banding
+ gtk_tree_view_is_rubber_banding_active
+ gtk_tree_view_is_rubber_banding_pending
+diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
+index 378e002..eba3dd4 100644
+--- a/gtk/gtktreeview.c
++++ b/gtk/gtktreeview.c
+@@ -476,6 +476,7 @@ struct _GtkTreeViewPrivate
+   guint in_scroll : 1;
+ 
+   guint rubber_banding_enable : 1;
++  guint skip_next_button_press : 1;
+ 
+   guint in_grab : 1;
+ 
+@@ -3118,6 +3119,14 @@ gtk_tree_view_multipress_gesture_pressed (GtkGestureMultiPress *gesture,
+   GList *list;
+   gboolean rtl;
+ 
++  if (tree_view->priv->skip_next_button_press)
++    {
++      tree_view->priv->skip_next_button_press = 0;
++      gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_DENIED);
++      gtk_event_controller_reset (GTK_EVENT_CONTROLLER (gesture));
++      return;
++    }
++
+   rtl = (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL);
+   gtk_tree_view_stop_editing (tree_view, FALSE);
+   gtk_widget_style_get (widget,
+@@ -4369,6 +4378,30 @@ gtk_tree_view_motion_drag_column (GtkTreeView *tree_view,
+ }
+ 
+ /**
++ * gtk_tree_view_skip_next_button_press:
++ * @tree_view: A #GtkTreeView
++ *
++ * Will have @tree_view "ignore" the next button-press event. More specifically,
++ * this should only be called from within a button-press-event handler, before
++ * chaining up.
++ *
++ * By doing so, the chain up will go up to #GtkWidget and the gestures will be
++ * triggered, only the multipress one will skip its processing, e.g. there won't
++ * be a set_cursor on the row.
++ * However, the drag gesture (for drag/rubber) will be processed as usual.
++ *
++ * This is meant to by-pass GTK's handling of the button-press (via multipress
++ * gesture) while still allowing drag/rubber to take place.
++ *
++ * Since: 3.16
++ */
++void
++gtk_tree_view_skip_next_button_press (GtkTreeView *tree_view)
++{
++    tree_view->priv->skip_next_button_press = 1;
++}
++
++/**
+  * gtk_tree_view_stop_rubber_banding:
+  * @tree_view: A #GtkTreeView
+  * @set_cursor: Whether to set cursor to the last row in band or not
+diff --git a/gtk/gtktreeview.h b/gtk/gtktreeview.h
+index d7fdcf8..5894b94 100644
+--- a/gtk/gtktreeview.h
++++ b/gtk/gtktreeview.h
+@@ -538,6 +538,8 @@ GDK_AVAILABLE_IN_ALL
+ void     gtk_tree_view_set_rubber_banding    (GtkTreeView          *tree_view,
+ 					      gboolean              enable);
+ GDK_AVAILABLE_IN_3_14
++void     gtk_tree_view_skip_next_button_press(GtkTreeView          *tree_view);
++GDK_AVAILABLE_IN_3_14
+ void     gtk_tree_view_stop_rubber_banding   (GtkTreeView          *tree_view,
+                                               gboolean              set_cursor);
+ GDK_AVAILABLE_IN_ALL
+-- 
+2.1.2
+

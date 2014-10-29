@@ -1,0 +1,227 @@
+From ee20525f91bd884d164f990bb0e00bf6c2e7ebfe Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Sun, 28 Sep 2014 15:27:15 +0200
+Subject: [PATCH 2/5] treeview: Add signal rubber-banding-active and
+ gtk_tree_view_stop_rubber_banding()
+
+Signal rubber-banding-active will be emitted when a rubber band operation
+gets active/starts, which will allow some possible tweaking needed e.g.
+if the test-rubber-banding was overriden to bypass the row selected check.
+
+Also adds gtk_tree_view_stop_rubber_banding() to stop an operation when
+needed, and gtk_tree_view_is_rubber_banding_pending() to be able to
+determine if a rubber banding operation is "pending," i.e. might need to
+be stopped to be in a "clean" state.
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ docs/reference/gtk/gtk3-sections.txt |  2 +
+ gtk/gtktreeview.c                    | 76 +++++++++++++++++++++++++++++++-----
+ gtk/gtktreeview.h                    |  8 +++-
+ 3 files changed, 75 insertions(+), 11 deletions(-)
+
+diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
+index 11a9a00..077ea4c 100644
+--- a/docs/reference/gtk/gtk3-sections.txt
++++ b/docs/reference/gtk/gtk3-sections.txt
+@@ -4725,7 +4725,9 @@ gtk_tree_view_get_row_separator_func
+ gtk_tree_view_set_row_separator_func
+ gtk_tree_view_get_rubber_banding
+ gtk_tree_view_set_rubber_banding
++gtk_tree_view_stop_rubber_banding
+ gtk_tree_view_is_rubber_banding_active
++gtk_tree_view_is_rubber_banding_pending
+ gtk_tree_view_get_enable_tree_lines
+ gtk_tree_view_set_enable_tree_lines
+ GtkTreeViewGridLines
+diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
+index 3fe82b2..77d3223 100644
+--- a/gtk/gtktreeview.c
++++ b/gtk/gtktreeview.c
+@@ -520,6 +520,7 @@ enum
+   SELECT_CURSOR_PARENT,
+   START_INTERACTIVE_SEARCH,
+   TEST_RUBBER_BANDING,
++  RUBBER_BANDING_ACTIVE,
+   LAST_SIGNAL
+ };
+ 
+@@ -765,7 +766,6 @@ static gboolean gtk_tree_view_has_can_focus_cell             (GtkTreeView
+ static void     column_sizing_notify                         (GObject            *object,
+                                                               GParamSpec         *pspec,
+                                                               gpointer            data);
+-static void     gtk_tree_view_stop_rubber_band               (GtkTreeView        *tree_view);
+ static void     update_prelight                              (GtkTreeView        *tree_view,
+                                                               int                 x,
+                                                               int                 y);
+@@ -1575,6 +1575,21 @@ G_GNUC_END_IGNORE_DEPRECATIONS
+ 		  G_TYPE_INT,
+ 		  G_TYPE_INT);
+ 
++  /**
++   * GtkTreeView::rubber-banding-active:
++   * @tree_view: the object on which the signal is emitted
++   *
++   * Emitted when a rubber banding operation becomes active/starts
++   */
++  tree_view_signals[RUBBER_BANDING_ACTIVE] =
++    g_signal_new (I_("rubber-banding-active"),
++		  G_TYPE_FROM_CLASS (o_class),
++		  G_SIGNAL_RUN_LAST,
++		  G_STRUCT_OFFSET (GtkTreeViewClass, rubber_banding_active),
++		  NULL, NULL,
++		  _gtk_marshal_VOID__VOID,
++		  G_TYPE_NONE, 0);
++
+ 
+   /* Key bindings */
+   gtk_tree_view_add_move_binding (binding_set, GDK_KEY_Up, 0, TRUE,
+@@ -3611,7 +3626,7 @@ gtk_tree_view_drag_gesture_end (GtkGestureDrag *gesture,
+                                 gdouble         offset_y,
+                                 GtkTreeView    *tree_view)
+ {
+-  gtk_tree_view_stop_rubber_band (tree_view);
++  gtk_tree_view_stop_rubber_banding (tree_view, TRUE);
+ }
+ 
+ static void
+@@ -4326,8 +4341,17 @@ gtk_tree_view_motion_drag_column (GtkTreeView *tree_view,
+   return TRUE;
+ }
+ 
+-static void
+-gtk_tree_view_stop_rubber_band (GtkTreeView *tree_view)
++/**
++ * gtk_tree_view_stop_rubber_banding:
++ * @tree_view: A #GtkTreeView
++ * @set_cursor: Whether to set cursor to the last row in band or not
++ *
++ * Stop currently actve rubber banding operation
++ *
++ * Since: 3.14
++ */
++void
++gtk_tree_view_stop_rubber_banding (GtkTreeView *tree_view, gboolean set_cursor)
+ {
+   remove_scroll_timeout (tree_view);
+ 
+@@ -4352,10 +4376,13 @@ gtk_tree_view_stop_rubber_band (GtkTreeView *tree_view)
+       gtk_tree_path_free (tmp_path);
+ 
+       /* ... and the cursor to the end path */
+-      tmp_path = _gtk_tree_path_new_from_rbtree (tree_view->priv->rubber_band_end_tree,
+-                                                 tree_view->priv->rubber_band_end_node);
+-      gtk_tree_view_real_set_cursor (GTK_TREE_VIEW (tree_view), tmp_path, 0);
+-      gtk_tree_path_free (tmp_path);
++      if (set_cursor)
++        {
++          tmp_path = _gtk_tree_path_new_from_rbtree (tree_view->priv->rubber_band_end_tree,
++                                                     tree_view->priv->rubber_band_end_node);
++          gtk_tree_view_real_set_cursor (GTK_TREE_VIEW (tree_view), tmp_path, 0);
++          gtk_tree_path_free (tmp_path);
++        }
+ 
+       _gtk_tree_selection_emit_changed (tree_view->priv->selection);
+     }
+@@ -4719,6 +4746,7 @@ gtk_tree_view_drag_gesture_update (GtkGestureDrag *gesture,
+ 
+       tree_view->priv->rubber_band_status = RUBBER_BAND_ACTIVE;
+       gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
++      g_signal_emit (tree_view, tree_view_signals[RUBBER_BANDING_ACTIVE], 0);
+     }
+   else if (tree_view->priv->rubber_band_status == RUBBER_BAND_ACTIVE)
+     {
+@@ -5936,7 +5964,7 @@ gtk_tree_view_key_press (GtkWidget   *widget,
+   if (tree_view->priv->rubber_band_status)
+     {
+       if (event->keyval == GDK_KEY_Escape)
+-	gtk_tree_view_stop_rubber_band (tree_view);
++	gtk_tree_view_stop_rubber_banding (tree_view, TRUE);
+ 
+       return TRUE;
+     }
+@@ -11451,7 +11479,7 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
+     }
+ 
+   if (tree_view->priv->rubber_band_status)
+-    gtk_tree_view_stop_rubber_band (tree_view);
++    gtk_tree_view_stop_rubber_banding (tree_view, TRUE);
+ 
+   if (tree_view->priv->model)
+     {
+@@ -15954,6 +15982,34 @@ gtk_tree_view_is_rubber_banding_active (GtkTreeView *tree_view)
+ }
+ 
+ /**
++ * gtk_tree_view_is_rubber_banding_pending:
++ * @tree_view: a #GtkTreeView
++ * @or_active: Whether to return %TRUE if rubber banding is active or not
++ *
++ * Returns whether a rubber banding operation is currently "pending," as in it
++ * will be active/start when/if the mouse moves and the button isn't released.
++ *
++ * If @or_active is %TRUE then it will also return %TRUE if an operation is
++ * already active.
++ *
++ * Returns: %TRUE if a rubber banding operation is currently "pending" in
++ * @tree_view, or active if @or_active was %TRUE.
++ *
++ * Since: 3.14
++ **/
++gboolean
++gtk_tree_view_is_rubber_banding_pending (GtkTreeView *tree_view, gboolean or_active)
++{
++  g_return_val_if_fail (GTK_IS_TREE_VIEW (tree_view), FALSE);
++
++  if (tree_view->priv->rubber_band_status == RUBBER_BAND_MAYBE_START
++      || (or_active && tree_view->priv->rubber_band_status == RUBBER_BAND_ACTIVE))
++    return TRUE;
++
++  return FALSE;
++}
++
++/**
+  * gtk_tree_view_get_row_separator_func: (skip)
+  * @tree_view: a #GtkTreeView
+  * 
+diff --git a/gtk/gtktreeview.h b/gtk/gtktreeview.h
+index 1b50bc3..bb4aad7 100644
+--- a/gtk/gtktreeview.h
++++ b/gtk/gtktreeview.h
+@@ -96,6 +96,7 @@ struct _GtkTreeViewClass
+   gboolean (* test_rubber_banding)        (GtkTreeView       *tree_view,
+                                            gint               bin_x,
+                                            gint               bin_y);
++  void     (* rubber_banding_active)      (GtkTreeView       *tree_view);
+ 
+   /* Key Binding signals */
+   gboolean (* move_cursor)                (GtkTreeView       *tree_view,
+@@ -120,7 +121,6 @@ struct _GtkTreeViewClass
+   void (*_gtk_reserved4) (void);
+   void (*_gtk_reserved5) (void);
+   void (*_gtk_reserved6) (void);
+-  void (*_gtk_reserved7) (void);
+ };
+ 
+ /**
+@@ -536,11 +536,17 @@ gboolean gtk_tree_view_get_hover_expand      (GtkTreeView          *tree_view);
+ GDK_AVAILABLE_IN_ALL
+ void     gtk_tree_view_set_rubber_banding    (GtkTreeView          *tree_view,
+ 					      gboolean              enable);
++GDK_AVAILABLE_IN_3_14
++void     gtk_tree_view_stop_rubber_banding   (GtkTreeView          *tree_view,
++                                              gboolean              set_cursor);
+ GDK_AVAILABLE_IN_ALL
+ gboolean gtk_tree_view_get_rubber_banding    (GtkTreeView          *tree_view);
+ 
+ GDK_AVAILABLE_IN_ALL
+ gboolean gtk_tree_view_is_rubber_banding_active (GtkTreeView       *tree_view);
++GDK_AVAILABLE_IN_3_14
++gboolean gtk_tree_view_is_rubber_banding_pending (GtkTreeView      *tree_view,
++                                                  gboolean          or_active);
+ 
+ GDK_AVAILABLE_IN_ALL
+ GtkTreeViewRowSeparatorFunc gtk_tree_view_get_row_separator_func (GtkTreeView               *tree_view);
+-- 
+2.1.2
+

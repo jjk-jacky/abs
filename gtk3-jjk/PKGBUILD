@@ -3,14 +3,15 @@
 
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
-pkgver=3.12.2
+pkgver=3.14.4
 pkgrel=1
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
 install=gtk3.install
 depends=(atk cairo gtk-update-icon-cache libxcursor libxinerama libxrandr
-         libxi libxcomposite libxdamage pango shared-mime-info at-spi2-atk)
+         libxi libxcomposite libxdamage pango shared-mime-info at-spi2-atk
+         adwaita-icon-theme)
 makedepends=(gobject-introspection mesa gtk-doc)
 provides=($_pkgname)
 conflicts=($_pkgname)
@@ -18,90 +19,90 @@ options=('!strip' 'debug')
 license=(LGPL)
 source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.tar.xz
         settings.ini
-        0001-revert-changes-to-GtkMessageDialog.patch
-        0001-cellrenderertext-Fix-possible-overwriting-of-markup.patch
-        0001-treestore-Fix-segfault-when-reordering-non-existing-.patch
-        0001-Some-fixes-in-gtk_tree_view_is_blank_at_pos.patch
-        0002-Add-gtk_tree_view_is_blank_at_pos_full.patch
         0001-Add-class-focused-row-to-the-focused-row-regardless-.patch
-        0001-treeview-Add-gtk_tree_view_set_focused_row.patch
-        0001-Allow-to-disable-full-row-highlight-on-selection.patch
-        0002-treeview-Add-gtk_tree_view_set_row_class_column.patch
-        0003-treeview-Add-GtkTreeBoxable.patch
+        0001-Add-GTK_IS_JJK.patch
         0001-Add-gtk_tree_selection_invert_range.patch
-        0001-Fix-scrolling-menu-not-working-properly-Bug-701077.patch
-        0001-treeview-is_rubber_banding_active-only-based-on-stat.patch
-        0002-treeview-Add-gtk_tree_view_start_rubber_banding.patch
-        0003-treeview-Change-how-toggle-in-handled-on-rubber-band.patch
-        0001-Revert-treeview-Store-editable-position-differently.patch
-        0002-treeview-Fix-visual-glitch-on-row-inserted.patch
-        0001-cellarea-Fix-possibly-getting-invalid-inner_area.patch
-        0001-treeview-Fix-possible-column-rendering-issue.patch
-        0001-treeview-Remove-some-dead-code.patch
-        0001-tooltip-Fix-possibly-briefly-appearing-at-0x0.patch
-        0001-treeview-Avoid-calling-do_validate_rows-if-not-neede.patch
-        fix-708148.patch
+        0001-Allow-to-disable-full-row-highlight-on-selection.patch
+        0001-cellrenderertext-Fix-possible-overwriting-of-markup.patch
         0001-menu-Fix-possible-leak-on-destroy.patch
+        0001-revert-changes-to-GtkMessageDialog.patch
+        0001-Revert-treeview-Store-editable-position-differently.patch
+        0001-Some-fixes-in-gtk_tree_view_is_blank_at_pos.patch
+        0001-tooltip-Fix-possibly-briefly-appearing-at-0x0.patch
+        0001-treeview-Add-gtk_tree_view_set_focused_row.patch
+        0001-treeview-Add-signal-test-rubber-banding.patch
+        0001-treeview-Avoid-calling-do_validate_rows-if-not-neede.patch
+        0001-treeview-Fix-possible-column-rendering-issue.patch
+        0001-treeview-Fix-prelight-re-gesture-refactoring.patch
+        0001-treeview-Remove-some-dead-code.patch
+        0002-Add-gtk_tree_view_is_blank_at_pos_full.patch
         0002-menu-Add-helper-gtk_menu_popup_and_destroy.patch
-        0001-Add-GTK_IS_JJK.patch)
-sha256sums=('61d74eea74231b1ea4b53084a9d6fc9917ab0e1d71b69d92cbf60a4b4fb385d0'
+        0002-treeview-Add-gtk_tree_view_set_row_class_column.patch
+        0002-treeview-Add-signal-rubber-banding-active-and-gtk_tr.patch
+        0002-treeview-Fix-visual-glitch-on-row-inserted.patch
+        0003-treeview-Add-GtkTreeBoxable.patch
+        0003-treeview-Change-how-toggle-in-handled-on-rubber-band.patch
+        0004-treeview-Add-button-in-test-rubber-banding.patch
+        0005-treeview-Add-skip_next_button_press.patch
+        fix-708148.patch)
+sha256sums=('a006c716d723dab0c623491566e3292af84c87d9198a30199051d23cfc7bef2f'
             'de961084b35507da5415640db733457161e1672ee54639828dfa399ea3d220b1'
-            '45b56de1f3acbbc4d353ff7b2dd72375e7ec863d4941431654bc795b6694bc28'
-            '8b1e5f565b08f7d97832080350668949b5c6d170bf3ec153e7938b35b0bc711b'
-            '8f1a9abe95990bc7060fa798832847f66460f18a38db4cb88b2652a6e6eb3849'
-            'b9d9466815d99c57c5d35da45ed97e5bedc09af0926f7f0251cf2feab4c82901'
-            '66b2be2a167f8adaedfe22cc9b7ae3ab9877fd7b70089a334bde17ac55dc90bb'
-            '52c542acb6b8f3359a971ed902d4514a732fd4e440216a3ddfe6513ae955faa9'
-            '72b86b4f3cd827acab139582278e193d120363f0c52e2dab1db22a288c7aaac7'
-            'a6f61733704f413f587502ab79118a6b1464ad9f39a00d3a37b5f13dcbdb2a92'
-            '2479d09ee7944a04b14273f91d31bef6148eeb106dd25681f4a1761089523389'
-            '03e95ae66143776ff6858018eec0c2b2319d3b991a5b9dcee8caee591e103498'
-            '6ca2f125b2b207be25d6a56ec445d3ddf7c3aeca731eea275b614b24d40edc71'
-            'f203388c8a44e358f94801f9b10d44eddbd525efc5cb9b2282720e139c6bb448'
-            '87a6a5006550622edfb110d6bf70d4e3d44f590e6ddad10f2fc16a9d445536de'
-            '6ab0acd3eeb4a35adf970f10a307a1997f91d298a49d909c8f460690909e70c3'
-            'bcb15b7644bb679b0dbe47ddb0355785cc7c0e4f0e0b7f9aebc6f1b776512051'
-            '2043d636d7429a64ed08a607ca34cefba72a493ef90da2c6e5cf6dbc6f011533'
-            '798e9d4adfdd30b70bffecfc79e6186dfe134eff6530df95f328081bde9de535'
-            '9bcf20434839fa7acb3753e79047b002fa65fa33017a39900ed89dda976837fc'
-            '94b435e881c25ce0caead0c89e37e8f9f308b34c5e0fcaafa965746f86c64924'
-            'ecbcec8754be0547c559d9c4018c1e37056c3164623626f6a072beed80702814'
-            '4c465f05bacac84a02cacf87a1a5523ca6ccf81e2cd7ca78af9470928dc4b067'
-            '86115e14b4ed0a35ab5c8c4245834e18deedd442a862eb73f5a89221f1c29e75'
-            '8a8b500f6850466b646f788ee45756bbba21dea6f75babddca1d4b32ea1b0b03'
-            'd250ca4ec51d639401a682d12dccd5a4244f257b3d8cac364346161c6f7551c4'
-            '4cd3b8e198ec4a45b03029e4c9ebf074d28084988ed14971bb54d11965ff79b2'
-            'af26101f6b30e261963cb54a0262e72f17c3bf15de40f3d3dcf54b95620d4a41')
+            '92ecbde2ad7f66dae320813c61ef1ce394023e57a473a4313ed905eec426af6c'
+            '8e13010bd17b6fa5edffe7ab6035258f603509a2517f405b6497b5e04293f3dd'
+            '8c04f9b56982df10cb88467a1cbefaafd74f3f792768618ad45f2e3cff6871e1'
+            '2c7a5954867806bebdf858cb359b26eebbf8309a8c2af2f8d3f6d347876b2d1e'
+            '4f95549c08e4d4e6368ac94b3be07c3757cf958916cf482a1fda127442803f87'
+            '22f12d30e0de2cfb0f626f098ac369d4e5867184c5df5373841feca739556cd0'
+            'bcb07fa2c037d8ba3af91b309809f828b5dd7b0e8d92e0018729c28d0742493b'
+            'b72cafd4fcd609cd93d29ca10261c1f627009ae636d65e24b8817cbc95595417'
+            'bc8dd40271308fa4b7f016cb726e1006fd1c68f0f6fd41cd443f7bd38e8e8279'
+            'b7896d38569a08f6d59292ce99cc8668c7dfcea4661d412dad559e7860e73458'
+            '845aac068d82084fe875ea6104a85449020926bb8ea80bbe781adc1e1aa9500b'
+            '85cd495035810e8f8fbc53c344bb02981215c574ed3eff812d4df0a87d0938a9'
+            '1a34a3833a819f9eebea8e9359ac1e25f604b33fb906d8168e543ae1d655354e'
+            'e023214a488e7dc32e67259e27a80eec0ebf066701379d323e04c9456f615b4e'
+            '132a63f64e88dc42be3f996b45d93db5be16316f39bb936336eb5ca9fdc0b5e6'
+            '771e9ce0e8958ba452aa7d1dadd62672cfa4ae59146728bc777ffe5b06446d0c'
+            'e1d960124b31221f1eb8c81d1dbb460d601c5f29ad8d207e8784e80e57ef07cf'
+            '9dbb1320f67f77189a6825f0065babc0f438b325a44066e0c38c79f483e77b44'
+            'b6e66e9d435d87e315858964b60b1a4c5ff16b3c316ca7c162ff3f8f1cac2e56'
+            '587d05a4c556283d9d8d771c5723deda72b71fdf370dba07e09537267d553563'
+            '49274db1486a9f958411f271d52c55193a040614c9004d25bc58237844bcc700'
+            '2d7785ea357adeb2bad4a7636478c4869f0b074d96fe08ed770e477d5fa06bcd'
+            '9927fee455529fcf7c7bf70f2df2d92f1b9d14c0b628c57402fb2357925e83d0'
+            'ccf1dedd24138a959bef9e1dc7ea7a1142741a38db0b55211aa2c39179b2ea25'
+            '570d3790cf3cfc1e69f3b703ab38dba3eb3263954785e25fb3152c34cb7f3f17'
+            '8a8b500f6850466b646f788ee45756bbba21dea6f75babddca1d4b32ea1b0b03')
 
 prepare() {
     cd "gtk+-$pkgver"
 
-    patch -p1 -i ../0001-revert-changes-to-GtkMessageDialog.patch
-    patch -p1 -i ../0001-Add-GTK_IS_JJK.patch
-    patch -p1 -i ../0001-Some-fixes-in-gtk_tree_view_is_blank_at_pos.patch
-    patch -p1 -i ../0002-Add-gtk_tree_view_is_blank_at_pos_full.patch
-    patch -p1 -i ../0001-treestore-Fix-segfault-when-reordering-non-existing-.patch
-    patch -p1 -i ../0001-cellrenderertext-Fix-possible-overwriting-of-markup.patch
     patch -p1 -i ../0001-Add-class-focused-row-to-the-focused-row-regardless-.patch
-    patch -p1 -i ../0001-treeview-Add-gtk_tree_view_set_focused_row.patch
-    patch -p1 -i ../0001-Allow-to-disable-full-row-highlight-on-selection.patch
-    patch -p1 -i ../0002-treeview-Add-gtk_tree_view_set_row_class_column.patch
-    patch -p1 -i ../0003-treeview-Add-GtkTreeBoxable.patch
+    patch -p1 -i ../0001-Add-GTK_IS_JJK.patch
     patch -p1 -i ../0001-Add-gtk_tree_selection_invert_range.patch
-    patch -p1 -i ../0001-Fix-scrolling-menu-not-working-properly-Bug-701077.patch
-    patch -p1 -i ../0001-treeview-is_rubber_banding_active-only-based-on-stat.patch
-    patch -p1 -i ../0002-treeview-Add-gtk_tree_view_start_rubber_banding.patch
-    patch -p1 -i ../0003-treeview-Change-how-toggle-in-handled-on-rubber-band.patch
-    patch -p1 -i ../0001-Revert-treeview-Store-editable-position-differently.patch
-    patch -p1 -i ../0002-treeview-Fix-visual-glitch-on-row-inserted.patch
-    patch -p1 -i ../fix-708148.patch
-    patch -p1 -i ../0001-cellarea-Fix-possibly-getting-invalid-inner_area.patch
-    patch -p1 -i ../0001-treeview-Fix-possible-column-rendering-issue.patch
-    patch -p1 -i ../0001-treeview-Remove-some-dead-code.patch
-    patch -p1 -i ../0001-tooltip-Fix-possibly-briefly-appearing-at-0x0.patch
-    patch -p1 -i ../0001-treeview-Avoid-calling-do_validate_rows-if-not-neede.patch
+    patch -p1 -i ../0001-Allow-to-disable-full-row-highlight-on-selection.patch
+    patch -p1 -i ../0001-cellrenderertext-Fix-possible-overwriting-of-markup.patch
     patch -p1 -i ../0001-menu-Fix-possible-leak-on-destroy.patch
+    patch -p1 -i ../0001-revert-changes-to-GtkMessageDialog.patch
+    patch -p1 -i ../0001-Revert-treeview-Store-editable-position-differently.patch
+    patch -p1 -i ../0001-Some-fixes-in-gtk_tree_view_is_blank_at_pos.patch
+    patch -p1 -i ../0001-tooltip-Fix-possibly-briefly-appearing-at-0x0.patch
+    patch -p1 -i ../0001-treeview-Add-gtk_tree_view_set_focused_row.patch
+    patch -p1 -i ../0001-treeview-Add-signal-test-rubber-banding.patch
+    patch -p1 -i ../0001-treeview-Avoid-calling-do_validate_rows-if-not-neede.patch
+    patch -p1 -i ../0001-treeview-Fix-possible-column-rendering-issue.patch
+    patch -p1 -i ../0001-treeview-Fix-prelight-re-gesture-refactoring.patch
+    patch -p1 -i ../0001-treeview-Remove-some-dead-code.patch
+    patch -p1 -i ../0002-Add-gtk_tree_view_is_blank_at_pos_full.patch
     patch -p1 -i ../0002-menu-Add-helper-gtk_menu_popup_and_destroy.patch
+    patch -p1 -i ../0002-treeview-Add-gtk_tree_view_set_row_class_column.patch
+    patch -p1 -i ../0002-treeview-Add-signal-rubber-banding-active-and-gtk_tr.patch
+    patch -p1 -i ../0002-treeview-Fix-visual-glitch-on-row-inserted.patch
+    patch -p1 -i ../0003-treeview-Add-GtkTreeBoxable.patch
+    patch -p1 -i ../0003-treeview-Change-how-toggle-in-handled-on-rubber-band.patch
+    patch -p1 -i ../0004-treeview-Add-button-in-test-rubber-banding.patch
+    patch -p1 -i ../0005-treeview-Add-skip_next_button_press.patch
+    patch -p1 -i ../fix-708148.patch
 
     NOCONFIGURE=1 ./autogen.sh
 }
@@ -127,6 +128,4 @@ build() {
 package() {
     cd "gtk+-$pkgver"
     make DESTDIR="$pkgdir" install
-
-    install -Dm644 "$srcdir/settings.ini" "$pkgdir/usr/share/gtk-3.0/settings.ini"
 }

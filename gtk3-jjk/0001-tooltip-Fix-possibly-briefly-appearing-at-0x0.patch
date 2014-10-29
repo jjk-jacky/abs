@@ -1,4 +1,4 @@
-From b4e8d48f7f6ac609ab81c83144d9a61fcfa5ea50 Mon Sep 17 00:00:00 2001
+From b31c421c93b6dfcb4578dea696aa84b5dc7504ff Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 15 Nov 2013 22:12:25 +0100
 Subject: [PATCH] tooltip: Fix possibly briefly appearing at 0x0
@@ -15,25 +15,19 @@ instead the natural size is requested & used.
 https://bugzilla.gnome.org/show_bug.cgi?id=698730
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
- gtk/gtktooltip.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ gtk/gtktooltip.c | 20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
 diff --git a/gtk/gtktooltip.c b/gtk/gtktooltip.c
-index 919d6ca..cda0bd3 100644
+index 103944f..4af84c4 100644
 --- a/gtk/gtktooltip.c
 +++ b/gtk/gtktooltip.c
-@@ -1089,7 +1089,6 @@ gtk_tooltip_position (GtkTooltip *tooltip,
- #define MAX_DISTANCE 32
+@@ -1024,10 +1024,26 @@ gtk_tooltip_position (GtkTooltip *tooltip,
  
-   gtk_widget_realize (GTK_WIDGET (tooltip->current_window));
--  gtk_widget_set_visible (GTK_WIDGET (tooltip->current_window), TRUE);
+   screen = gtk_widget_get_screen (new_tooltip_widget);
  
-   tooltip->tooltip_widget = new_tooltip_widget;
- 
-@@ -1097,6 +1096,19 @@ gtk_tooltip_position (GtkTooltip *tooltip,
- 
-   width = gtk_widget_get_allocated_width (GTK_WIDGET (tooltip->current_window));
-   height = gtk_widget_get_allocated_height (GTK_WIDGET (tooltip->current_window));
++  width = gtk_widget_get_allocated_width (GTK_WIDGET (tooltip->current_window));
++  height = gtk_widget_get_allocated_height (GTK_WIDGET (tooltip->current_window));
 +  /* if window was hidden, it's allocation was reset to { -1, -1, 1, 1 } and
 +   * using such invalid width/height might lead to wrong placement.
 +   * In such a case, get the natural size instead to perform calculation.
@@ -47,9 +41,16 @@ index 919d6ca..cda0bd3 100644
 +      width = requisition.width;
 +      height = requisition.height;
 +    }
++
+   _gtk_window_get_shadow_width (GTK_WINDOW (tooltip->current_window), &border);
+ 
+-  width = gtk_widget_get_allocated_width (GTK_WIDGET (tooltip->current_window)) - border.left - border.right;
+-  height = gtk_widget_get_allocated_height (GTK_WIDGET (tooltip->current_window)) - border.top - border.bottom;
++  width -= border.left + border.right;
++  height -= border.top + border.bottom;
  
    monitor_num = gdk_screen_get_monitor_at_point (screen,
                                                   tooltip->last_x,
 -- 
-1.9.2
+2.1.2
 

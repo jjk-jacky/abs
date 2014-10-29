@@ -1,4 +1,4 @@
-From 3af75008688a71ab4b9c5c83af39193e6112bd4e Mon Sep 17 00:00:00 2001
+From d40e9584382bd8ad772818ccccf869c99d5d2481 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 25 Oct 2013 23:46:15 +0200
 Subject: [PATCH] treeview: Fix possible column rendering issue
@@ -14,10 +14,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 27 insertions(+), 1 deletion(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 9c06762..89d5527 100644
+index 9308028..46befd5 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -8834,7 +8834,33 @@ gtk_tree_view_row_changed (GtkTreeModel *model,
+@@ -8967,7 +8967,33 @@ gtk_tree_view_row_changed (GtkTreeModel *model,
      {
        _gtk_rbtree_node_set_height (tree, node, tree_view->priv->fixed_height);
        if (gtk_widget_get_realized (GTK_WIDGET (tree_view)))
@@ -53,5 +53,5 @@ index 9c06762..89d5527 100644
    else
      {
 -- 
-1.9.2
+2.1.2
 

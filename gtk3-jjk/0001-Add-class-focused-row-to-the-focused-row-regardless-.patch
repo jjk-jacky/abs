@@ -1,4 +1,4 @@
-From aca033c0ec320136bddc9655bd3f7689065ef80c Mon Sep 17 00:00:00 2001
+From fafece86a1d26b3b8aa9d27cf048ac5aaa0d1835 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 15:08:09 +0200
 Subject: [PATCH] Add class "focused-row" to the focused row, regardless of
@@ -16,10 +16,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  3 files changed, 24 insertions(+), 1 deletion(-)
 
 diff --git a/gtk/gtkiconview.c b/gtk/gtkiconview.c
-index 4cd36b9..53168a9 100644
+index e1462ee..8286cb6 100644
 --- a/gtk/gtkiconview.c
 +++ b/gtk/gtkiconview.c
-@@ -3122,7 +3122,14 @@ gtk_icon_view_paint_item (GtkIconView     *icon_view,
+@@ -3120,7 +3120,14 @@ gtk_icon_view_paint_item (GtkIconView     *icon_view,
  
    if ((state & GTK_STATE_FLAG_FOCUSED) &&
        item == icon_view->priv->cursor_item)
@@ -36,10 +36,10 @@ index 4cd36b9..53168a9 100644
    if (item->selected)
      {
 diff --git a/gtk/gtkstylecontext.h b/gtk/gtkstylecontext.h
-index 1bab439..341304f 100644
+index 7f11b1a..adc7c1f 100644
 --- a/gtk/gtkstylecontext.h
 +++ b/gtk/gtkstylecontext.h
-@@ -556,6 +556,16 @@ struct _GtkStyleContextClass
+@@ -566,6 +566,16 @@ struct _GtkStyleContextClass
  #define GTK_STYLE_CLASS_HIGHLIGHT "highlight"
  
  /**
@@ -57,10 +57,10 @@ index 1bab439..341304f 100644
   *
   * A CSS class defining a frame delimiting content, such as
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 9c06762..4fbe531 100644
+index 9308028..e46f6ec 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -5115,6 +5115,12 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5183,6 +5183,12 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
            gtk_style_context_set_state (context, state);
  
            gtk_style_context_add_class (context, GTK_STYLE_CLASS_CELL);
@@ -70,9 +70,9 @@ index 9c06762..4fbe531 100644
 +             * will not, thus allowing to always highlight the focused row.
 +             * (Combine the two for awesomeness.) */
 +            gtk_style_context_add_class (context, GTK_STYLE_CLASS_FOCUSED_ROW);
+ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
            gtk_style_context_add_region (context, GTK_STYLE_REGION_ROW, row_flags);
            gtk_style_context_add_region (context, GTK_STYLE_REGION_COLUMN, column_flags);
- 
 -- 
-1.9.2
+2.1.2
 
