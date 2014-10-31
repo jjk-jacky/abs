@@ -3,7 +3,7 @@
 
 _pkgname=devtools
 pkgname=$_pkgname-jjk
-pkgver=20140510
+pkgver=20141024
 pkgrel=1
 pkgdesc='Tools for Arch Linux package maintainers'
 arch=('any')
@@ -13,21 +13,24 @@ depends=('namcap' 'openssh' 'subversion' 'rsync' 'arch-install-scripts')
 conflicts=("$_pkgname")
 provides=("$_pkgname")
 source=("ftp://ftp.archlinux.org/other/${_pkgname}/${_pkgname}-${pkgver}.tar.gz"
-        0001-makechrootpkg-Add-P-for-private-network.patch)
-md5sums=('702376263627e594b5a7ff1970353de4'
-         '3bc6faf64087d8d479098bdc8af7e687')
+        0001-makechrootpkg-Add-P-for-private-network.patch
+        0001-makechrootpkg-Copy-back-the-PKGBUILD-in-case-pkgver-.patch)
+md5sums=('16366a5a015315392b90e31ea96825cc'
+         '91387cd753b15febf213df5cfba92bca'
+         '8d20961cdebcfbcaea88e28108cbbfbb')
 
 prepare() {
-	cd ${srcdir}/${_pkgname}-${pkgver}
-	patch -p1 -i ../0001-makechrootpkg-Add-P-for-private-network.patch
+    cd ${srcdir}/${_pkgname}-${pkgver}
+    patch -p1 -i ../0001-makechrootpkg-Add-P-for-private-network.patch
+    patch -p1 -i ../0001-makechrootpkg-Copy-back-the-PKGBUILD-in-case-pkgver-.patch
 }
 
 build() {
-	cd ${srcdir}/${_pkgname}-${pkgver}
-	make PREFIX=/usr
+    cd ${srcdir}/${_pkgname}-${pkgver}
+    make PREFIX=/usr
 }
 
 package() {
-	cd ${srcdir}/${_pkgname}-${pkgver}
-	make PREFIX=/usr DESTDIR=${pkgdir} install
+    cd ${srcdir}/${_pkgname}-${pkgver}
+    make PREFIX=/usr DESTDIR=${pkgdir} install
 }

@@ -1,0 +1,27 @@
+From 0457b7c503b8610475e8a1caa65619df2e57c0f5 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Thu, 31 Jul 2014 19:48:59 +0200
+Subject: [PATCH] makechrootpkg: Copy back the PKGBUILD (in case pkgver()
+ updated it)
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ makechrootpkg.in | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/makechrootpkg.in b/makechrootpkg.in
+index 26deaca..a21971f 100644
+--- a/makechrootpkg.in
++++ b/makechrootpkg.in
+@@ -360,6 +360,8 @@ move_products() {
+ 		chown "$src_owner" "$s"
+ 		mv "$s" "$SRCPKGDEST"
+ 	done
++
++	cp "$copydir"/startdir/PKGBUILD "$PWD"
+ }
+ # }}}
+ 
+-- 
+2.1.2
+
