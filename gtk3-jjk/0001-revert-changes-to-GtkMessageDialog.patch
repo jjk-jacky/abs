@@ -1,4 +1,4 @@
-From 632bac9e5d12a96f2e8c305af491c0e6154ec128 Mon Sep 17 00:00:00 2001
+From dd65966d56e39a1397349a18ed7b2d70c88d40aa Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 28 Mar 2014 15:59:50 +0100
 Subject: [PATCH] revert changes to GtkMessageDialog
@@ -617,5 +617,5 @@ index b3472ef..7423a8f 100644
          </child>
        </object>
 -- 
-2.1.2
+2.1.3
 

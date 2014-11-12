@@ -1,4 +1,4 @@
-From 9bfabafcf1b46192ce71e057ed9291788e9b6e13 Mon Sep 17 00:00:00 2001
+From eb7a09bc6ccabcd735b3f2a2d34e806f21acfa88 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 16:45:51 +0200
 Subject: [PATCH 1/3] Allow to disable full row highlight on selection
@@ -357,7 +357,7 @@ index a2d6d6c..6c03361 100644
  							  gboolean            install_handler);
  gboolean          _gtk_tree_view_column_cell_get_dirty   (GtkTreeViewColumn  *tree_column);
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 9308028..e9874b5 100644
+index 8c55dac..f75fe5f 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -318,6 +318,11 @@ struct _GtkTreeViewPrivate
@@ -454,7 +454,7 @@ index 9308028..e9874b5 100644
      case PROP_REORDERABLE:
        g_value_set_boolean (value, tree_view->priv->reorderable);
        break;
-@@ -5038,7 +5083,9 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5037,7 +5082,9 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
        if (GTK_RBNODE_FLAG_SET (node, GTK_RBNODE_IS_PRELIT))
  	flags |= GTK_CELL_RENDERER_PRELIT;
  
@@ -465,7 +465,7 @@ index 9308028..e9874b5 100644
          flags |= GTK_CELL_RENDERER_SELECTED;
  
        /* we *need* to set cell data on all cells before the call
-@@ -5068,6 +5115,7 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5067,6 +5114,7 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
  	  GtkStateFlags state = 0;
            gint width;
            gboolean draw_focus;
@@ -473,7 +473,7 @@ index 9308028..e9874b5 100644
  
  	  if (!gtk_tree_view_column_get_visible (column))
              continue;
-@@ -5197,6 +5245,11 @@ G_GNUC_END_IGNORE_DEPRECATIONS
+@@ -5196,6 +5244,11 @@ G_GNUC_END_IGNORE_DEPRECATIONS
            else
              draw_focus = FALSE;
  
@@ -485,7 +485,7 @@ index 9308028..e9874b5 100644
  	  /* Draw background */
            gtk_render_background (context, cr,
                                   background_area.x,
-@@ -5247,12 +5300,19 @@ G_GNUC_END_IGNORE_DEPRECATIONS
+@@ -5246,12 +5299,19 @@ G_GNUC_END_IGNORE_DEPRECATIONS
                  }
  	      else
                  {
@@ -506,7 +506,7 @@ index 9308028..e9874b5 100644
                  }
  
  	      if (gtk_tree_view_draw_expanders (tree_view)
-@@ -5280,14 +5340,51 @@ G_GNUC_END_IGNORE_DEPRECATIONS
+@@ -5279,14 +5339,51 @@ G_GNUC_END_IGNORE_DEPRECATIONS
                    gtk_style_context_restore (context);
                  }
  	      else
@@ -564,7 +564,7 @@ index 9308028..e9874b5 100644
  	  if (draw_hgrid_lines)
  	    {
  	      if (background_area.y > 0)
-@@ -12429,6 +12526,106 @@ gtk_tree_view_get_expander_column (GtkTreeView *tree_view)
+@@ -12428,6 +12525,106 @@ gtk_tree_view_get_expander_column (GtkTreeView *tree_view)
    return NULL;
  }
  
@@ -671,7 +671,7 @@ index 9308028..e9874b5 100644
  
  /**
   * gtk_tree_view_set_column_drag_function:
-@@ -14751,7 +14948,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
+@@ -14750,7 +14947,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
                                                   cr,
                                                   &background_area,
                                                   &cell_area,
@@ -747,5 +747,5 @@ index 5dd5b22..de650fc 100644
    cairo_restore (cr);
  }
 -- 
-2.1.2
+2.1.3
 

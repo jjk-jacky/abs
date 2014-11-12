@@ -1,4 +1,4 @@
-From f2a19e579a5187a358331341079b127a8f310e65 Mon Sep 17 00:00:00 2001
+From a5b6b591023e43cee8f04c3764f0b0aa6677671a Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 15:09:32 +0200
 Subject: [PATCH 3/3] treeview: Add GtkTreeBoxable
@@ -1007,7 +1007,7 @@ index 584376d..5493c35 100644
  
  
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index db1adc1..1a606bc 100644
+index 4beccba..d1afb29 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -55,6 +55,7 @@
@@ -1028,7 +1028,7 @@ index db1adc1..1a606bc 100644
  
  /* Incremental reflow */
  static gboolean validate_row             (GtkTreeView *tree_view,
-@@ -4963,6 +4967,7 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -4962,6 +4966,7 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
    gboolean draw_vgrid_lines, draw_hgrid_lines;
    GtkStyleContext *context;
    gboolean parity;
@@ -1036,7 +1036,7 @@ index db1adc1..1a606bc 100644
  
    rtl = (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL);
    context = gtk_widget_get_style_context (widget);
-@@ -5029,7 +5034,10 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5028,7 +5033,10 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
    draw_hgrid_lines =
      tree_view->priv->grid_lines == GTK_TREE_VIEW_GRID_LINES_HORIZONTAL
      || tree_view->priv->grid_lines == GTK_TREE_VIEW_GRID_LINES_BOTH;
@@ -1048,7 +1048,7 @@ index db1adc1..1a606bc 100644
  
    if (draw_vgrid_lines || draw_hgrid_lines)
      gtk_widget_style_get (widget, "grid-line-width", &grid_line_width, NULL);
-@@ -5063,12 +5071,19 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5062,12 +5070,19 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
    
    parity = !(_gtk_rbtree_node_get_index (tree, node) % 2);
  
@@ -1068,7 +1068,7 @@ index db1adc1..1a606bc 100644
  
        parity = !parity;
        is_separator = row_is_separator (tree_view, &iter, NULL);
-@@ -5121,10 +5136,23 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5120,10 +5135,23 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
            gboolean draw_focus;
            gboolean draw_select_highlight;
            gchar *row_class;
@@ -1092,7 +1092,7 @@ index db1adc1..1a606bc 100644
            n_col++;
            width = gtk_tree_view_column_get_width (column);
  
-@@ -5267,12 +5295,112 @@ G_GNUC_END_IGNORE_DEPRECATIONS
+@@ -5266,12 +5294,112 @@ G_GNUC_END_IGNORE_DEPRECATIONS
            draw_select_highlight = tree_view->priv->select_highlight_column == column
                && GTK_RBNODE_FLAG_SET (node, GTK_RBNODE_IS_SELECTED);
  
@@ -1211,7 +1211,7 @@ index db1adc1..1a606bc 100644
  
            /* Draw frame */
            gtk_render_frame (context, cr,
-@@ -5289,7 +5417,6 @@ G_GNUC_END_IGNORE_DEPRECATIONS
+@@ -5288,7 +5416,6 @@ G_GNUC_END_IGNORE_DEPRECATIONS
  
                if (gtk_tree_view_draw_expanders (tree_view))
  	        {
@@ -1219,7 +1219,7 @@ index db1adc1..1a606bc 100644
  	          if (!rtl)
  		    cell_area.x += depth * expander_size;
  		  cell_area.width -= depth * expander_size;
-@@ -9512,6 +9639,13 @@ gtk_tree_view_rows_reordered (GtkTreeModel *model,
+@@ -9511,6 +9638,13 @@ gtk_tree_view_rows_reordered (GtkTreeModel *model,
    gtk_tree_view_dy_to_top_row (tree_view);
  }
  
@@ -1233,7 +1233,7 @@ index db1adc1..1a606bc 100644
  
  /* Internal tree functions
   */
-@@ -11542,6 +11676,10 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
+@@ -11541,6 +11675,10 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
        g_signal_handlers_disconnect_by_func (tree_view->priv->model,
  					    gtk_tree_view_rows_reordered,
  					    tree_view);
@@ -1244,7 +1244,7 @@ index db1adc1..1a606bc 100644
  
        for (; tmplist; tmplist = tmplist->next)
  	_gtk_tree_view_column_unset_model (tmplist->data,
-@@ -11614,6 +11752,11 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
+@@ -11613,6 +11751,11 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
  			"rows-reordered",
  			G_CALLBACK (gtk_tree_view_rows_reordered),
  			tree_view);
@@ -1257,5 +1257,5 @@ index db1adc1..1a606bc 100644
        flags = gtk_tree_model_get_flags (tree_view->priv->model);
        if ((flags & GTK_TREE_MODEL_LIST_ONLY) == GTK_TREE_MODEL_LIST_ONLY)
 -- 
-2.1.2
+2.1.3
 

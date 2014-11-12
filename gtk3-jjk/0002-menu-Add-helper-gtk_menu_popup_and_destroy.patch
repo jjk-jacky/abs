@@ -1,4 +1,4 @@
-From 5646136af610b9078581b7e5e7178b77ad996262 Mon Sep 17 00:00:00 2001
+From 7905fa7b1e92af2ceadc09dee9dedf35dc3e9a28 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 16 Jan 2014 17:44:31 +0100
 Subject: [PATCH 2/2] menu: Add helper gtk_menu_popup_and_destroy()
@@ -32,7 +32,7 @@ index 11a9a00..b0cc3d6 100644
  gtk_menu_get_accel_group
  gtk_menu_set_accel_path
 diff --git a/gtk/gtkmenu.c b/gtk/gtkmenu.c
-index 05a934a..66fbe49 100644
+index 90369a9..081ae55 100644
 --- a/gtk/gtkmenu.c
 +++ b/gtk/gtkmenu.c
 @@ -1776,6 +1776,10 @@ gtk_menu_popup_for_device (GtkMenu             *menu,
@@ -106,5 +106,5 @@ index d854ed2..3dbfdc4 100644
  void       gtk_menu_popup_for_device      (GtkMenu             *menu,
                                             GdkDevice           *device,
 -- 
-2.1.2
+2.1.3
 
