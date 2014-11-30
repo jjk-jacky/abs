@@ -1,0 +1,26 @@
+--- common/network/TcpSocket.cxx.org	2014-11-30 16:06:34.972667666 +0100
++++ common/network/TcpSocket.cxx	2014-11-30 16:08:08.242661935 +0100
+@@ -479,6 +479,7 @@
+ #endif
+ 
+   initSockets();
++again:
+   if ((fd = socket(af, SOCK_STREAM, 0)) < 0) {
+     // - Socket creation failed
+     if (use_ipv6) {
+@@ -518,7 +519,14 @@
+ 
+   // - Bind it to the desired port
+ #ifdef HAVE_GETADDRINFO
+-  use_ipv6 = bindIPv6 (fd, listenaddr, port, localhostOnly);
++  if (use_ipv6) {
++    use_ipv6 = bindIPv6 (fd, listenaddr, port, localhostOnly);
++    if (!use_ipv6) {
++      closesocket(fd);
++      af = AF_INET;
++      goto again;
++    }
++  }
+   if (!use_ipv6)
+ #endif
+     if (!bindIPv4 (fd, listenaddr, port, localhostOnly)) {
