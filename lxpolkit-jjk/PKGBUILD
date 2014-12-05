@@ -1,18 +1,18 @@
 _pkgname=lxpolkit
 pkgname=$_pkgname-jjk
-pkgver=0.5.1
+pkgver=0.5.2
 pkgrel=1
 pkgdesc='Simple polkit authentication agent for LXDE'
 arch=('i686' 'x86_64')
 url="http://lxde.org/"
 license=('GPL')
 depends=('gtk2' 'polkit')
-makedepends=('intltool' 'dbus-glib')
+makedepends=('intltool' 'dbus-glib' 'libunique')
 provides=($_pkgname)
 replaces=($_pkgname)
 conflicts=($_pkgname 'lxsession')
 source=(http://downloads.sourceforge.net/lxde/lxsession-$pkgver.tar.xz)
-md5sums=('39bf77d637fbe40318f91d0d888127fc')
+md5sums=('2957acccbf9ce37ef8205ec5424f8047')
 
 build() {
     cd "lxsession-$pkgver"
