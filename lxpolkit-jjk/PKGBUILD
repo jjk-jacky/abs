@@ -1,7 +1,7 @@
 _pkgname=lxpolkit
 pkgname=$_pkgname-jjk
 pkgver=0.5.2
-pkgrel=1
+pkgrel=2
 pkgdesc='Simple polkit authentication agent for LXDE'
 arch=('i686' 'x86_64')
 url="http://lxde.org/"
@@ -33,4 +33,5 @@ package() {
     install -m755 -d "$pkgdir/etc/xdg/autostart"
     mv "$srcdir/pkg/etc/xdg/autostart/lxpolkit.desktop" \
         "$pkgdir/etc/xdg/autostart/"
+    sed -i 's/^Hidden=.*$//' "$pkgdir/etc/xdg/autostart/lxpolkit.desktop"
 }
