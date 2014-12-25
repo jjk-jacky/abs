@@ -1,4 +1,4 @@
-From 226167d85902d2c9335ba9ab3cef2c2195a1b0f2 Mon Sep 17 00:00:00 2001
+From ae81a983d63780ba95dd6ebdee2207e9f5882dbe Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 26 Jun 2014 10:50:59 +0200
 Subject: [PATCH] makechrootpkg: Add -P for --private-network
@@ -63,5 +63,5 @@ index 26deaca..ffde030 100644
  	--bind-ro="$SRCDEST:/srcdest_host" \
  	"${bindmounts_ro[@]}" "${bindmounts_rw[@]}" \
 -- 
-2.1.2
+2.2.1
 

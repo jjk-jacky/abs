@@ -1,4 +1,4 @@
-From 0457b7c503b8610475e8a1caa65619df2e57c0f5 Mon Sep 17 00:00:00 2001
+From 324a6cee73b35d9b82e4645db858503ecc90687f Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 31 Jul 2014 19:48:59 +0200
 Subject: [PATCH] makechrootpkg: Copy back the PKGBUILD (in case pkgver()
@@ -23,5 +23,5 @@ index 26deaca..a21971f 100644
  # }}}
  
 -- 
-2.1.2
+2.2.1
 

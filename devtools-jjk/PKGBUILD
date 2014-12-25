@@ -3,7 +3,7 @@
 
 _pkgname=devtools
 pkgname=$_pkgname-jjk
-pkgver=20141024
+pkgver=20141224
 pkgrel=1
 pkgdesc='Tools for Arch Linux package maintainers'
 arch=('any')
@@ -15,9 +15,9 @@ provides=("$_pkgname")
 source=("ftp://ftp.archlinux.org/other/${_pkgname}/${_pkgname}-${pkgver}.tar.gz"
         0001-makechrootpkg-Add-P-for-private-network.patch
         0001-makechrootpkg-Copy-back-the-PKGBUILD-in-case-pkgver-.patch)
-md5sums=('16366a5a015315392b90e31ea96825cc'
-         '91387cd753b15febf213df5cfba92bca'
-         '8d20961cdebcfbcaea88e28108cbbfbb')
+md5sums=('9b6e6ce9da5b8e861c77f9badc652553'
+         '4ffdaee2bd45379e2e09113f02c5ea3b'
+         '8923755d8d5ca7c48ee04666b252eb07')
 
 prepare() {
     cd ${srcdir}/${_pkgname}-${pkgver}
