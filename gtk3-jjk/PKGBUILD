@@ -4,7 +4,7 @@
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
 pkgver=3.14.6
-pkgrel=1
+pkgrel=2
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
 url="http://www.gtk.org/"
@@ -33,6 +33,7 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0001-treeview-Add-signal-test-rubber-banding.patch
         0001-treeview-Avoid-calling-do_validate_rows-if-not-neede.patch
         0001-treeview-Better-resizing-with-expand-columns.patch
+        0001-treeview-Fix-only-headers-being-refreshed-on-validat.patch
         0001-treeview-Fix-possible-column-rendering-issue.patch
         0001-treeview-Fix-prelight-re-gesture-refactoring.patch
         0001-treeview-Remove-some-dead-code.patch
@@ -62,6 +63,7 @@ sha256sums=('cfc424e6e10ffeb34a33762aeb77905c3ed938f0b4006ddb7e880aad234ef119'
             'ba2e2a92f35e8ee8ae1aa63ae7a5e8f67aa0be718fb6a19417c9f5c5539a927b'
             '375c8acdaf1c46c92f30e197b6e8e03135c4f19d26b6730b546dd4f3225246b5'
             '62b1923b43c76cb61bf9837bc700f67ddb4257661d83232beea4764d72409166'
+            '0d3ad2d4e6f94bdd1bfab200c3e07d5e37612ba198f5d6b9fb68072ac4fbbd53'
             '533acec45dcd618ff1db25790697e98f57f0192a2b67c723818acf3fa9be5f2b'
             '9627df34dda7f10800acf72b9f6490826a8bf13a5606c0bb5ee699a96144dc94'
             '259aacd3cda41ff51ff40666123895d1a21a01660945000f201b2e8ee9f00eee'
@@ -93,6 +95,7 @@ prepare() {
     patch -p1 -i ../0001-treeview-Add-signal-test-rubber-banding.patch
     patch -p1 -i ../0001-treeview-Avoid-calling-do_validate_rows-if-not-neede.patch
     patch -p1 -i ../0001-treeview-Better-resizing-with-expand-columns.patch
+    patch -p1 -i ../0001-treeview-Fix-only-headers-being-refreshed-on-validat.patch
     patch -p1 -i ../0001-treeview-Fix-possible-column-rendering-issue.patch
     patch -p1 -i ../0001-treeview-Fix-prelight-re-gesture-refactoring.patch
     patch -p1 -i ../0001-treeview-Remove-some-dead-code.patch

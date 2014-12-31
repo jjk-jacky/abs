@@ -1,0 +1,39 @@
+From 1d3fb0a47f372dd276fd57e9e0e92a15770e0b51 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Wed, 31 Dec 2014 20:43:45 +0100
+Subject: [PATCH] treeview: Fix only headers being refreshed on validate
+
+Since the introduction of the widget clip API, said clip is used instead
+of allocation on queue_redraw()
+
+But because this wasn't set during treeview's size_allocate() any
+queue_redraw() called during the gtk_tree_view_size_allocate_columns()
+would basically be no-op (as clip was reset to 0), and eventually lead
+to only the headers be refreshed, not the content/view.
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ gtk/gtktreeview.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
+index 8c55dac..a14dbbe 100644
+--- a/gtk/gtktreeview.c
++++ b/gtk/gtktreeview.c
+@@ -2844,6 +2844,13 @@ gtk_tree_view_size_allocate (GtkWidget     *widget,
+     width_changed = TRUE;
+ 
+   gtk_widget_set_allocation (widget, allocation);
++  /* we need to set the clip now, because otherwise any queue_redraw() will work
++   * on an "empty" clip (0x0) and therefore be no-op.
++   * But, during gtk_tree_view_size_allocate_columns() the columns might be
++   * resized (even if the treeview width doesn't change) and therefore queue
++   * some redraw. Without the clip set, only the headers are drawn/refreshed.
++   */
++  gtk_widget_set_clip (widget, allocation);
+ 
+   /* We size-allocate the columns first because the width of the
+    * tree view (used in updating the adjustments below) might change.
+-- 
+2.2.1
+
