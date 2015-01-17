@@ -4,7 +4,7 @@
 
 _pkgname=gdb
 pkgname=$_pkgname-jjk
-pkgver=7.8.1
+pkgver=7.8.2
 pkgrel=1
 pkgdesc="The GNU Debugger"
 arch=('i686' 'x86_64')
@@ -18,18 +18,19 @@ backup=('etc/gdb/gdbinit')
 install=gdb.install
 source=(http://ftp.gnu.org/gnu/gdb/${_pkgname}-${pkgver}.tar.xz{,.sig})
 validpgpkeys=('F40ADB902B24264AA42E50BF92EDB04BFF325CF3')
-md5sums=('8072be87a94be0936bc3b4b6941b0862'
+md5sums=('a80cf252ed2e775d4e4533341bbf2459'
          'SKIP')
+validpgpkeys=('F40ADB902B24264AA42E50BF92EDB04BFF325CF3') # Joel Brobecker
 
 prepare() {
-  cd ${srcdir}/${_pkgname}-${pkgver}
+  cd "${_pkgname}-${pkgver}"
 
   # hack! - libiberty configure tests for header files using "$CPP $CPPFLAGS"
   sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/" libiberty/configure
 }
 
 build() {
-  cd ${srcdir}/${_pkgname}-${pkgver}
+  cd "${_pkgname}-${pkgver}"
 
   ./configure --prefix=/usr --disable-nls \
     --with-system-readline \
@@ -39,15 +40,15 @@ build() {
 }
 
 package() {
-  cd ${srcdir}/${_pkgname}-${pkgver}
-  make DESTDIR=${pkgdir} install
+  cd "${_pkgname}-${pkgver}"
+  make DESTDIR="$pkgdir" install
 
   # install "custom" system gdbinit
-  install -dm755 $pkgdir/etc/gdb
-  touch $pkgdir/etc/gdb/gdbinit
+  install -dm755 "$pkgdir"/etc/gdb
+  touch "$pkgdir"/etc/gdb/gdbinit
 
   # resolve conflicts with binutils
-  rm ${pkgdir}/usr/include/{ansidecl,bfd,bfdlink,dis-asm,symcat}.h
-  rm ${pkgdir}/usr/share/info/{bfd,configure,standards}.info
-  rm ${pkgdir}/usr/lib/lib{bfd,opcodes}.a
+  rm "$pkgdir"/usr/include/{ansidecl,bfd,bfdlink,dis-asm,symcat}.h
+  rm "$pkgdir"/usr/share/info/{bfd,configure,standards}.info
+  rm "$pkgdir"/usr/lib/lib{bfd,opcodes}.a
 }
