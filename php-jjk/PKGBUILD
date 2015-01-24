@@ -6,7 +6,7 @@ pkgname=('php-jjk'
          'php-fpm-jjk'
          'php-pear-jjk'
          'php-mcrypt-jjk')
-pkgver=5.6.4
+pkgver=5.6.5
 pkgrel=1
 arch=('i686' 'x86_64')
 license=('PHP')
@@ -19,10 +19,10 @@ source=("http://www.php.net/distributions/${pkgbase}-${pkgver}.tar.bz2"{,.asc}
         'logrotate.d.php-fpm' 'php-fpm.service' 'php-fpm.tmpfiles')
 validpgpkeys=('6E4F6AB321FDC07F2C332E3AC2BF0BC433CFC8B3'
               '0BD78B5F97500D450838F95DFE857D9A90D90EC1')
-md5sums=('d31629e9c2fb5f438ab2dc0aa597cd82'
+md5sums=('64d0debf42bfff537d891e1fe1a4b65c'
          'SKIP'
-         'c0da10d91c06b07489f495e78116ab1b'
-         '6bc1fc4ceee039d21ff3b56aa845cc5a'
+         '942f9d8af9bcab2487ca710ef42ef1de'
+         '16b5e2e4da59f15bea4c2db78a7bc8dc'
          'fef3e47e73a165f0c2cd26d2940cce3d'
          'cc2940f5312ba42e7aa1ddfab74b84c4'
          'c60343df74f8e1afb13b084d5c0e47ed')
@@ -167,6 +167,8 @@ package_php-jjk() {
 	rm -f ${pkgdir}/usr/lib/php/modules/{enchant,gd,intl,ldap,mcrypt,mssql,odbc,pdo_odbc,pgsql,pdo_pgsql,pspell,snmp,sqlite3,pdo_sqlite,tidy,xsl}.so
 	# remove empty directory
 	rmdir ${pkgdir}/usr/include/php/include
+    # fix broken link
+    ln -sf phar.phar ${pkgdir}/usr/bin/phar
 }
 
 package_php-fpm-jjk() {
