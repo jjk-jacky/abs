@@ -6,7 +6,7 @@
 _pkgname=postfix
 pkgname=$_pkgname-jjk
 pkgver=2.11.3
-pkgrel=1
+pkgrel=2
 pkgdesc='Fast, easy to administer, secure mail server'
 url='http://www.postfix.org/'
 license=('custom')
