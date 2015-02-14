@@ -8,17 +8,17 @@ _pkgbase=pulseaudio
 pkgbase=$_pkgbase-jjk
 pkgname=(pulseaudio-jjk libpulse-jjk)
 pkgdesc="A featureful, general-purpose sound server"
-pkgver=5.0
+pkgver=6.0
 pkgrel=1
 arch=(i686 x86_64)
 url="http://www.freedesktop.org/wiki/Software/PulseAudio"
 license=(GPL LGPL)
-makedepends=(libasyncns libcap attr libxtst libsm libsamplerate libtool rtkit
+makedepends=(libasyncns libcap attr libxtst libsm libsndfile libtool rtkit
              gdbm systemd dbus avahi gconf intltool
              openssl orc json-c gtk3)
 options=(!emptydirs)
 source=(http://freedesktop.org/software/$_pkgbase/releases/$_pkgbase-$pkgver.tar.xz)
-sha256sums=('99c13a8b1249ddbd724f195579df79484e9af6418cecf6a15f003a7f36caf939')
+sha256sums=('b50640e0b80b1607600accfad2e45aabb79d379bf6354c9671efa2065477f6f6')
 
 build() {
   cd $_pkgbase-$pkgver
@@ -50,8 +50,7 @@ build() {
 }
 
 package_pulseaudio-jjk() {
-  depends=("libpulse=$pkgver-$pkgrel" rtkit libltdl gdbm systemd orc
-           libsamplerate)
+  depends=("libpulse=$pkgver-$pkgrel" rtkit libltdl gdbm systemd orc)
   optdepends=('avahi: zeroconf support'
               'gconf: configuration through gconf (paprefs)'
               'openssl: RAOP support')
@@ -75,9 +74,6 @@ package_pulseaudio-jjk() {
       -i "$pkgdir/usr/bin/start-pulseaudio-x11"
 
   rm "$pkgdir/etc/dbus-1/system.d/pulseaudio-system.conf"
-
-  install -Dm644 shell-completion/pulseaudio-zsh-completion.zsh \
-      "$pkgdir/usr/share/zsh/site-functions/_pulseaudio"
 
 ### Split libpulse
 
