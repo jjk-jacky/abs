@@ -1,6 +1,6 @@
-From 146f1761da7b4e3d52130e25fa88e77cf1d39e1b Mon Sep 17 00:00:00 2001
+From 7ba4fee006335e6f38c098cf20059bbcd3d64b43 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
-Date: Mon, 30 Sep 2013 15:07:36 +0200
+Date: Sun, 1 Mar 2015 12:35:14 +0100
 Subject: [PATCH] Add dpms module to switch it off while playing
 
 Assumes it was on before/should be on again after. Point is to switch it off
@@ -8,33 +8,33 @@ when starting to play, and (back) on when pausing/stopping.
 
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
- modules/misc/Modules.am |   4 +-
+ modules/misc/Modules.am |   5 +-
  modules/misc/dpms.c     | 228 ++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 231 insertions(+), 1 deletion(-)
+ 2 files changed, 232 insertions(+), 1 deletion(-)
  create mode 100644 modules/misc/dpms.c
 
 diff --git a/modules/misc/Modules.am b/modules/misc/Modules.am
-index d2d6a22..2a123da 100644
+index 62a54d1..d08d4f4 100644
 --- a/modules/misc/Modules.am
 +++ b/modules/misc/Modules.am
-@@ -5,6 +5,7 @@ SOURCES_fingerprinter = fingerprinter.c \
- 	webservices/acoustid.h \
- 	webservices/json.c \
- 	webservices/json.h
-+SOURCES_dpms = dpms.c
+@@ -1,5 +1,7 @@
+ SOURCES_vod_rtsp = rtsp.c
  
++SOURCES_dpms = dpms.c
++
  SOURCES_xml = xml/libxml.c
  
-@@ -55,7 +56,8 @@ libstats_plugin_la_LIBADD = $(AM_LIBADD)
- libvlc_LTLIBRARIES += \
- 	libaudioscrobbler_plugin.la \
+ libaudioscrobbler_plugin_la_SOURCES = audioscrobbler.c
+@@ -69,7 +71,8 @@ endif
+ 
+ misc_LTLIBRARIES += \
  	liblogger_plugin.la \
 -	libstats_plugin.la
 +	libstats_plugin.la \
 +	libdpms_plugin.la
  
  if ENABLE_SOUT
- libvlc_LTLIBRARIES += \
+ misc_LTLIBRARIES += \
 diff --git a/modules/misc/dpms.c b/modules/misc/dpms.c
 new file mode 100644
 index 0000000..12b3b1d
@@ -270,5 +270,5 @@ index 0000000..12b3b1d
 +    assert (0);
 +}
 -- 
-1.8.4
+2.3.1
 
