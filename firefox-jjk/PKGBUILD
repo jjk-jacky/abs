@@ -4,7 +4,7 @@
 
 _pkgname=firefox
 pkgname=$_pkgname-jjk
-pkgver=35.0.1
+pkgver=36.0
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=('i686' 'x86_64')
@@ -23,15 +23,17 @@ install=firefox.install
 options=('!emptydirs' '!makeflags')
 source=(https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/source/firefox-$pkgver.source.tar.bz2{,.asc}
         mozconfig firefox.desktop firefox-install-dir.patch vendor.js
+        fix-1128161.patch
         firefox-20.0.1-fixed-loading-icon.png rhbz-966424.patch)
-sha256sums=('c92b34e08e39e2d482a61194e79255478331a54bf86bf144dc38f3d4bfbc507a'
-            'SKIP'
-            'b69bfd7a156f4bef2b678860d162c83f10801b27cc97b53e459d081cbd0a4fec'
-            'd2a7610393ba259c35e3227b92e02ec91095a95189f56ac93ccdf6732772719c'
-            'd86e41d87363656ee62e12543e2f5181aadcff448e406ef3218e91865ae775cd'
-            '4b50e9aec03432e21b44d18c4c97b2630bace606b033f7d556c9d3e3eb0f4fa4'
-            '68e3a5b47c6d175cc95b98b069a15205f027cab83af9e075818d38610feb6213'
-            '4f0046b39a8d98f6e4fc3360ec490cb2416e38c7b3e92699f7e511c206c2c961')
+sha1sums=('bcbfe0e4aa3236582c3b5c49619641224cf942df'
+          'SKIP'
+          '6f3b62f09671237f4dad52b6fd8ec7460d3ac159'
+          '27a7cd91a9faac2d2b07d729cd0fb3a2d5243629'
+          'ab9fb962aa4687812a16f17e75ffdb2f69611516'
+          '7739fbea2838cb9148a1d77090ace46eeb397f79'
+          '8e9cfaf2f5bfe31f18e40c20db741d09ee2c72f9'
+          '0c3900ffe21bfc3d96b80ade334613bc7e76fe27'
+          '76c7af0a23c980410a4f650142de273d0f122351')
 validpgpkeys=('2B90598A745E992F315E22C58AB132963A06537A')
 
 # Google API keys (see http://www.chromium.org/developers/how-tos/api-keys)
@@ -48,6 +50,9 @@ prepare() {
 
   # https://bugs.archlinux.org/task/41689
   patch -Np2 -i ../rhbz-966424.patch
+
+  # https://bugzilla.mozilla.org/show_bug.cgi?id=1128161
+  patch -Np1 -i ../fix-1128161.patch
 
   echo -n "$_google_api_key" >google-api-key
   echo "ac_add_options --with-google-api-keyfile=\"$PWD/google-api-key\"" >>.mozconfig
