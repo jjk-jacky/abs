@@ -1,4 +1,4 @@
-From ae81a983d63780ba95dd6ebdee2207e9f5882dbe Mon Sep 17 00:00:00 2001
+From f7333c7282d84a6520d54a099ba8f52f08bf703d Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 26 Jun 2014 10:50:59 +0200
 Subject: [PATCH] makechrootpkg: Add -P for --private-network
@@ -9,7 +9,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 7 insertions(+), 3 deletions(-)
 
 diff --git a/makechrootpkg.in b/makechrootpkg.in
-index 26deaca..ffde030 100644
+index cc02547..88485dc 100644
 --- a/makechrootpkg.in
 +++ b/makechrootpkg.in
 @@ -12,6 +12,7 @@ m4_include(lib/common.sh)
@@ -20,7 +20,7 @@ index 26deaca..ffde030 100644
  makepkg_args=(-s --noconfirm -L --holdver)
  repack=false
  update_first=false
-@@ -63,12 +64,14 @@ usage() {
+@@ -63,6 +64,8 @@ usage() {
  	echo "           Default: $copy"
  	echo '-n         Run namcap on the package'
  	echo '-T         Build in a temporary directory'
@@ -29,22 +29,7 @@ index 26deaca..ffde030 100644
  	exit 1
  }
  
- orig_argv=("$@")
- 
--while getopts 'hcur:I:l:nTD:d:' arg; do
-+while getopts 'hcur:I:l:nTPD:d:' arg; do
- 	case "$arg" in
- 		c) clean_first=true ;;
- 		D) bindmounts_ro+=(--bind-ro="$OPTARG") ;;
-@@ -79,6 +82,7 @@ while getopts 'hcur:I:l:nTD:d:' arg; do
- 		l) copy="$OPTARG" ;;
- 		n) run_namcap=true; makepkg_args+=(-i) ;;
- 		T) temp_chroot=true; copy+="-$$" ;;
-+		P) nspawn_args="$nspawn_args --private-network" ;;
- 		h|*) usage ;;
- 	esac
- done
-@@ -187,7 +191,7 @@ install_packages() {
+@@ -133,7 +136,7 @@ install_packages() {
  		pkgname="${install_pkg##*/}"
  		cp "$install_pkg" "$copydir/$pkgname"
  
@@ -53,7 +38,24 @@ index 26deaca..ffde030 100644
  			"${bindmounts_ro[@]}" "${bindmounts_rw[@]}" \
  			pacman -U /$pkgname --noconfirm
  		(( ret += !! $? ))
-@@ -386,7 +390,7 @@ prepare_chroot
+@@ -312,7 +315,7 @@ move_products() {
+ 
+ orig_argv=("$@")
+ 
+-while getopts 'hcur:I:l:nTD:d:' arg; do
++while getopts 'hcur:I:l:nTPD:d:' arg; do
+ 	case "$arg" in
+ 		c) clean_first=true ;;
+ 		D) bindmounts_ro+=(--bind-ro="$OPTARG") ;;
+@@ -323,6 +326,7 @@ while getopts 'hcur:I:l:nTD:d:' arg; do
+ 		l) copy="$OPTARG" ;;
+ 		n) run_namcap=true; makepkg_args+=(-i) ;;
+ 		T) temp_chroot=true; copy+="-$$" ;;
++		P) nspawn_args="$nspawn_args --private-network" ;;
+ 		h|*) usage ;;
+ 	esac
+ done
+@@ -387,7 +391,7 @@ prepare_chroot
  
  download_sources
  
@@ -63,5 +65,5 @@ index 26deaca..ffde030 100644
  	--bind-ro="$SRCDEST:/srcdest_host" \
  	"${bindmounts_ro[@]}" "${bindmounts_rw[@]}" \
 -- 
-2.2.1
+2.3.1
 

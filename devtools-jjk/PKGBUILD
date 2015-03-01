@@ -3,7 +3,7 @@
 
 _pkgname=devtools
 pkgname=$_pkgname-jjk
-pkgver=20141224
+pkgver=20150228
 pkgrel=1
 pkgdesc='Tools for Arch Linux package maintainers'
 arch=('any')
@@ -12,12 +12,14 @@ url='http://projects.archlinux.org/devtools.git/'
 depends=('namcap' 'openssh' 'subversion' 'rsync' 'arch-install-scripts')
 conflicts=("$_pkgname")
 provides=("$_pkgname")
-source=("ftp://ftp.archlinux.org/other/${_pkgname}/${_pkgname}-${pkgver}.tar.gz"
+source=("https://sources.archlinux.org/other/${_pkgname}/${_pkgname}-${pkgver}.tar.gz"{,.sig}
         0001-makechrootpkg-Add-P-for-private-network.patch
         0001-makechrootpkg-Copy-back-the-PKGBUILD-in-case-pkgver-.patch)
-md5sums=('9b6e6ce9da5b8e861c77f9badc652553'
-         '4ffdaee2bd45379e2e09113f02c5ea3b'
-         '8923755d8d5ca7c48ee04666b252eb07')
+validpgpkeys=('487EACC08557AD082088DABA1EB2638FF56C0C53')
+md5sums=('4b17a83dac3f8c93de85acebd0a90a16'
+         'SKIP'
+         '3ef3b5a2e307d85ee3271a86234db3d8'
+         '36c1589b1678189065cd6fe5a1947cff')
 
 prepare() {
     cd ${srcdir}/${_pkgname}-${pkgver}
