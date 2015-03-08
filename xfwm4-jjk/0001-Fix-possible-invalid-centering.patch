@@ -1,4 +1,4 @@
-From 18145f20f581d31bec9742ccd49b4021bfd7718d Mon Sep 17 00:00:00 2001
+From df1346e4a6f0cc43bdfc9b2125293b519f94253f Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Sat, 18 May 2013 14:10:01 +0200
 Subject: [PATCH] Fix possible invalid centering
@@ -23,16 +23,16 @@ Lowering the margin of error to 5 pixels should keep re-centering windows that
 were centered on the whole screen, while not centering windows that shouldn't
 be.
 
-Signed-off-by: jjacky <i.am.jack.mail@gmail.com>
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
  src/placement.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/src/placement.c b/src/placement.c
-index 01f2590..97e41cf 100644
+index cae55ac..5f36097 100644
 --- a/src/placement.c
 +++ b/src/placement.c
-@@ -477,14 +477,14 @@ clientKeepVisible (Client * c, gint n_monitors, GdkRectangle *monitor_rect)
+@@ -499,14 +499,14 @@ clientKeepVisible (Client * c, gint n_monitors, GdkRectangle *monitor_rect)
          diff_y = abs (c->size->y - ((c->screen_info->height - c->size->height) / 2));
  
          monitor_nbr = 0;
@@ -50,5 +50,5 @@ index 01f2590..97e41cf 100644
          }
      }
 -- 
-1.8.2.3
+2.3.1
 
