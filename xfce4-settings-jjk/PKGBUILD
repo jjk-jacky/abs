@@ -3,32 +3,35 @@
 # Contributor: tobias <tobias funnychar archlinux.org>
 # Contributor: Corrado Primier <bardo@aur.archlinux.org>
 
-pkgname=xfce4-settings
+_pkgname=xfce4-settings
+pkgname=$_pkgname-jjk
 pkgver=4.12.0
-pkgrel=3
+pkgrel=1
 pkgdesc="Settings manager for xfce"
 arch=('i686' 'x86_64')
 url="http://www.xfce.org/"
 license=('GPL2')
 groups=('xfce4')
 depends=('exo' 'garcon' 'libxfce4ui' 'libnotify' 'libxklavier'
-         'gnome-icon-theme' 'gnome-themes-standard')
-makedepends=('intltool' 'xf86-input-libinput')
+         'gnome-icon-theme')
+makedepends=('intltool')
 optdepends=('libcanberra: for sound control')
-install=$pkgname.install
-source=(http://archive.xfce.org/src/xfce/$pkgname/${pkgver%.*}/$pkgname-$pkgver.tar.bz2
+provides=($_pkgname)
+conflicts=($_pkgname)
+install=$_pkgname.install
+source=(http://archive.xfce.org/src/xfce/$_pkgname/${pkgver%.*}/$_pkgname-$pkgver.tar.bz2
         default-xsettings-xml.patch)
 sha256sums=('04becef105c19d0266cfe8dbf42619e7233c3b9fa99b43dbfc9c6a5959501f81'
-            '1c4110fd5ce0f17564cda892b72d59a87b515fdb4580c7154bbb4c1979f5ade7')
+            '3c4cab2c046e8992028c914ab74fdc37a88f29c08a5b0d389a572b6efaa2f2d8')
 prepare() {
-  cd "$srcdir/$pkgname-$pkgver"
+  cd "$srcdir/$_pkgname-$pkgver"
 
-  # Enable GNOME icon theme, Adwaita theme and font hinting by default
+  # Enable GNOME icon theme, Clearlooks theme and font hinting by default
   patch -Np1 -i "$srcdir/default-xsettings-xml.patch"
 }
 
 build() {
-  cd "$srcdir/$pkgname-$pkgver"
+  cd "$srcdir/$_pkgname-$pkgver"
 
   ./configure \
     --prefix=/usr \
@@ -47,7 +50,7 @@ build() {
 }
 
 package() {
-  cd "$srcdir/$pkgname-$pkgver"
+  cd "$srcdir/$_pkgname-$pkgver"
   make DESTDIR="$pkgdir" install
 }
 
