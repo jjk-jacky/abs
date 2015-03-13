@@ -6,7 +6,7 @@
 _pkgname=vlc
 pkgname=$_pkgname-jjk
 pkgver=2.2.0
-pkgrel=1
+pkgrel=2
 pkgdesc="A multi-platform MPEG, VCD/DVD, and DivX player"
 arch=('i686' 'x86_64')
 url="http://www.videolan.org/vlc/"
@@ -14,7 +14,8 @@ license=('LGPL2.1' 'GPL2')
 depends=('a52dec' 'libdvbpsi' 'libxpm' 'libdca' 'qt4' 'libproxy'
          'sdl_image' 'libdvdnav' 'libmatroska'
          'taglib' 'libmpcdec' 'ffmpeg' 'faad2' 'libupnp'
-         'libmad' 'libmpeg2' 'libass' 'xcb-util-keysyms')
+         'libmad' 'libmpeg2' 'libass' 'xcb-util-keysyms'
+         'xvidcore' 'libx264.so')
 makedepends=('libnotify')
 _makedepends=('live-media' 'libnotify' 'libbluray' 'flac' 'kdelibs'
              'libdc1394' 'libavc1394' 'lirc-utils' 'libcaca'
