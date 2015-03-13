@@ -4,13 +4,13 @@
 
 _pkgname=cairo
 pkgname=$_pkgname-jjk
-pkgver=1.14.0
+pkgver=1.14.2
 pkgrel=1
 pkgdesc="Cairo vector graphics library"
 arch=(i686 x86_64)
 license=('LGPL' 'MPL')
 url="http://cairographics.org/"
-makedepends=('mesa' 'libgl' 'librsvg' 'gtk2' 'poppler-glib' 'libspectre' 'gtk-doc'
+makedepends=('mesa' 'libgl' 'librsvg' 'gtk2' 'gtk-doc'
              'valgrind')
 depends=('libpng' 'libxrender' 'libxext' 'fontconfig' 'pixman>=0.28.0' 'glib2'
          'libgl' 'sh' 'lzo')
@@ -19,15 +19,10 @@ replaces=('cairo-xcb' 'cairo')
 conflicts=('cairo')
 options=('!libtool')
 source=(http://cairographics.org/releases/$_pkgname-$pkgver.tar.xz)
-sha1sums=('53cf589b983412ea7f78feee2e1ba9cea6e3ebae')
+sha1sums=('c8da68aa66ca0855b5d0ff552766d3e8679e1d24')
 
 build() {
   cd "$srcdir/$_pkgname-$pkgver"
-
-  # fix compilew/ gcc 4.9 -- see FS#40313
-  # upstream https://bugs.freedesktop.org/show_bug.cgi?id=77060
-  CFLAGS="$CFLAGS -fno-lto"
-  export CFLAGS
 
   ./configure --prefix=/usr \
       --sysconfdir=/etc \
@@ -37,9 +32,9 @@ build() {
       --enable-gl \
       --enable-egl \
       --enable-svg \
-      --enable-ps \
-      --enable-pdf \
       --enable-gobject #\
+      #--enable-ps \
+      #--enable-pdf \
       # --enable-test-surfaces
 
   #--disable-xlib-xcb \
