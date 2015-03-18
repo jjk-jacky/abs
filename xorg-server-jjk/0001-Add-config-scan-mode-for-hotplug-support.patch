@@ -1,0 +1,358 @@
+From 94380f3d2dc16e48020299fe68a342f6691c2727 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Thu, 5 Mar 2015 14:42:05 +0100
+Subject: [PATCH] Add config-scan mode for hotplug support
+
+For systems where there's neither HAL nor udev, this adds a "scan" mode that
+will simply read /dev/input and "feed" Xorg all character devic found there.
+
+This allows to still benefit from dynamic loading and InputClass configuration
+in such cases. (Besides the name and device path, the attribute (keyboard,
+mouse, etc) is set using the same logic as in the evdev driver
+(xf86-input-evdev).)
+
+Note that this only works on start, but it might even be possible to add an
+inotify on /dev/input and react when files are added/removed, to provide actual
+hotplug support.
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ config/Makefile.am             |  11 ++-
+ config/config-backends.h       |   3 +
+ config/config.c                |   5 ++
+ config/scan.c                  | 172 +++++++++++++++++++++++++++++++++++++++++
+ configure.ac                   |  19 ++++-
+ hw/xfree86/common/xf86Xinput.c |   6 +-
+ include/dix-config.h.in        |   3 +
+ 7 files changed, 214 insertions(+), 5 deletions(-)
+ create mode 100644 config/scan.c
+
+diff --git a/config/Makefile.am b/config/Makefile.am
+index 0e20e8b..11a2223 100644
+--- a/config/Makefile.am
++++ b/config/Makefile.am
+@@ -32,7 +32,16 @@ else
+ 
+ if CONFIG_WSCONS
+ libconfig_la_SOURCES += wscons.c
+-endif # CONFIG_WSCONS
++
++else
++
++if CONFIG_SCAN
++AM_CFLAGS += $(EVDEV_CFLAGS)
++libconfig_la_SOURCES += scan.c
++libconfig_la_LIBADD += $(EVDEV_LIBS)
++endif # CONFIG_SCAN
++
++endif # !CONFIG_WSCONS
+ 
+ endif # !CONFIG_HAL
+ 
+diff --git a/config/config-backends.h b/config/config-backends.h
+index 5f07557..311544e 100644
+--- a/config/config-backends.h
++++ b/config/config-backends.h
+@@ -43,4 +43,7 @@ void config_hal_fini(void);
+ #elif defined(CONFIG_WSCONS)
+ int config_wscons_init(void);
+ void config_wscons_fini(void);
++#elif defined(CONFIG_SCAN)
++int config_scan_init(void);
++void config_scan_fini(void);
+ #endif
+diff --git a/config/config.c b/config/config.c
+index b5d634b..f774c85 100644
+--- a/config/config.c
++++ b/config/config.c
+@@ -55,6 +55,9 @@ config_init(void)
+ #elif defined(CONFIG_WSCONS)
+     if (!config_wscons_init())
+         ErrorF("[config] failed to initialise wscons\n");
++#elif defined(CONFIG_SCAN)
++    if (!config_scan_init())
++        ErrorF("[config] failed to initialise scan\n");
+ #endif
+ }
+ 
+@@ -67,6 +70,8 @@ config_fini(void)
+     config_hal_fini();
+ #elif defined(CONFIG_WSCONS)
+     config_wscons_fini();
++#elif defined(CONFIG_SCAN)
++    config_scan_fini();
+ #endif
+ }
+ 
+diff --git a/config/scan.c b/config/scan.c
+new file mode 100644
+index 0000000..47a7efe
+--- /dev/null
++++ b/config/scan.c
+@@ -0,0 +1,172 @@
++/*
++ * Copyright (c) 2015 Olivier Brunel <jjk@jjacky.com>
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a
++ * copy of this software and associated documentation files (the "Software"),
++ * to deal in the Software without restriction, including without limitation
++ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
++ * and/or sell copies of the Software, and to permit persons to whom the
++ * Software is furnished to do so, subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice (including the next
++ * paragraph) shall be included in all copies or substantial portions of the
++ * Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
++ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++ * DEALINGS IN THE SOFTWARE.
++ */
++
++#ifdef HAVE_DIX_CONFIG_H
++#include <dix-config.h>
++#endif
++
++#define _BSD_SOURCE
++#include <dirent.h>
++#include <sys/types.h>
++#include <string.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include <unistd.h>
++#include <errno.h>
++
++#include <linux/input.h>
++#include <libevdev/libevdev.h>
++
++#include "input.h"
++#include "config-backends.h"
++#include "os.h"
++#include "globals.h"
++
++static unsigned int
++get_flag(struct libevdev *evdev)
++{
++    int i;
++
++    for (i = 0; i < BTN_MISC; ++i)
++        if (libevdev_has_event_code(evdev, EV_KEY, i))
++            return ATTR_KEYBOARD;
++
++    if (libevdev_has_event_code(evdev, EV_ABS, ABS_X)
++            && libevdev_has_event_code(evdev, EV_ABS, ABS_Y))
++    {
++        int has_lmr;
++
++        has_lmr = libevdev_has_event_code(evdev, EV_KEY, BTN_LEFT)
++            || libevdev_has_event_code(evdev, EV_KEY, BTN_MIDDLE)
++            || libevdev_has_event_code(evdev, EV_KEY, BTN_RIGHT);
++
++        if (libevdev_has_event_code(evdev, EV_KEY, BTN_TOOL_PEN)
++                || libevdev_has_event_code(evdev, EV_KEY, BTN_STYLUS)
++                || libevdev_has_event_code(evdev, EV_KEY, BTN_STYLUS2))
++            return ATTR_TABLET;
++        else if (libevdev_has_event_code(evdev, EV_ABS, ABS_PRESSURE)
++                || libevdev_has_event_code(evdev, EV_KEY, BTN_TOUCH))
++        {
++            if (has_lmr || libevdev_has_event_code(evdev, EV_KEY, BTN_TOOL_FINGER))
++                return ATTR_TOUCHPAD;
++            else
++                return ATTR_TOUCHSCREEN;
++        }
++        else if (!(libevdev_has_event_code(evdev, EV_REL, REL_X)
++                    && libevdev_has_event_code(evdev, EV_REL, REL_Y))
++                && has_lmr)
++            return ATTR_TOUCHSCREEN;
++        else
++            return ATTR_POINTER;
++    }
++
++    for (i = BTN_MISC; i < BTN_JOYSTICK; ++i)
++        if (libevdev_has_event_code(evdev, EV_KEY, i))
++            return ATTR_POINTER;
++
++    for (i = 0; i < REL_MAX; ++i)
++        if (libevdev_has_event_code(evdev, EV_REL, i))
++            return ATTR_POINTER;
++
++    for (i = 0; i < ABS_MAX; ++i)
++        if (libevdev_has_event_code(evdev, EV_ABS, i))
++            return ATTR_POINTER;
++
++    return 0;
++}
++
++int
++config_scan_init(void)
++{
++    DIR *dir;
++
++    dir = opendir("/dev/input");
++    if (!dir)
++        return 0;
++
++    for(;;)
++    {
++        struct dirent *d;
++
++        d = readdir(dir);
++        if (!d)
++            break;
++        if (d->d_type == DT_CHR)
++        {
++            int l = strlen("/dev/input");
++            int ln = strlen(d->d_name);
++            char device[l + 1 + ln + 1];
++            const char *name;
++            struct libevdev *evdev = NULL;
++            int fd;
++            InputOption *input_options;
++            InputAttributes attrs = { };
++            DeviceIntPtr dev = NULL;
++
++            input_options = input_option_new(NULL, "_source", "server/scan");
++            if (!input_options)
++                continue;
++            memmove(device, "/dev/input" "/", l + 1);
++            memmove(device + l + 1, d->d_name, ln + 1);
++            input_options = input_option_new(input_options, "path", device);
++            input_options = input_option_new(input_options, "device", device);
++            attrs.device = device;
++
++            do
++                fd = open(device, O_RDONLY | O_CLOEXEC);
++            while (fd < 0 && errno == EINTR);
++            if (fd < 0 || libevdev_new_from_fd(fd, &evdev) < 0)
++                name = (char *) "<no-name>";
++            else
++            {
++                attrs.product = name = libevdev_get_name(evdev);
++                attrs.flags |= get_flag(evdev);
++            }
++
++            input_options = input_option_new(input_options, "name", name);
++            LogMessage(X_INFO, "config/scan: Adding input device %s (%s)\n",
++                    name, device);
++            NewInputDeviceRequest(input_options, &attrs, &dev);
++
++            input_option_free_list(&input_options);
++            if (evdev)
++                libevdev_free(evdev);
++            if (fd >= 0)
++            {
++                errno = 0;
++                do
++                    close(fd);
++                while (errno == EINTR);
++            }
++        }
++    }
++    closedir(dir);
++
++    return 1;
++}
++
++void
++config_scan_fini(void)
++{
++    /* void */
++}
+diff --git a/configure.ac b/configure.ac
+index 280c369..a198c3d 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -604,6 +604,7 @@ AC_ARG_ENABLE(config-udev,    AS_HELP_STRING([--enable-config-udev], [Build udev
+ AC_ARG_ENABLE(config-udev-kms,    AS_HELP_STRING([--enable-config-udev-kms], [Build udev kms support (default: auto)]), [CONFIG_UDEV_KMS=$enableval], [CONFIG_UDEV_KMS=auto])
+ AC_ARG_ENABLE(config-hal,     AS_HELP_STRING([--disable-config-hal], [Build HAL support (default: auto)]), [CONFIG_HAL=$enableval], [CONFIG_HAL=auto])
+ AC_ARG_ENABLE(config-wscons,  AS_HELP_STRING([--enable-config-wscons], [Build wscons config support (default: auto)]), [CONFIG_WSCONS=$enableval], [CONFIG_WSCONS=auto])
++AC_ARG_ENABLE(config-scan,    AS_HELP_STRING([--enable-config-scan], [Build scan support (default: no)]), [CONFIG_SCAN=$enableval], [CONFIG_SCAN=no])
+ AC_ARG_ENABLE(xfree86-utils,     AS_HELP_STRING([--enable-xfree86-utils], [Build xfree86 DDX utilities (default: enabled)]), [XF86UTILS=$enableval], [XF86UTILS=yes])
+ AC_ARG_ENABLE(vgahw,          AS_HELP_STRING([--enable-vgahw], [Build Xorg with vga access (default: enabled)]), [VGAHW=$enableval], [VGAHW=yes])
+ AC_ARG_ENABLE(vbe,            AS_HELP_STRING([--enable-vbe], [Build Xorg with VBE module (default: enabled)]), [VBE=$enableval], [VBE=yes])
+@@ -697,6 +698,7 @@ case $host_os in
+ 		CONFIG_HAL=no
+ 		CONFIG_UDEV=no
+ 		CONFIG_UDEV_KMS=no
++		CONFIG_SCAN=no
+ 		DGA=no
+ 		DRM=no
+ 		DRI2=no
+@@ -849,6 +851,19 @@ if test "x$CONFIG_UDEV" = xyes && test "x$CONFIG_HAL" = xyes; then
+ 	AC_MSG_ERROR([Hotplugging through both libudev and hal not allowed])
+ fi
+ 
++if test "x$CONFIG_SCAN" = xyes && test "x$CONFIG_UDEV" = xyes || test "x$CONFIG_HAL" = xyes; then
++	AC_MSG_ERROR([Hotplugging through scan not allowed alongside udev or hal])
++fi
++
++if test "x$CONFIG_SCAN" = xyes; then
++	PKG_CHECK_MODULES(EVDEV, libevdev, [HAVE_LIBEVDEV=yes], [HAVE_LIBEVDEV=no])
++	if ! test "x$HAVE_LIBEVDEV" = xyes; then
++		AC_MSG_ERROR([Hotplugging through scan mode requested, but libevdev is not installed])
++	fi
++	AC_DEFINE(CONFIG_SCAN, 1, [Use scan mode for hotplug API])
++fi
++AM_CONDITIONAL(CONFIG_SCAN, [test "x$CONFIG_SCAN" = xyes])
++
+ PKG_CHECK_MODULES(UDEV, $LIBUDEV, [HAVE_LIBUDEV=yes], [HAVE_LIBUDEV=no])
+ if test "x$CONFIG_UDEV" = xauto; then
+ 	CONFIG_UDEV="$HAVE_LIBUDEV"
+@@ -2506,10 +2521,10 @@ AC_SUBST([prefix])
+ 
+ AC_CONFIG_COMMANDS([sdksyms], [touch hw/xfree86/sdksyms.dep])
+ 
+-if test "x$CONFIG_HAL" = xno && test "x$CONFIG_UDEV" = xno; then
++if test "x$CONFIG_HAL" = xno && test "x$CONFIG_UDEV" = xno && test "x$CONFIG_SCAN" = xno; then
+     AC_MSG_WARN([
+              ***********************************************
+-             Neither HAL nor udev backend will be enabled.
++             Neither HAL nor udev backend will be enabled, nor scan mode.
+              Input device hotplugging will not be available!
+              ***********************************************])
+ fi
+diff --git a/hw/xfree86/common/xf86Xinput.c b/hw/xfree86/common/xf86Xinput.c
+index 1fb5b16..c4908a8 100644
+--- a/hw/xfree86/common/xf86Xinput.c
++++ b/hw/xfree86/common/xf86Xinput.c
+@@ -992,7 +992,8 @@ NewInputDeviceRequest(InputOption *options, InputAttributes * attrs,
+         if (strcmp(key, "_source") == 0 &&
+             (strcmp(value, "server/hal") == 0 ||
+              strcmp(value, "server/udev") == 0 ||
+-             strcmp(value, "server/wscons") == 0)) {
++             strcmp(value, "server/wscons") == 0 ||
++             strcmp(value, "server/scan"))) {
+             is_auto = 1;
+             if (!xf86Info.autoAddDevices) {
+                 rval = BadMatch;
+@@ -1543,7 +1544,8 @@ xf86InputEnableVTProbe(void)
+             if (strcmp(key, "_source") == 0 &&
+                 (strcmp(value, "server/hal") == 0 ||
+                  strcmp(value, "server/udev") == 0 ||
+-                 strcmp(value, "server/wscons") == 0))
++                 strcmp(value, "server/wscons") == 0 ||
++                 strcmp(value, "server/scan")))
+                 is_auto = 1;
+         }
+         xf86NewInputDevice(pInfo, &pdev,
+diff --git a/include/dix-config.h.in b/include/dix-config.h.in
+index 1aa77a5..950428c 100644
+--- a/include/dix-config.h.in
++++ b/include/dix-config.h.in
+@@ -430,6 +430,9 @@
+ /* Support HAL for hotplug */
+ #undef CONFIG_HAL
+ 
++/* Use scan mode for input hotplug */
++#undef CONFIG_SCAN
++
+ /* Enable systemd-logind integration */
+ #undef SYSTEMD_LOGIND 1
+ 
+-- 
+2.3.1
+
