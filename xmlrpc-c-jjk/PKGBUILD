@@ -6,7 +6,7 @@
 
 _pkgname=xmlrpc-c
 pkgname=$_pkgname-jjk
-pkgver=1.38.02
+pkgver=1.40.02
 pkgrel=1
 pkgdesc='XML-RPC for C and C++'
 arch=('x86_64' 'i686')
@@ -15,7 +15,7 @@ license=('custom')
 provides=($_pkgname)
 conflicts=($_pkgname)
 depends=('curl' 'libxml2')
-makedepends=('libtool' 'setconf' 'python')
+makedepends=('libtool' 'setconf' 'python' 'subversion')
 options=('!makeflags' '!libtool' '!emptydirs')
 source=('svn://svn.code.sf.net/p/xmlrpc-c/code/advanced')
 sha1sums=('SKIP')
