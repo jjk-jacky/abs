@@ -4,11 +4,11 @@
 _pkgname=gtk-doc
 pkgname=$_pkgname-jjk
 pkgver=1.21
-pkgrel=1
+pkgrel=2
 pkgdesc="Documentation tool for public library API"
 arch=('any')
 license=('GPL' 'FDL')
-depends=('docbook-xsl' 'gnome-doc-utils' 'perl')
+depends=('docbook-xsl' 'yelp-tools' 'perl')
 makedepends=('pkgconfig' 'itstool')
 conflicts=("$_pkgname")
 provides=("$_pkgname")
