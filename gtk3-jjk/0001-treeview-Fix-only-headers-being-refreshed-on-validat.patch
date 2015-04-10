@@ -1,4 +1,4 @@
-From 1d3fb0a47f372dd276fd57e9e0e92a15770e0b51 Mon Sep 17 00:00:00 2001
+From 7a6d3a2b5d4696956d490f31bbed2a39f13c8f36 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Wed, 31 Dec 2014 20:43:45 +0100
 Subject: [PATCH] treeview: Fix only headers being refreshed on validate
@@ -17,10 +17,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 7 insertions(+)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 8c55dac..a14dbbe 100644
+index 03d2231..d288874 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -2844,6 +2844,13 @@ gtk_tree_view_size_allocate (GtkWidget     *widget,
+@@ -2848,6 +2848,13 @@ gtk_tree_view_size_allocate (GtkWidget     *widget,
      width_changed = TRUE;
  
    gtk_widget_set_allocation (widget, allocation);
@@ -35,5 +35,5 @@ index 8c55dac..a14dbbe 100644
    /* We size-allocate the columns first because the width of the
     * tree view (used in updating the adjustments below) might change.
 -- 
-2.2.1
+2.3.5
 

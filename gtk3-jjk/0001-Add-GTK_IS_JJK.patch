@@ -1,4 +1,4 @@
-From c4fb9c02c3b8a7ee89ef8f0914e655ae2af75bfc Mon Sep 17 00:00:00 2001
+From 49d4aadf699b69c3ca4e13a1e0c6ce412951273d Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 15:06:08 +0200
 Subject: [PATCH] Add GTK_IS_JJK
@@ -9,7 +9,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/gtk/gtk.h b/gtk/gtk.h
-index b027dc6..2f08f47 100644
+index 3cbd13f..f93bc0a 100644
 --- a/gtk/gtk.h
 +++ b/gtk/gtk.h
 @@ -26,6 +26,7 @@
@@ -21,5 +21,5 @@ index b027dc6..2f08f47 100644
  #include <gdk/gdk.h>
  #include <gtk/gtkaboutdialog.h>
 -- 
-2.1.3
+2.3.5
 

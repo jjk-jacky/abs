@@ -1,4 +1,4 @@
-From 7905fa7b1e92af2ceadc09dee9dedf35dc3e9a28 Mon Sep 17 00:00:00 2001
+From e3cc1dbafb851f9437c1cbdcf8c7bd1261e8c59b Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 16 Jan 2014 17:44:31 +0100
 Subject: [PATCH 2/2] menu: Add helper gtk_menu_popup_and_destroy()
@@ -20,10 +20,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  3 files changed, 46 insertions(+)
 
 diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
-index 11a9a00..b0cc3d6 100644
+index e2d0435..75e2923 100644
 --- a/docs/reference/gtk/gtk3-sections.txt
 +++ b/docs/reference/gtk/gtk3-sections.txt
-@@ -2199,6 +2199,7 @@ gtk_menu_reorder_child
+@@ -2217,6 +2217,7 @@ gtk_menu_reorder_child
  gtk_menu_attach
  gtk_menu_popup_for_device
  gtk_menu_popup
@@ -32,10 +32,10 @@ index 11a9a00..b0cc3d6 100644
  gtk_menu_get_accel_group
  gtk_menu_set_accel_path
 diff --git a/gtk/gtkmenu.c b/gtk/gtkmenu.c
-index 90369a9..081ae55 100644
+index f622855..c202b0e 100644
 --- a/gtk/gtkmenu.c
 +++ b/gtk/gtkmenu.c
-@@ -1776,6 +1776,10 @@ gtk_menu_popup_for_device (GtkMenu             *menu,
+@@ -1767,6 +1767,10 @@ gtk_menu_popup_for_device (GtkMenu             *menu,
   * a mouse click or key press) that caused the initiation of the popup.
   * Only if no such event is available, gtk_get_current_event_time() can
   * be used instead.
@@ -46,7 +46,7 @@ index 90369a9..081ae55 100644
   */
  void
  gtk_menu_popup (GtkMenu             *menu,
-@@ -1797,6 +1801,41 @@ gtk_menu_popup (GtkMenu             *menu,
+@@ -1788,6 +1792,41 @@ gtk_menu_popup (GtkMenu             *menu,
  }
  
  /**
@@ -89,7 +89,7 @@ index 90369a9..081ae55 100644
   * @menu: a #GtkMenu
   *
 diff --git a/gtk/gtkmenu.h b/gtk/gtkmenu.h
-index d854ed2..3dbfdc4 100644
+index bf81a89..e996bf1 100644
 --- a/gtk/gtkmenu.h
 +++ b/gtk/gtkmenu.h
 @@ -144,6 +144,12 @@ void	   gtk_menu_popup		  (GtkMenu	       *menu,
@@ -106,5 +106,5 @@ index d854ed2..3dbfdc4 100644
  void       gtk_menu_popup_for_device      (GtkMenu             *menu,
                                             GdkDevice           *device,
 -- 
-2.1.3
+2.3.5
 

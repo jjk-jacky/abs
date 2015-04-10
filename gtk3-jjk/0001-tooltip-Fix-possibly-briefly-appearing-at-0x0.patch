@@ -1,4 +1,4 @@
-From 7833d085afa8fa2826cb549f374dc01b9f8c9c86 Mon Sep 17 00:00:00 2001
+From aafbc672db1a961a69266f0430d812119f596999 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 15 Nov 2013 22:12:25 +0100
 Subject: [PATCH] tooltip: Fix possibly briefly appearing at 0x0
@@ -19,10 +19,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 18 insertions(+), 2 deletions(-)
 
 diff --git a/gtk/gtktooltip.c b/gtk/gtktooltip.c
-index 103944f..4af84c4 100644
+index fd2ba14..4da05f8 100644
 --- a/gtk/gtktooltip.c
 +++ b/gtk/gtktooltip.c
-@@ -1024,10 +1024,26 @@ gtk_tooltip_position (GtkTooltip *tooltip,
+@@ -1034,10 +1034,26 @@ gtk_tooltip_position (GtkTooltip *tooltip,
  
    screen = gtk_widget_get_screen (new_tooltip_widget);
  
@@ -52,5 +52,5 @@ index 103944f..4af84c4 100644
    monitor_num = gdk_screen_get_monitor_at_point (screen,
                                                   tooltip->last_x,
 -- 
-2.1.3
+2.3.5
 

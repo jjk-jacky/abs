@@ -1,0 +1,31 @@
+From 654f1276027cd5b44e80984a554a9d5e0883e1f3 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Thu, 20 Nov 2014 11:08:35 +0100
+Subject: [PATCH] treemodel: Fix gtk_tree_path_up() making path invalid
+
+Since a valid GtkTreePath should never have a depth of 0, trying to go up with a
+depth on 1 shouldn't make the path invalid but fail.
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ gtk/gtktreemodel.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/gtk/gtktreemodel.c b/gtk/gtktreemodel.c
+index 258363f..2026791 100644
+--- a/gtk/gtktreemodel.c
++++ b/gtk/gtktreemodel.c
+@@ -1100,8 +1100,9 @@ gboolean
+ gtk_tree_path_up (GtkTreePath *path)
+ {
+   g_return_val_if_fail (path != NULL, FALSE);
++  g_return_val_if_fail (path->depth > 0, FALSE);
+ 
+-  if (path->depth == 0)
++  if (path->depth <= 1)
+     return FALSE;
+ 
+   path->depth--;
+-- 
+2.3.5
+

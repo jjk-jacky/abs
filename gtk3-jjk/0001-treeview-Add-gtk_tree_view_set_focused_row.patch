@@ -1,4 +1,4 @@
-From ac7ad339c4904f13677a75d2b0ddace941435ee0 Mon Sep 17 00:00:00 2001
+From f0054a983f54088bd2697f655b3872fba382fd49 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 16:42:45 +0200
 Subject: [PATCH] treeview: Add gtk_tree_view_set_focused_row()
@@ -14,10 +14,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  3 files changed, 36 insertions(+)
 
 diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
-index 11a9a00..b394db9 100644
+index e2d0435..d1b3a09 100644
 --- a/docs/reference/gtk/gtk3-sections.txt
 +++ b/docs/reference/gtk/gtk3-sections.txt
-@@ -4670,6 +4670,7 @@ gtk_tree_view_scroll_to_cell
+@@ -4711,6 +4711,7 @@ gtk_tree_view_scroll_to_cell
  gtk_tree_view_set_cursor
  gtk_tree_view_set_cursor_on_cell
  gtk_tree_view_get_cursor
@@ -26,10 +26,10 @@ index 11a9a00..b394db9 100644
  gtk_tree_view_expand_all
  gtk_tree_view_collapse_all
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 8c55dac..8d690d1 100644
+index 03d2231..bd6296f 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -13463,6 +13463,38 @@ gtk_tree_view_set_cursor_on_cell (GtkTreeView       *tree_view,
+@@ -13472,6 +13472,38 @@ gtk_tree_view_set_cursor_on_cell (GtkTreeView       *tree_view,
  }
  
  /**
@@ -83,5 +83,5 @@ index c3233b4..7ae4d13 100644
  
  /* Layout information */
 -- 
-2.1.3
+2.3.5
 
