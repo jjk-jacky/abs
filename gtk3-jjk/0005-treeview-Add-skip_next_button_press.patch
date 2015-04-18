@@ -1,4 +1,4 @@
-From 4733a63fdc12ea90343618f10f70b8d550398974 Mon Sep 17 00:00:00 2001
+From be16d9bf94fe64e25ee99840eafd091d850c874e Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 23 Oct 2014 14:46:45 +0200
 Subject: [PATCH 5/5] treeview: Add skip_next_button_press
@@ -34,7 +34,7 @@ index 5bd63a6..0e888eb 100644
  gtk_tree_view_is_rubber_banding_active
  gtk_tree_view_is_rubber_banding_pending
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 0868d35..b2d1010 100644
+index 73b9da4..3cda966 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -476,6 +476,7 @@ struct _GtkTreeViewPrivate
@@ -45,7 +45,7 @@ index 0868d35..b2d1010 100644
  
    guint in_grab : 1;
  
-@@ -3122,6 +3123,14 @@ gtk_tree_view_multipress_gesture_pressed (GtkGestureMultiPress *gesture,
+@@ -3123,6 +3124,14 @@ gtk_tree_view_multipress_gesture_pressed (GtkGestureMultiPress *gesture,
    GList *list;
    gboolean rtl;
  
@@ -60,7 +60,7 @@ index 0868d35..b2d1010 100644
    rtl = (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL);
    gtk_tree_view_stop_editing (tree_view, FALSE);
    gtk_widget_style_get (widget,
-@@ -4372,6 +4381,30 @@ gtk_tree_view_motion_drag_column (GtkTreeView *tree_view,
+@@ -4373,6 +4382,30 @@ gtk_tree_view_motion_drag_column (GtkTreeView *tree_view,
  }
  
  /**

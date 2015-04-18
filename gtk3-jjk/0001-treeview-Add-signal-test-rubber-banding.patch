@@ -1,4 +1,4 @@
-From ead17ca4f6f4a6705eba62813b51b52e2b348a0b Mon Sep 17 00:00:00 2001
+From 396207bee9e0354ad0b1d8e30e78d55d35b48c44 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sun, 28 Sep 2014 15:05:13 +0200
 Subject: [PATCH 1/5] treeview: Add signal test-rubber-banding
@@ -17,7 +17,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  2 files changed, 62 insertions(+), 13 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 03d2231..9ef4ef0 100644
+index 5e1f476..665f49f 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -519,6 +519,7 @@ enum
@@ -78,7 +78,7 @@ index 03d2231..9ef4ef0 100644
    /* Key bindings */
    gtk_tree_view_add_move_binding (binding_set, GDK_KEY_Up, 0, TRUE,
  				  GTK_MOVEMENT_DISPLAY_LINES, -1);
-@@ -3314,6 +3344,20 @@ gtk_tree_view_multipress_gesture_pressed (GtkGestureMultiPress *gesture,
+@@ -3315,6 +3345,20 @@ gtk_tree_view_multipress_gesture_pressed (GtkGestureMultiPress *gesture,
      gtk_event_controller_reset (GTK_EVENT_CONTROLLER (gesture));
  }
  
@@ -99,7 +99,7 @@ index 03d2231..9ef4ef0 100644
  static void
  gtk_tree_view_drag_gesture_begin (GtkGestureDrag *gesture,
                                    gdouble         start_x,
-@@ -3321,8 +3365,6 @@ gtk_tree_view_drag_gesture_begin (GtkGestureDrag *gesture,
+@@ -3322,8 +3366,6 @@ gtk_tree_view_drag_gesture_begin (GtkGestureDrag *gesture,
                                    GtkTreeView    *tree_view)
  {
    gint bin_x, bin_y;
@@ -108,7 +108,7 @@ index 03d2231..9ef4ef0 100644
  
    if (tree_view->priv->tree == NULL)
      {
-@@ -3334,22 +3376,27 @@ gtk_tree_view_drag_gesture_begin (GtkGestureDrag *gesture,
+@@ -3335,22 +3377,27 @@ gtk_tree_view_drag_gesture_begin (GtkGestureDrag *gesture,
                                                       &bin_x, &bin_y);
    tree_view->priv->press_start_x = tree_view->priv->rubber_band_x = bin_x;
    tree_view->priv->press_start_y = tree_view->priv->rubber_band_y = bin_y;

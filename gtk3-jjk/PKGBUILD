@@ -3,7 +3,7 @@
 
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
-pkgver=3.16.1
+pkgver=3.16.2
 pkgrel=1
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
@@ -49,7 +49,7 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0004-treeview-Add-button-in-test-rubber-banding.patch
         0005-treeview-Add-skip_next_button_press.patch
         fix-708148.patch)
-sha256sums=('9f9716a8c7f8dc149f767718e25fed41984b504a00fd0919b1a4969ca2e4db31'
+sha256sums=('a03963a61c9f5253a8d4003187190be165d92f95acf97ca783735071a8781cfa'
             'de961084b35507da5415640db733457161e1672ee54639828dfa399ea3d220b1'
             '558a1a3857d47d7dac331765f6ae06d5d048c10cde06bfb55266ccce833eb6b1'
             '0738aeceefae3c4550603f08e6dadb0fc019bbfbabd549fbb0b025947364a0da'
@@ -64,7 +64,7 @@ sha256sums=('9f9716a8c7f8dc149f767718e25fed41984b504a00fd0919b1a4969ca2e4db31'
             '762cc87660bd7dbe63db689a0596ddff25bf4d718c7df5b2a72a26eb285847d5'
             'b8adbf593d945e71451b07bab72f3f193f68de9f40063c619a52186b572b08a3'
             '7ebd059ae26c2099bcd21ddc8bc945277444b10687cb10e257d990c20879a7a3'
-            'b6d82af6728aa7f670bfec92c22745f5225843abdc4aea7bef28406dbbddae32'
+            '309d0e908b8b968c8b4da9f93301f1acf609cef53292ab2b4e1bcdad75a2aad8'
             'e73e5b3590d61389e71ae01c30b844fd70512ad9845831155e37c080ebf68700'
             '62b1923b43c76cb61bf9837bc700f67ddb4257661d83232beea4764d72409166'
             '75b0b679cec6097c563a6adaafa979b4633bf9ae2ed409ca1f58c4b3309f0683'
@@ -74,12 +74,12 @@ sha256sums=('9f9716a8c7f8dc149f767718e25fed41984b504a00fd0919b1a4969ca2e4db31'
             '6faf3dca914e6d6dee766ec330b68a7978d62dbcc0860efa48360aa293dc1430'
             '7337596747d202ce22ff831c7bd9d07e0b523221772547fc337e4a8c4544579b'
             '7a4885cea02862423c012dcc9b089ec70ebcea3c2770d339070b73c17ea00425'
-            'f28fcacfeae364f5915a1ff3bfad00785c7f503ce51333b4622e4757efcad98f'
+            '50de461d2cd2ff11740a54038bf377b563f8a1f9100a73cc4c8f2121e2d8c30d'
             '2d63a33472c7cc26ba2780741695864439a952c6d9b859554a42e3d76d8a7130'
             '1a54c3fa4314445c33a10a15d59cefc56c7aeed281e48b510f8ea7af3e67cc9e'
-            '51697cd0e20e2eac4e95ed822f161e2e9824185036822f22e126e5348bcd6bb5'
-            '0859da097400ef1e88347aa794a20407b8ce2e6174772ae6ed7803d483e27673'
-            '63e8c0f3acb9aafe1005ff14b8feeca864c03625ad25e0a5639200d36aedd7da'
+            'e18114b143a9761010e851f5df7f2aa82a2856779d6b4f93d661d1b888bbff97'
+            '615e128cc3b5610cb8a12c33764ef62fcc12b25fc7b0dd50e1cb791c44a88b88'
+            '9f5085bb6b8031af4fa1eea0575a5236195ecd914dd32e145f13df738644f036'
             '8a8b500f6850466b646f788ee45756bbba21dea6f75babddca1d4b32ea1b0b03')
 
 prepare() {

@@ -1,4 +1,4 @@
-From 383001f86966d9637bd09637399cd0084192b623 Mon Sep 17 00:00:00 2001
+From cd08013b2f066247a740b5076a489347f654662d Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sun, 28 Sep 2014 15:42:11 +0200
 Subject: [PATCH 3/5] treeview: Change how toggle in handled on rubber banding
@@ -17,7 +17,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 19 insertions(+), 3 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index b6a68f3..75acc15 100644
+index 76187e9..76b1d27 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -926,6 +926,7 @@ static void gtk_tree_view_drag_gesture_end                  (GtkGestureDrag *ges
@@ -36,7 +36,7 @@ index b6a68f3..75acc15 100644
  
    /* Properties */
  
-@@ -3374,6 +3376,23 @@ gtk_tree_view_test_rubber_banding (GtkTreeView *tree_view,
+@@ -3375,6 +3377,23 @@ gtk_tree_view_test_rubber_banding (GtkTreeView *tree_view,
  }
  
  static void
@@ -60,7 +60,7 @@ index b6a68f3..75acc15 100644
  gtk_tree_view_drag_gesture_begin (GtkGestureDrag *gesture,
                                    gdouble         start_x,
                                    gdouble         start_y,
-@@ -4411,9 +4430,6 @@ gtk_tree_view_update_rubber_band_selection_range (GtkTreeView *tree_view,
+@@ -4412,9 +4431,6 @@ gtk_tree_view_update_rubber_band_selection_range (GtkTreeView *tree_view,
  						 gboolean     skip_start,
  						 gboolean     skip_end)
  {
