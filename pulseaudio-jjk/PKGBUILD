@@ -50,8 +50,9 @@ build() {
 }
 
 package_pulseaudio-jjk() {
-  depends=("libpulse=$pkgver-$pkgrel" rtkit libltdl gdbm systemd orc)
-  optdepends=('avahi: zeroconf support'
+  depends=("libpulse=$pkgver-$pkgrel" rtkit libltdl gdbm orc)
+  optdepends=('pulseaudio-alsa: ALSA configuration (recommended)'
+              'avahi: zeroconf support'
               'gconf: configuration through gconf (paprefs)'
               'openssl: RAOP support')
   backup=(etc/pulse/{daemon.conf,default.pa,system.pa})
@@ -105,9 +106,7 @@ package_pulseaudio-jjk() {
 
 package_libpulse-jjk() {
   pkgdesc="$pkgdesc (client library)"
-  depends=(dbus libasyncns libcap libxtst libsm libsndfile json-c)
-  optdepends=('alsa-plugins: ALSA support'
-              'avahi: zeroconf support')
+  depends=(dbus libasyncns libcap libxtst libsm libsndfile json-c systemd)
   backup=(etc/pulse/client.conf)
   replaces=(libpulse)
   provides=("libpulse=$pkgver-$pkgrel")
