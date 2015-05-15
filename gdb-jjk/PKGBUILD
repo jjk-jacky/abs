@@ -4,7 +4,7 @@
 
 _pkgname=gdb
 pkgname=$_pkgname-jjk
-pkgver=7.9
+pkgver=7.9.1
 pkgrel=1
 pkgdesc="The GNU Debugger"
 arch=('i686' 'x86_64')
@@ -18,7 +18,7 @@ backup=('etc/gdb/gdbinit')
 install=gdb.install
 source=(http://ftp.gnu.org/gnu/gdb/${_pkgname}-${pkgver}.tar.xz{,.sig})
 validpgpkeys=('F40ADB902B24264AA42E50BF92EDB04BFF325CF3')
-md5sums=('e6279f26559d839f0b4218a482bcb43e'
+md5sums=('35374c77a70884eb430c97061053a36e'
          'SKIP')
 validpgpkeys=('F40ADB902B24264AA42E50BF92EDB04BFF325CF3') # Joel Brobecker
 
