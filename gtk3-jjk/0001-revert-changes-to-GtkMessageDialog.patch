@@ -1,16 +1,16 @@
-From e61c57ab2ab930b03b9728eb253bae56f301017c Mon Sep 17 00:00:00 2001
+From ce1ae731fe606dc4cb078597698af1de8a7f504b Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 28 Mar 2014 15:59:50 +0100
 Subject: [PATCH] revert changes to GtkMessageDialog
 
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
- gtk/gtkmessagedialog.c     | 200 ++++++++++++++++++++++++---------------------
+ gtk/gtkmessagedialog.c     | 206 ++++++++++++++++++++++++---------------------
  gtk/ui/gtkmessagedialog.ui |  67 ++++++++++-----
- 2 files changed, 151 insertions(+), 116 deletions(-)
+ 2 files changed, 155 insertions(+), 118 deletions(-)
 
 diff --git a/gtk/gtkmessagedialog.c b/gtk/gtkmessagedialog.c
-index 653f3fd..bb1af94 100644
+index f20674a..bb1af94 100644
 --- a/gtk/gtkmessagedialog.c
 +++ b/gtk/gtkmessagedialog.c
 @@ -32,7 +32,6 @@
@@ -226,11 +226,14 @@ index 653f3fd..bb1af94 100644
        break;
  
      default:
-@@ -582,11 +584,11 @@ gtk_message_dialog_get_property (GObject     *object,
+@@ -580,12 +582,13 @@ gtk_message_dialog_get_property (GObject     *object,
+  * @message_format: (allow-none): printf()-style format string, or %NULL
+  * @...: arguments for @message_format
   *
-  * Creates a new message dialog, which is a simple dialog with an icon
-  * indicating the dialog type (error, warning, etc.) and some text the
-- * user may want to see. When the user clicks a button a “response”
+- * Creates a new message dialog, which is a simple dialog with some text
+- * the user may want to see. When the user clicks a button a “response”
++ * Creates a new message dialog, which is a simple dialog with an icon
++ * indicating the dialog type (error, warning, etc.) and some text the
 + * user may want to see. When the user clicks a button a "response"
   * signal is emitted with response IDs from #GtkResponseType. See
   * #GtkDialog for more details.
@@ -240,7 +243,7 @@ index 653f3fd..bb1af94 100644
   */
  GtkWidget*
  gtk_message_dialog_new (GtkWindow     *parent,
-@@ -604,7 +606,6 @@ gtk_message_dialog_new (GtkWindow     *parent,
+@@ -603,7 +606,6 @@ gtk_message_dialog_new (GtkWindow     *parent,
    g_return_val_if_fail (parent == NULL || GTK_IS_WINDOW (parent), NULL);
  
    widget = g_object_new (GTK_TYPE_MESSAGE_DIALOG,
@@ -248,18 +251,21 @@ index 653f3fd..bb1af94 100644
  			 "message-type", type,
  			 "buttons", buttons,
  			 NULL);
-@@ -644,8 +645,8 @@ gtk_message_dialog_new (GtkWindow     *parent,
+@@ -641,9 +643,10 @@ gtk_message_dialog_new (GtkWindow     *parent,
+  * @message_format: (allow-none): printf()-style format string, or %NULL
+  * @...: arguments for @message_format
   *
-  * Creates a new message dialog, which is a simple dialog with an icon
-  * indicating the dialog type (error, warning, etc.) and some text which
+- * Creates a new message dialog, which is a simple dialog with some text that
 - * is marked up with the [Pango text markup language][PangoMarkupFormat].
 - * When the user clicks a button a “response” signal is emitted with
++ * Creates a new message dialog, which is a simple dialog with an icon
++ * indicating the dialog type (error, warning, etc.) and some text which
 + * is marked up with the <link linkend="PangoMarkupFormat">Pango text markup language</link>.
 + * When the user clicks a button a "response" signal is emitted with
   * response IDs from #GtkResponseType. See #GtkDialog for more details.
   *
   * Special XML characters in the printf() arguments passed to this
-@@ -654,14 +655,13 @@ gtk_message_dialog_new (GtkWindow     *parent,
+@@ -652,14 +655,13 @@ gtk_message_dialog_new (GtkWindow     *parent,
   * Usually this is what you want, but if you have an existing
   * Pango markup string that you want to use literally as the
   * label, then you need to use gtk_message_dialog_set_markup()
@@ -279,7 +285,7 @@ index 653f3fd..bb1af94 100644
   *                                   GTK_MESSAGE_ERROR,
   *                                   GTK_BUTTONS_CLOSE,
   *                                   NULL);
-@@ -669,7 +669,7 @@ gtk_message_dialog_new (GtkWindow     *parent,
+@@ -667,7 +669,7 @@ gtk_message_dialog_new (GtkWindow     *parent,
   *                                 markup);
   * ]|
   * 
@@ -288,7 +294,7 @@ index 653f3fd..bb1af94 100644
   *
   * Since: 2.4
   **/
-@@ -708,10 +708,9 @@ gtk_message_dialog_new_with_markup (GtkWindow     *parent,
+@@ -706,10 +708,9 @@ gtk_message_dialog_new_with_markup (GtkWindow     *parent,
   * @dialog: a #GtkMessageDialog
   * @image: the image
   * 
@@ -300,7 +306,7 @@ index 653f3fd..bb1af94 100644
   **/
  void
  gtk_message_dialog_set_image (GtkMessageDialog *dialog,
-@@ -724,37 +723,35 @@ gtk_message_dialog_set_image (GtkMessageDialog *dialog,
+@@ -722,37 +723,35 @@ gtk_message_dialog_set_image (GtkMessageDialog *dialog,
    g_return_if_fail (image == NULL || GTK_IS_WIDGET (image));
  
    priv = dialog->priv;
@@ -352,7 +358,7 @@ index 653f3fd..bb1af94 100644
   **/
  GtkWidget *
  gtk_message_dialog_get_image (GtkMessageDialog *dialog)
-@@ -767,10 +764,11 @@ gtk_message_dialog_get_image (GtkMessageDialog *dialog)
+@@ -765,10 +764,11 @@ gtk_message_dialog_get_image (GtkMessageDialog *dialog)
  /**
   * gtk_message_dialog_set_markup:
   * @message_dialog: a #GtkMessageDialog
@@ -366,7 +372,7 @@ index 653f3fd..bb1af94 100644
   *
   * Since: 2.4
   **/
-@@ -838,26 +836,25 @@ gtk_message_dialog_format_secondary_text (GtkMessageDialog *message_dialog,
+@@ -836,26 +836,25 @@ gtk_message_dialog_format_secondary_text (GtkMessageDialog *message_dialog,
   * gtk_message_dialog_format_secondary_markup:
   * @message_dialog: a #GtkMessageDialog
   * @message_format: printf()-style markup string (see
@@ -398,7 +404,7 @@ index 653f3fd..bb1af94 100644
   *
   * Since: 2.6
   */
-@@ -901,13 +898,14 @@ gtk_message_dialog_format_secondary_markup (GtkMessageDialog *message_dialog,
+@@ -899,13 +898,14 @@ gtk_message_dialog_format_secondary_markup (GtkMessageDialog *message_dialog,
   * @message_dialog: a #GtkMessageDialog
   *
   * Returns the message area of the dialog. This is the box where the
@@ -418,7 +424,7 @@ index 653f3fd..bb1af94 100644
   *
   * Since: 2.22
   **/
-@@ -925,7 +923,6 @@ gtk_message_dialog_add_buttons (GtkMessageDialog* message_dialog,
+@@ -923,7 +923,6 @@ gtk_message_dialog_add_buttons (GtkMessageDialog* message_dialog,
  {
    GtkDialog* dialog = GTK_DIALOG (message_dialog);
  
@@ -426,7 +432,7 @@ index 653f3fd..bb1af94 100644
    switch (buttons)
      {
      case GTK_BUTTONS_NONE:
-@@ -933,20 +930,30 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+@@ -931,20 +930,30 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
        break;
  
      case GTK_BUTTONS_OK:
@@ -462,7 +468,7 @@ index 653f3fd..bb1af94 100644
        gtk_dialog_set_alternative_button_order (GTK_DIALOG (dialog),
  					       GTK_RESPONSE_YES,
  					       GTK_RESPONSE_NO,
-@@ -954,8 +961,12 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+@@ -952,8 +961,12 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
        break;
  
      case GTK_BUTTONS_OK_CANCEL:
@@ -477,7 +483,7 @@ index 653f3fd..bb1af94 100644
        gtk_dialog_set_alternative_button_order (GTK_DIALOG (dialog),
  					       GTK_RESPONSE_OK,
  					       GTK_RESPONSE_CANCEL,
-@@ -966,7 +977,6 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+@@ -964,7 +977,6 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
        g_warning ("Unknown GtkButtonsType");
        break;
      } 
@@ -485,7 +491,7 @@ index 653f3fd..bb1af94 100644
  
    g_object_notify (G_OBJECT (message_dialog), "buttons");
  }
-@@ -978,7 +988,7 @@ gtk_message_dialog_style_updated (GtkWidget *widget)
+@@ -976,7 +988,7 @@ gtk_message_dialog_style_updated (GtkWidget *widget)
    GtkWidget *parent;
    gint border_width;
  
@@ -617,5 +623,5 @@ index b3472ef..7423a8f 100644
          </child>
        </object>
 -- 
-2.3.5
+2.4.0
 

@@ -1,4 +1,4 @@
-From 29032b2781a1b03f44a20d11244f8b97c5c5d6bb Mon Sep 17 00:00:00 2001
+From 5a575424d68d0d26a9651c5c82aed64c6b7a3bc7 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 16:42:05 +0200
 Subject: [PATCH] Add gtk_tree_selection_invert_range()
@@ -103,5 +103,5 @@ index be1567f..a792cd7 100644
  
  G_END_DECLS
 -- 
-2.3.5
+2.4.0
 

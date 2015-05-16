@@ -1,4 +1,4 @@
-From 04f06b85bfcbd9a586a6e822596c6101f030d4bb Mon Sep 17 00:00:00 2001
+From cdbb2cd130c302b087d5e9fef60146e09da618ee Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Wed, 31 Dec 2014 14:30:32 +0100
 Subject: [PATCH] fix typo?
@@ -22,5 +22,5 @@ index fd2ba14..98242d0 100644
  	    /* Is the pointer above another widget now? */
  	    if (GTK_TOOLTIP_VISIBLE (current_tooltip))
 -- 
-2.3.5
+2.4.0
 

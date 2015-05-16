@@ -1,4 +1,4 @@
-From b887a58ac959bc734a9e442d9e80b97b25f5aa57 Mon Sep 17 00:00:00 2001
+From 05d78b444997b5bcb1e060a0b60914fe9556e6f7 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 23 Oct 2014 14:40:38 +0200
 Subject: [PATCH 4/5] treeview: Add button in test-rubber-banding
@@ -91,5 +91,5 @@ index bb4aad7..d7fdcf8 100644
                                             gint               bin_y);
    void     (* rubber_banding_active)      (GtkTreeView       *tree_view);
 -- 
-2.3.5
+2.4.0
 

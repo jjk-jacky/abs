@@ -1,4 +1,4 @@
-From aafbc672db1a961a69266f0430d812119f596999 Mon Sep 17 00:00:00 2001
+From 9d35eea8d0447cb89df735201d4c86ccdbf0a112 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 15 Nov 2013 22:12:25 +0100
 Subject: [PATCH] tooltip: Fix possibly briefly appearing at 0x0
@@ -52,5 +52,5 @@ index fd2ba14..4da05f8 100644
    monitor_num = gdk_screen_get_monitor_at_point (screen,
                                                   tooltip->last_x,
 -- 
-2.3.5
+2.4.0
 

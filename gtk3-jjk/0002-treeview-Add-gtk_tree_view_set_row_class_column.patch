@@ -1,4 +1,4 @@
-From 181597ef7aa70b7e4cbb3fd88eec77610fc40934 Mon Sep 17 00:00:00 2001
+From c60e9243ddd638e65c4f668561140be7d5348714 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 17:17:59 +0200
 Subject: [PATCH 2/3] treeview: Add gtk_tree_view_set_row_class_column
@@ -28,7 +28,7 @@ index e1fa7c9..ddeb645 100644
  gtk_tree_view_get_select_highlight_column
  gtk_tree_view_set_select_row_underline
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 5309c6d..ab0b4b4 100644
+index 8f97bb6..c72eaa7 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -431,6 +431,9 @@ struct _GtkTreeViewPrivate
@@ -49,7 +49,7 @@ index 5309c6d..ab0b4b4 100644
    tree_view->priv->search_position_func = gtk_tree_view_search_position_func;
    tree_view->priv->search_equal_func = gtk_tree_view_search_equal_func;
    tree_view->priv->search_custom_entry_set = FALSE;
-@@ -5119,6 +5123,7 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5120,6 +5124,7 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
            gint width;
            gboolean draw_focus;
            gboolean draw_select_highlight;
@@ -57,7 +57,7 @@ index 5309c6d..ab0b4b4 100644
  
  	  if (!gtk_tree_view_column_get_visible (column))
              continue;
-@@ -5239,6 +5244,18 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+@@ -5240,6 +5245,18 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
            gtk_style_context_add_region (context, GTK_STYLE_REGION_COLUMN, column_flags);
  G_GNUC_END_IGNORE_DEPRECATIONS
  
@@ -76,7 +76,7 @@ index 5309c6d..ab0b4b4 100644
  	  if (node == tree_view->priv->cursor_node && has_can_focus_cell
                && ((column == tree_view->priv->focus_column
                     && tree_view->priv->draw_keyfocus &&
-@@ -11555,6 +11572,7 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
+@@ -11556,6 +11573,7 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
        g_object_unref (tree_view->priv->model);
  
        tree_view->priv->search_column = -1;
@@ -84,7 +84,7 @@ index 5309c6d..ab0b4b4 100644
        tree_view->priv->fixed_height_check = 0;
        tree_view->priv->fixed_height = -1;
        tree_view->priv->dy = tree_view->priv->top_row_dy = 0;
-@@ -12535,6 +12553,61 @@ gtk_tree_view_get_expander_column (GtkTreeView *tree_view)
+@@ -12536,6 +12554,61 @@ gtk_tree_view_get_expander_column (GtkTreeView *tree_view)
  }
  
  /**
@@ -146,7 +146,7 @@ index 5309c6d..ab0b4b4 100644
   * gtk_tree_view_set_select_highlight_column:
   * @tree_view: A #GtkTreeView
   * @column: %NULL, or the column to have the select highlight drawn into
-@@ -12634,7 +12707,6 @@ gtk_tree_view_get_select_row_underline (GtkTreeView *tree_view)
+@@ -12635,7 +12708,6 @@ gtk_tree_view_get_select_row_underline (GtkTreeView *tree_view)
    return tree_view->priv->select_row_underline;
  }
  
@@ -171,5 +171,5 @@ index 8c5bb4d..b7f19a1 100644
  								    GtkTreeViewColumn         *column);
  GDK_AVAILABLE_IN_3_10
 -- 
-2.3.5
+2.4.0
 

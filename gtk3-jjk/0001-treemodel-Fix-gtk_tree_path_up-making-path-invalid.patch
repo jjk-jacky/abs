@@ -1,4 +1,4 @@
-From 654f1276027cd5b44e80984a554a9d5e0883e1f3 Mon Sep 17 00:00:00 2001
+From 5ef803d699aa768bb9a3f5e143c9b1e5437d1007 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 20 Nov 2014 11:08:35 +0100
 Subject: [PATCH] treemodel: Fix gtk_tree_path_up() making path invalid
@@ -27,5 +27,5 @@ index 258363f..2026791 100644
  
    path->depth--;
 -- 
-2.3.5
+2.4.0
 

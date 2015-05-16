@@ -1,4 +1,4 @@
-From e3cc1dbafb851f9437c1cbdcf8c7bd1261e8c59b Mon Sep 17 00:00:00 2001
+From acc363eac9885bcfce891d64697d863b88277619 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 16 Jan 2014 17:44:31 +0100
 Subject: [PATCH 2/2] menu: Add helper gtk_menu_popup_and_destroy()
@@ -106,5 +106,5 @@ index bf81a89..e996bf1 100644
  void       gtk_menu_popup_for_device      (GtkMenu             *menu,
                                             GdkDevice           *device,
 -- 
-2.3.5
+2.4.0
 

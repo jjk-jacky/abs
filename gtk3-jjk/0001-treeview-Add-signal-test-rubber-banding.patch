@@ -1,4 +1,4 @@
-From 396207bee9e0354ad0b1d8e30e78d55d35b48c44 Mon Sep 17 00:00:00 2001
+From 3c8fd35360314d1a5cbb3e61baf4b9502d4c87ac Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sun, 28 Sep 2014 15:05:13 +0200
 Subject: [PATCH 1/5] treeview: Add signal test-rubber-banding
@@ -169,5 +169,5 @@ index c3233b4..1b50bc3 100644
  
  /**
 -- 
-2.3.5
+2.4.0
 

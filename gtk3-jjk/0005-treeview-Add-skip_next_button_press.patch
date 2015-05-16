@@ -1,4 +1,4 @@
-From be16d9bf94fe64e25ee99840eafd091d850c874e Mon Sep 17 00:00:00 2001
+From 5b796253b83422f0fb97330caf8e8caa267ae0a6 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 23 Oct 2014 14:46:45 +0200
 Subject: [PATCH 5/5] treeview: Add skip_next_button_press
@@ -105,5 +105,5 @@ index d7fdcf8..5894b94 100644
                                                gboolean              set_cursor);
  GDK_AVAILABLE_IN_ALL
 -- 
-2.3.5
+2.4.0
 

@@ -1,4 +1,4 @@
-From 6a6681f0b22298b5cf99273a8e3169bd5ad8a5dd Mon Sep 17 00:00:00 2001
+From 986697d096b86677e0a9cbfda70a97937079eeaa Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sun, 28 Sep 2014 15:27:15 +0200
 Subject: [PATCH 2/5] treeview: Add signal rubber-banding-active and
@@ -232,5 +232,5 @@ index 1b50bc3..bb4aad7 100644
  GDK_AVAILABLE_IN_ALL
  GtkTreeViewRowSeparatorFunc gtk_tree_view_get_row_separator_func (GtkTreeView               *tree_view);
 -- 
-2.3.5
+2.4.0
 

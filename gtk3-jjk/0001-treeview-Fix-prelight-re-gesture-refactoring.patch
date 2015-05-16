@@ -1,4 +1,4 @@
-From a8e2ed2a4a112267b60fb0f3394fd1faa6de5541 Mon Sep 17 00:00:00 2001
+From f86a1fb8d88c4997dacca9d6a9134dba8622f5a9 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sat, 27 Sep 2014 13:57:38 +0200
 Subject: [PATCH] treeview: Fix prelight re: gesture refactoring
@@ -9,10 +9,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 03d2231..d0457ec 100644
+index 5e1f476..f916ab1 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -4702,15 +4702,15 @@ gtk_tree_view_motion (GtkWidget      *widget,
+@@ -4703,15 +4703,15 @@ gtk_tree_view_motion (GtkWidget      *widget,
  
    if (tree_view->priv->tree)
      {
@@ -33,5 +33,5 @@ index 03d2231..d0457ec 100644
        tree_view->priv->event_last_y = event->y;
        prelight_or_select (tree_view, tree, node, event->x, event->y);
 -- 
-2.3.5
+2.4.0
 
