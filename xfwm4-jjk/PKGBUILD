@@ -4,7 +4,7 @@
 
 _pkgname=xfwm4
 pkgname=$_pkgname-jjk
-pkgver=4.12.2
+pkgver=4.12.3
 pkgrel=1
 pkgdesc="Xfce window manager w/ hover effect for inactive windows & better placement"
 arch=('i686' 'x86_64')
@@ -23,7 +23,7 @@ source=(http://archive.xfce.org/src/xfce/${_pkgname}/4.12/${_pkgname}-${pkgver}.
         0001-Rewrote-smartPlacement.patch
         0002-smartPlacement-w-snap_to_border-we-snap-to-bottom-ri.patch
         0003-Fix-new-window-always-top-left-when-screen-not-full.patch)
-sha1sums=('fb9e9bd6f8a5e1838933355565b92cd40941b90b'
+sha1sums=('9f7688bd444ff0517c72c5ed86c2de80d9bf6f2a'
           '80e75265a7a4146035b0ba201e1cebb398e75e32'
           '321fa777ac3937841504683696b355575705d1e3'
           'ea46b6b9561bdd2e4f5225b4aeed811b2ed5d890'
