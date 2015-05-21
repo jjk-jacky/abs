@@ -5,7 +5,7 @@
 
 _pkgname=ffmpeg
 pkgname=$_pkgname-jjk
-pkgver=2.6.2
+pkgver=2.6.3
 pkgrel=1
 pkgdesc="Complete and free Internet live audio and video broadcasting solution for Linux/Unix"
 arch=('i686' 'x86_64')
@@ -23,7 +23,7 @@ provides=($_pkgname)
 conflicts=($_pkgname)
 source=(http://ffmpeg.org/releases/$_pkgname-$pkgver.tar.bz2{,.asc})
 validpgpkeys=('FCF986EA15E6E293A5644F10B4322F04D67658D8') # ffmpeg-devel
-sha256sums=('889e3aa069b724dc95cbfc79ef83322a8a39d9f6225f39fad1b47294fc1f29ba'
+sha256sums=('59eb98c1b5896ac29abc0385f7c875d1b4942d695818818d418ee71eea1e0cfb'
             'SKIP')
 
 build() {
@@ -46,9 +46,7 @@ build() {
     --enable-libvpx \
     --enable-libx264 \
     --enable-libxvid \
-    --enable-runtime-cpudetect \
     --enable-shared \
-    --enable-swresample \
     --enable-version3 \
     --enable-x11grab
 
