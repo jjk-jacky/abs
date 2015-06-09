@@ -2,7 +2,8 @@
 # Maintainer:  Sergej Pupykin <arch+pub@sergej.pp.ru>
 # Contributor: TJ Vanderpoel <tj@rubyists>
 
-pkgname=musl
+_pkgname=musl
+pkgname=$_pkgname-jjk
 pkgver=1.1.10
 pkgrel=1
 pkgdesc='Lightweight implementation of C standard library'
@@ -10,18 +11,27 @@ arch=('i686' 'x86_64')
 url='http://www.musl-libc.org/'
 license=('MIT')
 options=('staticlibs' '!buildflags')
-source=(http://www.musl-libc.org/releases/musl-$pkgver.tar.gz)
-md5sums=('fc30892ee582c91920505bbd0021049f')
+provides=($_pkgname)
+conflicts=($_pkgname)
+source=(http://www.musl-libc.org/releases/musl-$pkgver.tar.gz
+        fix-uselocale.patch)
+md5sums=('fc30892ee582c91920505bbd0021049f'
+         '87bafc4f79c7b88261ed7d4f73d4581f')
+
+prepare() {
+    cd $_pkgname-$pkgver
+    patch -p1 -i ../fix-uselocale.patch
+}
 
 build() {
-  cd $pkgname-$pkgver
+  cd $_pkgname-$pkgver
   ./configure --prefix=/usr/lib/musl \
     --exec-prefix=/usr
   make
 }
 
 package() {
-  cd $pkgname-$pkgver
+  cd $_pkgname-$pkgver
   make DESTDIR="$pkgdir" install
 
   install -dm755 "$pkgdir"/usr/lib/
