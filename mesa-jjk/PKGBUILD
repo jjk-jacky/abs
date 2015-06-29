@@ -4,7 +4,7 @@
 
 pkgbase=mesa-jjk
 pkgname=('ati-dri-jjk' 'mesa-jjk' 'mesa-libgl-jjk')
-pkgver=10.6.0
+pkgver=10.6.1
 pkgrel=1
 arch=('i686' 'x86_64')
 makedepends=('python2' 'libxml2' 'libx11' 'glproto' 'libdrm' 'dri2proto'
@@ -16,7 +16,7 @@ source=(ftp://ftp.freedesktop.org/pub/mesa/${pkgver}/mesa-${pkgver}.tar.xz{,.sig
         LICENSE)
 validpgpkeys=('CEF8DDC8019CA66D4E3094F3600233BA9E54DC61'
               '8703B6700E7EE06D7A39B8D6EDAE37B02CEB490D')
-sha256sums=('f37e2633978deed02ff0522abc36c709586e2b555fd439a82ab71dce2c866c76'
+sha256sums=('6c80a2b647e57c85dc36e609d9aed17f878f0d8e0cf9ace86d14cf604101e1eb'
             'SKIP'
             '7fdc119cf53c8ca65396ea73f6d10af641ba41ea1dd2bd44a824726e01c8b3f2')
 
@@ -31,6 +31,7 @@ build() {
     --with-gallium-drivers=r600,swrast \
     --with-dri-drivers=radeon,swrast \
     --with-egl-platforms=x11,drm \
+    --with-sha1=libgcrypt \
     --enable-egl \
     --enable-gbm \
     --enable-gallium-llvm \
@@ -65,7 +66,7 @@ package_ati-dri-jjk() {
 package_mesa-jjk() {
   pkgdesc="an open-source implementation of the OpenGL specification"
   depends=('libdrm' 'libxxf86vm' 'libxdamage' 'libxshmfence' 'systemd' 'elfutils'
-           'libgl')
+           'libgl' 'libgcrypt')
   optdepends=('opengl-man-pages: for the OpenGL API man pages')
   provides=('libglapi' 'libgbm' 'libgles' 'libegl' 'khrplatform-devel'
             "mesa=${pkgver}")
