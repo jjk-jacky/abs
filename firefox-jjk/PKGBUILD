@@ -22,9 +22,12 @@ conflicts=($_pkgname)
 install=firefox.install
 options=('!emptydirs' '!makeflags')
 source=(https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/source/firefox-$pkgver.source.tar.bz2
+        https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/SHA512SUMS{,.asc}
         mozconfig firefox.desktop firefox-install-dir.patch vendor.js
         firefox-20.0.1-fixed-loading-icon.png rhbz-966424.patch)
 sha1sums=('32785daee7ddb9da8d7509ef095258fc58fe838e'
+          '6f8e73fb1edabb7cac07ed42e544ff2a7ad78a72'
+          'SKIP'
           '2dd71b1baa21caa4565679e0fcc1db2cadbed62a'
           '27a7cd91a9faac2d2b07d729cd0fb3a2d5243629'
           'ab9fb962aa4687812a16f17e75ffdb2f69611516'
@@ -40,6 +43,12 @@ validpgpkeys=('2B90598A745E992F315E22C58AB132963A06537A')
 _google_api_key=AIzaSyDwr302FpOSkGRpLlUpPThNTDPbXcIn_FM
 
 prepare() {
+  msg2 "Checking SHA512 from mozilla's signed SHA512SUMS file..."
+  # valid sha512 from mozilla signed file
+  moz=$(grep "source/firefox-$pkgver.source.tar.bz2" SHA512SUMS | cut -d' ' -f1)
+  our=$(sha512sum "firefox-$pkgver.source.tar.bz2" | cut -d' ' -f1)
+  [[ $moz = $our ]] || exit 1
+
   cd mozilla-release
 
   cp ../mozconfig .mozconfig
