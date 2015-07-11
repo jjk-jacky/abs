@@ -6,7 +6,7 @@ pkgname=('php-jjk'
          'php-fpm-jjk'
          'php-pear-jjk'
          'php-mcrypt-jjk')
-pkgver=5.6.10
+pkgver=5.6.11
 pkgrel=1
 arch=('i686' 'x86_64')
 license=('PHP')
@@ -19,7 +19,7 @@ source=("http://www.php.net/distributions/${pkgbase}-${pkgver}.tar.xz"{,.asc}
         'logrotate.d.php-fpm' 'php-fpm.service' 'php-fpm.tmpfiles')
 validpgpkeys=('6E4F6AB321FDC07F2C332E3AC2BF0BC433CFC8B3'
               '0BD78B5F97500D450838F95DFE857D9A90D90EC1')
-sha256sums=('1af720c955b0a57aa47606e928616e84c78868aff2a5f269c70601a77d6da8c1'
+sha256sums=('3f97dbb1c646b90e1ef638defabe429ef036f903b5baa1c34769d3de4fe62bd4'
             'SKIP'
             '50ac9f09a1301899b6626ebb1cbb5ad7f9f4e841cd21f51bc860d1a627aa7999'
             '6cbae35056efffbef1a7193a49c879057e9c60651ae0cf8bedc0ef13438e348e'
