@@ -1,0 +1,26 @@
+From 366c5f7e99c6729167c01526cb741470753a7bc8 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Sun, 12 Jul 2015 17:48:23 +0200
+Subject: [PATCH 2/3] Fix too large padding in .view
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ gtk-3.0/gtk-widgets.css | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gtk-3.0/gtk-widgets.css b/gtk-3.0/gtk-widgets.css
+index 4f8f671..ea703a7 100644
+--- a/gtk-3.0/gtk-widgets.css
++++ b/gtk-3.0/gtk-widgets.css
+@@ -137,7 +137,7 @@
+ }
+ 
+ .view {
+-    padding: 2px;
++    padding: 0;
+     background-color: shade(@base_color, 0.97);
+ }
+ 
+-- 
+2.4.5
+

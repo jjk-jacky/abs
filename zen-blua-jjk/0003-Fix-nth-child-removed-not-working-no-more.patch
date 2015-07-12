@@ -1,0 +1,41 @@
+From d1255cc1de51f72aafff7e8040b3a203d0a21b1e Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Sun, 12 Jul 2015 17:48:54 +0200
+Subject: [PATCH 3/3] Fix :nth-child removed/not working no more
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ gtk-3.0/gtk-widgets.css | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/gtk-3.0/gtk-widgets.css b/gtk-3.0/gtk-widgets.css
+index ea703a7..4a83e6c 100644
+--- a/gtk-3.0/gtk-widgets.css
++++ b/gtk-3.0/gtk-widgets.css
+@@ -150,19 +150,19 @@
+     background-color: @selected_base_color;
+ }
+ 
+-.view row:nth-child(odd) {
++.view row:odd {
+     background-color: shade(@base_color, 0.905);
+ }
+ 
+-.view row:nth-child(even) {
++.view row:even {
+     background-color: shade(@base_color, 0.97);
+ }
+ 
+-.view row:nth-child(odd):selected {
++.view row:odd:selected {
+     background-color: shade(@selected_base_color, 0.94);
+ }
+ 
+-.view row:nth-child(even):selected {
++.view row:even:selected {
+     background-color: @selected_base_color;
+ }
+  
+-- 
+2.4.5
+

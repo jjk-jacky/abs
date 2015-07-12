@@ -3,7 +3,7 @@
 _pkgname=zen-gtk-themes
 pkgname=zen-blua-jjk
 pkgver=0.14.2
-pkgrel=1
+pkgrel=2
 pkgdesc="A GTK2/GTK3 theme that attempt to keep it simple, consistent and being visually appealing."
 arch=('any')
 url="http://opendesktop.org/content/show.php/Zen+suite?content=149883"
@@ -11,8 +11,14 @@ license=('GPL3')
 depends=('gtk-engines' 'gtk-engine-murrine')
 
 source=("$_pkgname-$pkgver.tar.gz::https://github.com/cedl38/$_pkgname/archive/v$pkgver.tar.gz"
+        0001-GTK-renamed-active-with-checked.patch
+        0002-Fix-too-large-padding-in-.view.patch
+        0003-Fix-nth-child-removed-not-working-no-more.patch
         jjk-tweak-titlebar-colors.patch)
 sha256sums=('06c4eac9b15d3a6b0ddad891c6bbbba9393e51c1783b69dc6a37c2ec9de7a7d9'
+            '8d846464ed9a0ed850264233d6f4e8b9e203d8df81dab438d587662556c433f9'
+            '46b7d56ba465cd11d037f73653bc868c179367f6d7f287edac0babb522740484'
+            'd3a4d3d1595c07aa2141dde701616a12e34f948187be5f4be06795e2f93f305a'
             '99eb5b2fb2a1475090037ca131f144105e15031b37220f344b2dd5facf8a054d')
 
 build() {
@@ -32,6 +38,12 @@ package() {
     # install part, so really the only place we can patch is here:
     cd "$pkgdir/usr/share/themes"
     patch -Np0 -i "$srcdir/jjk-tweak-titlebar-colors.patch"
+    patch -p1 -d "Zen-blua" \
+        -i "$srcdir/0001-GTK-renamed-active-with-checked.patch"
+    patch -p1 -d "Zen-blua" \
+        -i "$srcdir/0002-Fix-too-large-padding-in-.view.patch"
+    patch -p1 -d "Zen-blua" \
+        -i "$srcdir/0003-Fix-nth-child-removed-not-working-no-more.patch"
     cd -
 
     rm -rf "$pkgdir"/usr/share/themes/Zen{,-{bicolor,griza,nigra,nokto,papero,verda}}
