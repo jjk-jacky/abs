@@ -4,7 +4,7 @@
 
 _pkgname=firefox
 pkgname=$_pkgname-jjk
-pkgver=39.0.3
+pkgver=40.0
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=('i686' 'x86_64')
@@ -24,8 +24,8 @@ options=('!emptydirs' '!makeflags')
 source=(https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/source/firefox-$pkgver.source.tar.bz2
         https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/SHA512SUMS{,.asc}
         mozconfig firefox.desktop firefox-install-dir.patch vendor.js
-        firefox-20.0.1-fixed-loading-icon.png rhbz-966424.patch)
-sha1sums=('e024e528317d6c531fb36a26d2ce3317d3510b42'
+        firefox-20.0.1-fixed-loading-icon.png rhbz-966424.patch fix.patch)
+sha1sums=('48483e5738182f8567e2b6d2e29bd6bc1812d3eb'
           'SKIP'
           'SKIP'
           'b4653cf7ec52a35a6aca0b00b9b9f3acfa9c6284'
@@ -33,7 +33,8 @@ sha1sums=('e024e528317d6c531fb36a26d2ce3317d3510b42'
           'ab9fb962aa4687812a16f17e75ffdb2f69611516'
           '7739fbea2838cb9148a1d77090ace46eeb397f79'
           '0c3900ffe21bfc3d96b80ade334613bc7e76fe27'
-          '76c7af0a23c980410a4f650142de273d0f122351')
+          '76c7af0a23c980410a4f650142de273d0f122351'
+          '736b242febb6e953128a32734152c67986856d88')
 validpgpkeys=('2B90598A745E992F315E22C58AB132963A06537A'
               '14F26682D0916CDD81E37B6D61B7B526D98F0353')
 
@@ -48,9 +49,10 @@ prepare() {
   # valid sha512 from mozilla signed file
   moz=$(grep "source/firefox-$pkgver.source.tar.bz2" SHA512SUMS | cut -d' ' -f1)
   our=$(sha512sum "firefox-$pkgver.source.tar.bz2" | cut -d' ' -f1)
-  [[ $moz = $our ]] || exit 1
+  [[ $moz != $our ]] && error "SHA512s do not match" && exit 1
 
   cd mozilla-release
+  patch -p0 -i ../fix.patch
 
   cp ../mozconfig .mozconfig
   patch -Np1 -i ../firefox-install-dir.patch

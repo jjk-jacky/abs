@@ -1,0 +1,101 @@
+--- gfx/2d/Logging.h	2015-08-13 13:50:24.911093907 +0200
++++ gfx/2d/Logging.h	2015-08-13 15:34:34.211349378 +0200
+@@ -22,7 +22,9 @@
+ #include "BaseRect.h"
+ #include "Matrix.h"
+ 
++#if defined(MOZ_LOGGING)
+ extern GFX2D_API PRLogModuleInfo *GetGFX2DLog();
++#endif
+ 
+ namespace mozilla {
+ namespace gfx {
+@@ -42,6 +44,7 @@
+ const int LOG_DEFAULT = LOG_CRITICAL;
+ #endif
+ 
++#if defined(MOZ_LOGGING)
+ inline PRLogModuleLevel PRLogLevelForLevel(int aLevel) {
+   switch (aLevel) {
+   case LOG_CRITICAL:
+@@ -57,6 +60,7 @@
+   }
+   return PR_LOG_DEBUG;
+ }
++#endif
+ 
+ class PreferenceAccess
+ {
+@@ -133,9 +137,12 @@
+ #if defined(MOZ_WIDGET_GONK) || defined(MOZ_WIDGET_ANDROID)
+       return true;
+ #else
++#if defined(MOZ_LOGGING)
+       if (PR_LOG_TEST(GetGFX2DLog(), PRLogLevelForLevel(aLevel))) {
+         return true;
+-      } else if ((PreferenceAccess::sGfxLogLevel >= LOG_DEBUG_PRLOG) ||
++      } else
++#endif
++      if ((PreferenceAccess::sGfxLogLevel >= LOG_DEBUG_PRLOG) ||
+                  (aLevel < LOG_DEBUG)) {
+         return true;
+       }
+@@ -160,9 +167,12 @@
+ #if defined(MOZ_WIDGET_GONK) || defined(MOZ_WIDGET_ANDROID)
+       printf_stderr("%s%s", aString.c_str(), aNoNewline ? "" : "\n");
+ #else
++#if defined(MOZ_LOGGING)
+       if (PR_LOG_TEST(GetGFX2DLog(), PRLogLevelForLevel(aLevel))) {
+         PR_LogPrint("%s%s", aString.c_str(), aNoNewline ? "" : "\n");
+-      } else if ((PreferenceAccess::sGfxLogLevel >= LOG_DEBUG_PRLOG) ||
++      } else
++#endif
++      if ((PreferenceAccess::sGfxLogLevel >= LOG_DEBUG_PRLOG) ||
+                  (aLevel < LOG_DEBUG)) {
+         printf("%s%s", aString.c_str(), aNoNewline ? "" : "\n");
+       }
+--- gfx/2d/Factory.cpp	2015-08-13 15:07:29.387949622 +0200
++++ gfx/2d/Factory.cpp	2015-08-13 15:08:28.527952039 +0200
+@@ -52,6 +52,7 @@
+ 
+ #include "mozilla/CheckedInt.h"
+ 
++#if defined(PR_LOGGING)
+ GFX2D_API PRLogModuleInfo *
+ GetGFX2DLog()
+ {
+@@ -60,6 +61,7 @@
+     sLog = PR_NewLogModule("gfx2d");
+   return sLog;
+ }
++#endif
+ 
+ // The following code was largely taken from xpcom/glue/SSE.cpp and
+ // made a little simpler.
+--- dom/media/MediaDecoder.cpp	2015-08-13 15:05:07.391277150 +0200
++++ dom/media/MediaDecoder.cpp	2015-08-13 15:05:19.131277630 +0200
+@@ -117,20 +117,24 @@
+ 
+ StaticRefPtr<MediaMemoryTracker> MediaMemoryTracker::sUniqueInstance;
+ 
++#if defined(PR_LOGGING)
+ PRLogModuleInfo* gStateWatchingLog;
+ PRLogModuleInfo* gMediaPromiseLog;
+ PRLogModuleInfo* gMediaTimerLog;
++#endif
+ 
+ void
+ MediaDecoder::InitStatics()
+ {
+   AbstractThread::InitStatics();
+ 
++#if defined(PR_LOGGING)
+   // Log modules.
+   gMediaDecoderLog = PR_NewLogModule("MediaDecoder");
+   gMediaPromiseLog = PR_NewLogModule("MediaPromise");
+   gStateWatchingLog = PR_NewLogModule("StateWatching");
+   gMediaTimerLog = PR_NewLogModule("MediaTimer");
++#endif
+ }
+ 
+ NS_IMPL_ISUPPORTS(MediaMemoryTracker, nsIMemoryReporter)
