@@ -28,7 +28,7 @@ source=(https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/source/
 sha1sums=('e024e528317d6c531fb36a26d2ce3317d3510b42'
           'SKIP'
           'SKIP'
-          '2dd71b1baa21caa4565679e0fcc1db2cadbed62a'
+          'b4653cf7ec52a35a6aca0b00b9b9f3acfa9c6284'
           '27a7cd91a9faac2d2b07d729cd0fb3a2d5243629'
           'ab9fb962aa4687812a16f17e75ffdb2f69611516'
           '7739fbea2838cb9148a1d77090ace46eeb397f79'

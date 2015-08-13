@@ -42,5 +42,6 @@ ac_add_options --disable-websms-backend
 ac_add_options --disable-webspeech
 ac_add_options --disable-eme
 ac_add_options --disable-gamepad
+ac_add_options --disable-printing
 
 # vim:set ft=sh:
