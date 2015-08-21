@@ -1,0 +1,225 @@
+From b69dca6cbdf8054cb7592e2d5fcb534f472315c1 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Fri, 21 Aug 2015 14:52:12 +0200
+Subject: [PATCH] GTK renamed :active with :checked
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ gtk-3.0/csd.css         | 16 ++++++++++++----
+ gtk-3.0/gtk-widgets.css | 39 +++++++++++++++++++++++++--------------
+ gtk-3.0/panel.css       |  6 ++++--
+ 3 files changed, 41 insertions(+), 20 deletions(-)
+
+diff --git a/gtk-3.0/csd.css b/gtk-3.0/csd.css
+index 80db518..41451c2 100644
+--- a/gtk-3.0/csd.css
++++ b/gtk-3.0/csd.css
+@@ -112,7 +112,8 @@
+                                      shade(@headerbar_bg_hover, 0.97));
+ }
+ 
+-.header-bar .button:hover:active {
++.header-bar .button:hover:active,
++.header-bar .button:hover:checked {
+     color: @menubar_fg_normal;
+     background-image: linear-gradient(to bottom,
+                                      shade(@menubar_bg_selected, 1.02),
+@@ -120,7 +121,8 @@
+ }
+ 
+ .header-bar .button:hover,
+-.header-bar .button:hover:active {
++.header-bar .button:hover:active,
++.header-bar .button:hover:checked {
+     border-top-color: @menubar_border_hover;
+     border-right-color: shade(@menubar_border_hover, 0.95);
+     border-bottom-color: shade(@menubar_border_hover, 0.9);
+@@ -187,7 +189,9 @@
+ }
+ 
+ .titlebar .titlebutton:active,
+-.titlebar .titlebutton:active:hover {
++.titlebar .titlebutton:active:hover,
++.titlebar .titlebutton:checked,
++.titlebar .titlebutton:checked:hover {
+     background: none;
+     icon-shadow: 0 1px @headerbar_light_shadow;
+     box-shadow: none;
+@@ -211,7 +215,11 @@
+ .titlebar .left .titlebutton:first-child:active,
+ .titlebar .right .titlebutton:last-child:active,
+ .titlebar .left .titlebutton:first-child:active:focus,
+-.titlebar .right .titlebutton:last-child:active:focus {
++.titlebar .right .titlebutton:last-child:active:focus,
++.titlebar .left .titlebutton:first-child:checked,
++.titlebar .right .titlebutton:last-child:checked,
++.titlebar .left .titlebutton:first-child:checked:focus,
++.titlebar .right .titlebutton:last-child:checked:focus {
+     color: @titlebutton_close_hover;
+     icon-shadow: 0 1px @headerbar_light_shadow;
+ }
+diff --git a/gtk-3.0/gtk-widgets.css b/gtk-3.0/gtk-widgets.css
+index 6b62eaf..4f15762 100644
+--- a/gtk-3.0/gtk-widgets.css
++++ b/gtk-3.0/gtk-widgets.css
+@@ -105,7 +105,8 @@
+     color: @fg_color;
+ }
+ 
+-.gtkstyle-fallback:active {
++.gtkstyle-fallback:active,
++.gtkstyle-fallback:checked {
+     background-color: shade(@bg_color, 0.90);
+     color: @fg_color;
+ }
+@@ -282,7 +283,8 @@ GtkSwitch.slider,
+ }
+ 
+ GtkLinkButton.button,
+-GtkLinkButton.button:active {
++GtkLinkButton.button:active,
++GtkLinkButton.button:checked {
+     text-shadow: none;
+ }
+ 
+@@ -312,7 +314,8 @@ GtkComboBox.flat {
+     box-shadow: none;
+ }
+ 
+-.button:active, .toolbar .button:active, .button.default:active {
++.button:active, .toolbar .button:active, .button.default:active,
++.button:checked, .toolbar .button:checked, .button.default:checked {
+     background-image: linear-gradient(to bottom,
+                                      shade(@bg_active,  0.97),
+                                      shade(@bg_active, 1.05));
+@@ -324,7 +327,8 @@ GtkComboBox.flat {
+                 inset 1px 0 alpha(@dark_shadow, 0.05);
+ }
+ 
+-GtkSwitch.trough:active {
++GtkSwitch.trough:active,
++GtkSwitch.trough:checked {
+     background-image: linear-gradient(to bottom,
+                                     shade(@selected_bg_color, 0.97),
+                                     shade(@selected_bg_color, 1.05));
+@@ -338,7 +342,8 @@ GtkSwitch.trough:active {
+                                      shade(@bg_hover, 0.97));
+ }
+ 
+-.button:hover:active {
++.button:hover:active,
++.button:hover:checked {
+     background-image: linear-gradient(to bottom,
+                                      shade(@bg_active, 1.02),
+                                      shade(@bg_active, 1.1));
+@@ -435,7 +440,8 @@ GtkSwitch {
+     font: bold;
+ }
+ 
+-GtkSwitch:active {
++GtkSwitch:active,
++GtkSwitch:checked {
+     border-radius: 0 3px 3px 0;
+     font: bold;
+ }
+@@ -513,7 +519,9 @@ column-header:last-child .button {
+ 
+ /* remove right box shadow from last-child and only-child */
+ .linked .entry:last-child:active, .linked .button:last-child:active,
+-.linked .entry:only-child:active, .linked .button:only-child:active {
++.linked .entry:only-child:active, .linked .button:only-child:active,
++.linked .entry:last-child:checked, .linked .button:last-child:checked,
++.linked .entry:only-child:checked, .linked .button:only-child:checked {
+     box-shadow: inset 0 1px alpha(@dark_shadow, 0.1),
+                 inset 1px 0 alpha(@dark_shadow, 0.05);
+ }
+@@ -527,12 +535,13 @@ GtkCheckButton.check, GtkCheckButton.radio {
+     -GtkWidget-focus-line-pattern: "\1\1";
+ }
+ 
+-GtkCheckButton.check:active, GtkCheckButton.radio:active {
++GtkCheckButton.check:active, GtkCheckButton.radio:active,
++GtkCheckButton.check:checked, GtkCheckButton.radio:checked {
+     color: @text_color;
+     background-color: @selected_bg_color;
+ }
+ 
+-GtkCheckButton:hover, GtkCheckButton:active:hover,
++GtkCheckButton:hover, GtkCheckButton:active:hover, GtkCheckButton:checked:hover,
+ GtkCheckButton:selected, GtkCheckButton:selected {
+     color: @selected_fg_color;
+ }
+@@ -672,7 +681,8 @@ GtkLevelBar.vertical {
+     border-style: solid;
+ }
+ 
+-.scrollbar.button:active {
++.scrollbar.button:active,
++.scrollbar.button:checked {
+     background-image: none;
+     background-color: @bg_active;
+     border-style: solid;
+@@ -951,8 +961,8 @@ GtkScale.slider.mark {
+     border-top-color: shade(@border_selected, 0.95);
+ }
+ 
+-.button:hover, .button:hover:focus, .button:hover:active, GtkSwitch:hover,
+-.check:hover, .radio:hover {
++.button:hover, .button:hover:focus, .button:hover:active, .button:hover:checked,
++GtkSwitch:hover, .check:hover, .radio:hover {
+     border-top-color: @border_selected;
+     border-right-color: shade(@border_selected, 0.95);
+     border-bottom-color: shade(@border_selected, 0.9);
+@@ -1077,7 +1087,7 @@ GtkPopover .trough:insensitive {
+     background-color: @menu_bg_normal;
+ }
+ 
+-.menu *:hover, .menu *:active:hover, .menu *:selected {
++.menu *:hover, .menu *:active:hover, .menu *:checked:hover, .menu *:selected {
+     color: @menu_fg_selected;
+ }
+ 
+@@ -1092,7 +1102,7 @@ GtkPopover .trough:insensitive {
+     text-shadow: 1px 1px shade(@menu_bg_normal, 1.05);
+ }
+ 
+-.menuitem:hover, .menuitem:hover:active, .menu:hover {
++.menuitem:hover, .menuitem:hover:active, .menuitem:hover:checked,, .menu:hover {
+     border-style: solid;
+     border-width: 1px;
+     background-image: none;
+@@ -1142,6 +1152,7 @@ GtkPopover > .toolbar {
+ }
+ 
+ GtkModelButton.button:active:hover,
++GtkModelButton.button:checked:hover,
+ GtkModelButton.button:hover,
+ GtkModelButton.button:selected,
+ GtkModelButton.button {
+diff --git a/gtk-3.0/panel.css b/gtk-3.0/panel.css
+index f3c8236..7e12317 100644
+--- a/gtk-3.0/panel.css
++++ b/gtk-3.0/panel.css
+@@ -34,7 +34,8 @@ PanelApplet .button {
+     border-left-color: alpha(@panel_button_border, 0.9);
+ }
+ 
+-PanelApplet .button:active {
++PanelApplet .button:active,
++PanelApplet .button:checked {
+     color: @panel_fg_selected;
+     background-image: linear-gradient(to bottom,
+                                      shade(@panel_bg_active, 1.05),
+@@ -45,7 +46,8 @@ PanelApplet .button:active {
+     border-left-color: @border_selected;
+ }
+ 
+-PanelApplet .button:prelight, PanelApplet .button:active:prelight  {
++PanelApplet .button:prelight, PanelApplet .button:active:prelight,
++PanelApplet .button:checked:prelight {
+     color: @panel_fg_selected;
+     background-image: linear-gradient(to bottom,
+                                      shade(@panel_bg_prelight, 1.05),
+-- 
+2.5.0
+
