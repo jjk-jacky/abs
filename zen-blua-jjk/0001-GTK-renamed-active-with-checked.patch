@@ -184,7 +184,7 @@ index 6b62eaf..4f15762 100644
  }
  
 -.menuitem:hover, .menuitem:hover:active, .menu:hover {
-+.menuitem:hover, .menuitem:hover:active, .menuitem:hover:checked,, .menu:hover {
++.menuitem:hover, .menuitem:hover:active, .menuitem:hover:checked, .menu:hover {
      border-style: solid;
      border-width: 1px;
      background-image: none;

@@ -3,7 +3,7 @@
 _pkgname=zen-gtk-themes
 pkgname=zen-blua-jjk
 pkgver=0.16.0
-pkgrel=2
+pkgrel=3
 pkgdesc="A GTK2/GTK3 theme that attempt to keep it simple, consistent and being visually appealing."
 arch=('any')
 url="http://opendesktop.org/content/show.php/Zen+suite?content=149883"
@@ -16,7 +16,7 @@ source=("$_pkgname-$pkgver.tar.gz::https://github.com/cedl38/$_pkgname/archive/v
         0003-Fix-nth-child-removed-not-working-no-more.patch
         jjk-tweak-titlebar-colors.patch)
 sha256sums=('84c1abf6ec357b24b5091fffd8605fd7efdb41b59d8289c7b77e02a407f16fee'
-            '671cfb01791fe008cdd4f57e8d180a10bfb2880ea2ee5ab621d5c7d2ecee9e83'
+            '5b5751ea3251c4a33ac257eeff26708bfb3cab4b3ab0749e0c8f3fea7ab09ecf'
             '46b7d56ba465cd11d037f73653bc868c179367f6d7f287edac0babb522740484'
             'd3a4d3d1595c07aa2141dde701616a12e34f948187be5f4be06795e2f93f305a'
             '99eb5b2fb2a1475090037ca131f144105e15031b37220f344b2dd5facf8a054d')
