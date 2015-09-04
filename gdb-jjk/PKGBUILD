@@ -10,7 +10,7 @@ pkgdesc="The GNU Debugger"
 arch=('i686' 'x86_64')
 url="http://www.gnu.org/software/gdb/"
 license=('GPL3')
-depends=('ncurses' 'expat' 'python2' 'xz')
+depends=('ncurses' 'expat' 'python' 'xz')
 makedepends=('texinfo')
 provides=($_pkgname)
 conflicts=($_pkgname)
@@ -34,7 +34,7 @@ build() {
 
   ./configure --prefix=/usr --disable-nls \
     --with-system-readline \
-    --with-python=/usr/bin/python2 \
+    --with-python=/usr/bin/python \
     --with-system-gdbinit=/etc/gdb/gdbinit
   make
 }
