@@ -6,20 +6,20 @@ pkgname=('php-jjk'
          'php-fpm-jjk'
          'php-pear-jjk'
          'php-mcrypt-jjk')
-pkgver=5.6.12
+pkgver=5.6.13
 pkgrel=1
 arch=('i686' 'x86_64')
 license=('PHP')
 url='http://www.php.net'
 makedepends=('file' 'libmcrypt' 'libltdl' 'libpng' 'libjpeg'
              'curl' 'openssl' 'bzip2' 'db' 'gmp' 'freetype2'
-             'systemd' 'pcre' 'libxml2')
+             'pcre' 'libxml2')
 source=("http://www.php.net/distributions/${pkgbase}-${pkgver}.tar.xz"{,.asc}
         'php.ini.patch' 'php-fpm.conf.in.patch'
         'logrotate.d.php-fpm' 'php-fpm.service' 'php-fpm.tmpfiles')
 validpgpkeys=('6E4F6AB321FDC07F2C332E3AC2BF0BC433CFC8B3'
               '0BD78B5F97500D450838F95DFE857D9A90D90EC1')
-sha256sums=('f8a8446866c0dc3f33319aa196ce87b64d71cab3dd96e39c8816adccc7e8ef33'
+sha256sums=('c1f0837df20cd3bed149033924770deca3e7e2d18e2e7e81395096576f153fdc'
             'SKIP'
             '05e2b98470f3e5c94b9e6aa99f2365f175ee7d0fb8a85307fd38c8b3e539f1af'
             '6cbae35056efffbef1a7193a49c879057e9c60651ae0cf8bedc0ef13438e348e'
@@ -70,7 +70,6 @@ build() {
         --with-bz2=shared \
         --with-curl=shared \
         --with-db4=/usr \
-        --with-fpm-systemd \
         --with-freetype-dir=/usr \
         --with-gd=shared \
         --with-gdbm \
@@ -173,7 +172,7 @@ package_php-jjk() {
 
 package_php-fpm-jjk() {
 	pkgdesc='FastCGI Process Manager for PHP'
-	depends=('php' 'systemd')
+	depends=('php')
 	conflicts=('php-fpm')
 	backup=('etc/php/php-fpm.conf')
 	install='php-fpm.install'
@@ -184,7 +183,6 @@ package_php-fpm-jjk() {
 	install -D -m644 ${srcdir}/logrotate.d.php-fpm ${pkgdir}/etc/logrotate.d/php-fpm
 	install -d -m755 ${pkgdir}/etc/php/fpm.d
 	install -D -m644 ${srcdir}/php-fpm.tmpfiles ${pkgdir}/usr/lib/tmpfiles.d/php-fpm.conf
-	install -D -m644 ${srcdir}/php-fpm.service ${pkgdir}/usr/lib/systemd/system/php-fpm.service
 }
 
 package_php-pear-jjk() {
