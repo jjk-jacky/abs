@@ -10,7 +10,7 @@
 
 _pkgname=nodejs
 pkgname=$_pkgname-jjk
-pkgver=0.12.7
+pkgver=4.1.0
 pkgrel=1
 pkgdesc='Evented I/O for V8 javascript'
 arch=('i686' 'x86_64')
@@ -22,7 +22,7 @@ optdepends=('npm: nodejs package manager')
 conflicts=($_pkgname)
 provides=($_pkgname)
 source=("http://nodejs.org/dist/v$pkgver/node-v$pkgver.tar.gz")
-sha256sums=('b23d64df051c9c969b0c583f802d5d71de342e53067127a5061415be7e12f39d')
+sha256sums=('453005f64ee529f7dcf1237eb27ee2fa2415c49f5c9e7463e8b71fba61c5b408')
 
 prepare() {
   cd node-v$pkgver
@@ -32,6 +32,8 @@ prepare() {
     -e 's_^#!/usr/bin/env python$_&2_' \
     -e 's_^\(#!/usr/bin/python2\).[45]$_\1_' \
     -e 's_^#!/usr/bin/python$_&2_' \
+    -e 's_^\( *exec \+\)python\( \+.*\)$_\1python2\2_'\
+    -e 's_^\(.*\)python\( \+-c \+.*\)$_\1python2\2_'\
     -e "s_'python'_'python2'_" -i {} \;
   find test/ -type f -exec sed 's_python _python2 _' -i {} \;
 }
