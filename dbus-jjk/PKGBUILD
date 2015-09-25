@@ -4,14 +4,14 @@
 # Contributor: Link Dupont <link@subpop.net>
 
 pkgbase=dbus
-pkgname=('dbus' 'libdbus')
+pkgname=('dbus-jjk' 'libdbus-jjk')
 pkgver=1.10.0
-pkgrel=3
+pkgrel=1
 pkgdesc="Freedesktop.org message bus system"
 url="http://www.freedesktop.org/Software/dbus"
 arch=(i686 x86_64)
 license=('GPL' 'custom')
-makedepends=('libx11' 'systemd' 'xmlto' 'docbook-xsl')
+makedepends=('libx11' 'xmlto' 'docbook-xsl')
 source=(http://dbus.freedesktop.org/releases/dbus/dbus-$pkgver.tar.gz{,.asc})
 md5sums=('5af6297348107a906c8449817a728b3b'
          'SKIP')
@@ -27,17 +27,16 @@ build() {
       --enable-inotify \
       --disable-verbose-mode --disable-static \
       --disable-tests --disable-asserts \
-      --with-systemdsystemunitdir=/usr/lib/systemd/system \
-      --enable-systemd --enable-user-session
+      --disable-systemd
   make
 }
 
-package_dbus(){
+package_dbus-jjk(){
   depends=('libdbus' 'expat')
   optdepends=('libx11: dbus-launch support')
-  provides=('dbus-core')
-  conflicts=('dbus-core')
-  replaces=('dbus-core')
+  provides=('dbus' 'dbus-core')
+  conflicts=('dbus' 'dbus-core')
+  replaces=('dbus' 'dbus-core')
 
   cd dbus-$pkgver
 
@@ -52,9 +51,10 @@ package_dbus(){
   install -Dm644 COPYING "$pkgdir/usr/share/licenses/dbus/COPYING"
 }
 
-package_libdbus(){
+package_libdbus-jjk(){
   pkgdesc="DBus library"
-  depends=('libsystemd')
+  provides=('libdbus')
+  conflicts=('libdbus')
 
   cd dbus-$pkgver
   make DESTDIR="$pkgdir" -C dbus install
