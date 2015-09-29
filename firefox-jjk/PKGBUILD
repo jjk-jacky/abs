@@ -4,7 +4,7 @@
 
 _pkgname=firefox
 pkgname=$_pkgname-jjk
-pkgver=40.0.3
+pkgver=41.0
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=('i686' 'x86_64')
@@ -15,18 +15,18 @@ depends=('gtk2' 'mozilla-common' 'libxt' 'startup-notification' 'mime-types'
          'libvpx' 'libevent' 'nss' 'hunspell' 'sqlite')
 makedepends=('unzip' 'zip' 'diffutils' 'python2' 'yasm' 'mesa' 'imake'
              'xorg-server-xvfb' 'libpulse'
-             'inetutils')
+             'inetutils' 'gconf')
 optdepends=('networkmanager: Location detection via available WiFi networks')
 provides=($_pkgname)
 conflicts=($_pkgname)
 install=firefox.install
 options=('!emptydirs' '!makeflags')
-source=(https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/source/firefox-$pkgver.source.tar.bz2
+source=(https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/source/firefox-$pkgver.source.tar.xz
         https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/SHA512SUMS{,.asc}
         mozconfig firefox.desktop firefox-install-dir.patch vendor.js
         firefox-20.0.1-fixed-loading-icon.png rhbz-966424.patch fix.patch)
-sha1sums=('6ddda46bd6540ab3ae932fbb5ffec8e9a85cab13'
-          'SKIP'
+sha1sums=('0ce7a5ccdf671a6c98eaac07d06d49a895a99449'
+          '512fa859b3e5bafecab2e272f29e831578e7ed91'
           'SKIP'
           'b4653cf7ec52a35a6aca0b00b9b9f3acfa9c6284'
           '27a7cd91a9faac2d2b07d729cd0fb3a2d5243629'
@@ -34,7 +34,7 @@ sha1sums=('6ddda46bd6540ab3ae932fbb5ffec8e9a85cab13'
           '7739fbea2838cb9148a1d77090ace46eeb397f79'
           '0c3900ffe21bfc3d96b80ade334613bc7e76fe27'
           '76c7af0a23c980410a4f650142de273d0f122351'
-          '736b242febb6e953128a32734152c67986856d88')
+          '616ab2813193b62553c4fc3497fa2c9be4f31150')
 validpgpkeys=('2B90598A745E992F315E22C58AB132963A06537A'
               '14F26682D0916CDD81E37B6D61B7B526D98F0353')
 
@@ -47,14 +47,15 @@ _google_api_key=AIzaSyDwr302FpOSkGRpLlUpPThNTDPbXcIn_FM
 prepare() {
   msg2 "Checking SHA512 from mozilla's signed SHA512SUMS file..."
   # valid sha512 from mozilla signed file
-  moz=$(grep "source/firefox-$pkgver.source.tar.bz2" SHA512SUMS | cut -d' ' -f1)
-  our=$(sha512sum "firefox-$pkgver.source.tar.bz2" | cut -d' ' -f1)
+  moz=$(grep "source/firefox-$pkgver.source.tar.xz" SHA512SUMS | cut -d' ' -f1)
+  our=$(sha512sum "firefox-$pkgver.source.tar.xz" | cut -d' ' -f1)
   [[ $moz != $our ]] && error "SHA512s do not match" && exit 1
 
   cd mozilla-release
-  patch -p0 -i ../fix.patch
+#  patch -p1 -i ../fix.patch
 
   cp ../mozconfig .mozconfig
+sed -i -e 's/ac_add_options --disable-logging//' .mozconfig
   patch -Np1 -i ../firefox-install-dir.patch
 
   # https://bugs.archlinux.org/task/41689
