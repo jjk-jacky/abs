@@ -25,7 +25,7 @@ source=(https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/source/
         firefox-$pkgver.source.tar.xz.sha512::https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/SHA512SUMS
         firefox-$pkgver.source.tar.xz.sha512.asc::https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/SHA512SUMS.asc
         mozconfig firefox.desktop firefox-install-dir.patch vendor.js
-        firefox-20.0.1-fixed-loading-icon.png rhbz-966424.patch fix.patch)
+        firefox-20.0.1-fixed-loading-icon.png fix.patch)
 sha512sums=('FILE'
             'SKIP'
             'SKIP'
@@ -34,7 +34,6 @@ sha512sums=('FILE'
             '266989b0c4a37254a40836a6193284a186230b48716907e4d249d73616f58382b258c41baa8c1ffc98d405f77bfafcd3438f749edcf391c7bd22185399adf4bd'
             'd927e5e882115c780aa0d45034cb1652eaa191d95c15013639f9172ae734245caae070018465d73fdf86a01601d08c9e65f28468621422d799fe8451e6175cb7'
             'd51119170cc8fb99c50610a8e5e94f38a31722c1c1a2260ca32d8e376732e30c8e1deac7d8c599348892e783fb4c75ce8c38bbd238282b0c9da21608d902ba28'
-            '33d849f6d8c92de6200da8f254b4066c45c31f57a18242ad140fc360342632961af8191416dee460af25115e5f1ef8b5cb10d5b9bd285e21e3b62e18ecf545a8'
             '1832c096650ac55bc1e2c079f5130c36bc96f6d4ef91fac69e1b5d909b27df529a13aee24bb04422577b1537e47c41626e0720c7f59f3aede3468161c85fc44a')
 validpgpkeys=('2B90598A745E992F315E22C58AB132963A06537A'
               '14F26682D0916CDD81E37B6D61B7B526D98F0353')
@@ -52,9 +51,6 @@ prepare() {
   cp ../mozconfig .mozconfig
 sed -i -e 's/ac_add_options --disable-logging//' .mozconfig
   patch -Np1 -i ../firefox-install-dir.patch
-
-  # https://bugs.archlinux.org/task/41689
-  patch -Np2 -i ../rhbz-966424.patch
 
   echo -n "$_google_api_key" >google-api-key
   echo "ac_add_options --with-google-api-keyfile=\"$PWD/google-api-key\"" >>.mozconfig
