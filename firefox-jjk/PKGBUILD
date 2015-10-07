@@ -22,19 +22,20 @@ conflicts=($_pkgname)
 install=firefox.install
 options=('!emptydirs' '!makeflags')
 source=(https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/source/firefox-$pkgver.source.tar.xz
-        https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/SHA512SUMS{,.asc}
+        firefox-$pkgver.source.tar.xz.sha512::https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/SHA512SUMS
+        firefox-$pkgver.source.tar.xz.sha512.asc::https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/SHA512SUMS.asc
         mozconfig firefox.desktop firefox-install-dir.patch vendor.js
         firefox-20.0.1-fixed-loading-icon.png rhbz-966424.patch fix.patch)
-sha1sums=('0ce7a5ccdf671a6c98eaac07d06d49a895a99449'
-          '512fa859b3e5bafecab2e272f29e831578e7ed91'
-          'SKIP'
-          'b4653cf7ec52a35a6aca0b00b9b9f3acfa9c6284'
-          '27a7cd91a9faac2d2b07d729cd0fb3a2d5243629'
-          'ab9fb962aa4687812a16f17e75ffdb2f69611516'
-          '7739fbea2838cb9148a1d77090ace46eeb397f79'
-          '0c3900ffe21bfc3d96b80ade334613bc7e76fe27'
-          '76c7af0a23c980410a4f650142de273d0f122351'
-          '616ab2813193b62553c4fc3497fa2c9be4f31150')
+sha512sums=('FILE'
+            'SKIP'
+            'SKIP'
+            '9ed14938c16fbc71aefc8eb5723cf42a714afcc3eacd2a28883a841163bfd4c4dd74bd48895733ba84159c1b32ce5316e6221b5bc9d20d6e650c3fc7ae749959'
+            '6338bd399df04dcbfd2d4150c59be8716aebcb60edbfd298ba8671059c4f02ffcec3e9f750255c951fb197edf6130b0c25a4157e27fe0087dad89b3d40eb2627'
+            '266989b0c4a37254a40836a6193284a186230b48716907e4d249d73616f58382b258c41baa8c1ffc98d405f77bfafcd3438f749edcf391c7bd22185399adf4bd'
+            'd927e5e882115c780aa0d45034cb1652eaa191d95c15013639f9172ae734245caae070018465d73fdf86a01601d08c9e65f28468621422d799fe8451e6175cb7'
+            'd51119170cc8fb99c50610a8e5e94f38a31722c1c1a2260ca32d8e376732e30c8e1deac7d8c599348892e783fb4c75ce8c38bbd238282b0c9da21608d902ba28'
+            '33d849f6d8c92de6200da8f254b4066c45c31f57a18242ad140fc360342632961af8191416dee460af25115e5f1ef8b5cb10d5b9bd285e21e3b62e18ecf545a8'
+            '1832c096650ac55bc1e2c079f5130c36bc96f6d4ef91fac69e1b5d909b27df529a13aee24bb04422577b1537e47c41626e0720c7f59f3aede3468161c85fc44a')
 validpgpkeys=('2B90598A745E992F315E22C58AB132963A06537A'
               '14F26682D0916CDD81E37B6D61B7B526D98F0353')
 
@@ -45,12 +46,6 @@ validpgpkeys=('2B90598A745E992F315E22C58AB132963A06537A'
 _google_api_key=AIzaSyDwr302FpOSkGRpLlUpPThNTDPbXcIn_FM
 
 prepare() {
-  msg2 "Checking SHA512 from mozilla's signed SHA512SUMS file..."
-  # valid sha512 from mozilla signed file
-  moz=$(grep "source/firefox-$pkgver.source.tar.xz" SHA512SUMS | cut -d' ' -f1)
-  our=$(sha512sum "firefox-$pkgver.source.tar.xz" | cut -d' ' -f1)
-  [[ $moz != $our ]] && error "SHA512s do not match" && exit 1
-
   cd mozilla-release
 #  patch -p1 -i ../fix.patch
 
