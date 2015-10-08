@@ -10,7 +10,7 @@
 
 _pkgname=nodejs
 pkgname=$_pkgname-jjk
-pkgver=4.1.1
+pkgver=4.1.2
 pkgrel=1
 pkgdesc='Evented I/O for V8 javascript'
 arch=('i686' 'x86_64')
@@ -21,8 +21,10 @@ makedepends=('python2' 'procps-ng')
 optdepends=('npm: nodejs package manager')
 conflicts=($_pkgname)
 provides=($_pkgname)
-source=("http://nodejs.org/dist/v$pkgver/node-v$pkgver.tar.gz")
-sha256sums=('6a610935ff52de713cf2af6a26002322e24fd7933a444436f0817a2b84e15a58')
+source=("http://nodejs.org/dist/v$pkgver/node-v$pkgver.tar.xz"
+        "node-v$pkgver.tar.xz.sha256.asc::http://nodejs.org/dist/v$pkgver/SHASUMS256.txt.asc")
+sha256sums=('ASC' 'SKIP')
+validpgpkeys=('DD8F2338BAE7501E3DD5AC78C273792F7D83545D')
 
 prepare() {
   cd node-v$pkgver
