@@ -3,7 +3,7 @@
 
 _pkgname=glib2
 pkgname=$_pkgname-jjk
-pkgver=2.44.1
+pkgver=2.46.0
 pkgrel=1
 pkgdesc="Common C routines used by GTK+ and other libs"
 url="http://www.gtk.org/"
@@ -20,7 +20,7 @@ source=(http://ftp.gnome.org/pub/GNOME/sources/glib/${pkgver%.*}/glib-$pkgver.ta
         0001-GRWLock-Tweak-doc-to-make-things-a-bit-clearer.patch
         0002-GRWLock-Tweak-re-blocking-on-g_rw_lock_reader_lock.patch
         0003-GRWLock-add-critical-warnings-for-EDEADLK.patch)
-sha256sums=('8811deacaf8a503d0a9b701777ea079ca6a4277be10e3d730d2112735d5eca07'
+sha256sums=('b1cee83469ae7d80f17c267c37f090414e93960bd62d2b254a5a96fbc5baacb4'
             '049240975cd2f1c88fbe7deb28af14d4ec7d2640495f7ca8980d873bb710cc97'
             '34663c6c16ee4d7b9aa092223da315dab679e0ccabe131bb83bda63d1fdbdbf7'
             'a628db5b48a8c7c1d00550026dfe5a348837b3c50873ece878b017270b62f3f6'
