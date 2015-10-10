@@ -1,4 +1,4 @@
-From 5a575424d68d0d26a9651c5c82aed64c6b7a3bc7 Mon Sep 17 00:00:00 2001
+From d008436533bda6d12d08355421115002a96737c3 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 16:42:05 +0200
 Subject: [PATCH] Add gtk_tree_selection_invert_range()
@@ -14,10 +14,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  3 files changed, 40 insertions(+), 2 deletions(-)
 
 diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
-index e2d0435..51ef15f 100644
+index 945726e..2ea8515 100644
 --- a/docs/reference/gtk/gtk3-sections.txt
 +++ b/docs/reference/gtk/gtk3-sections.txt
-@@ -4489,6 +4489,7 @@ gtk_tree_selection_select_all
+@@ -4507,6 +4507,7 @@ gtk_tree_selection_select_all
  gtk_tree_selection_unselect_all
  gtk_tree_selection_select_range
  gtk_tree_selection_unselect_range
@@ -26,10 +26,10 @@ index e2d0435..51ef15f 100644
  GTK_TREE_SELECTION
  GTK_IS_TREE_SELECTION
 diff --git a/gtk/gtktreeselection.c b/gtk/gtktreeselection.c
-index b04bcc3..96fe867 100644
+index d83ea43..12c7575 100644
 --- a/gtk/gtktreeselection.c
 +++ b/gtk/gtktreeselection.c
-@@ -1287,7 +1287,8 @@ gtk_tree_selection_unselect_all (GtkTreeSelection *selection)
+@@ -1285,7 +1285,8 @@ gtk_tree_selection_unselect_all (GtkTreeSelection *selection)
  enum
  {
    RANGE_SELECT,
@@ -39,7 +39,7 @@ index b04bcc3..96fe867 100644
  };
  
  static gint
-@@ -1346,7 +1347,10 @@ gtk_tree_selection_real_modify_range (GtkTreeSelection *selection,
+@@ -1344,7 +1345,10 @@ gtk_tree_selection_real_modify_range (GtkTreeSelection *selection,
  
    do
      {
@@ -51,7 +51,7 @@ index b04bcc3..96fe867 100644
  
        if (start_node == end_node)
  	break;
-@@ -1429,6 +1433,35 @@ gtk_tree_selection_unselect_range (GtkTreeSelection *selection,
+@@ -1427,6 +1431,35 @@ gtk_tree_selection_unselect_range (GtkTreeSelection *selection,
      g_signal_emit (selection, tree_selection_signals[CHANGED], 0);
  }
  
@@ -103,5 +103,5 @@ index be1567f..a792cd7 100644
  
  G_END_DECLS
 -- 
-2.4.0
+2.6.1
 

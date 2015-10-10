@@ -1,4 +1,4 @@
-From ed55f639971b6ea44581b40402741807cbaf820f Mon Sep 17 00:00:00 2001
+From d12c20de6e47e1811560a362d042a376def8ed90 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 16:29:09 +0200
 Subject: [PATCH 1/2] Some fixes in gtk_tree_view_is_blank_at_pos()
@@ -16,10 +16,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  2 files changed, 11 insertions(+), 5 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 5e1f476..487dbdf 100644
+index 3eec8e4..a0b5437 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -14184,8 +14184,14 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
+@@ -14183,8 +14183,14 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
    if (!gtk_tree_view_get_path_at_pos (tree_view, x, y,
                                        &real_path, &real_column,
                                        cell_x, cell_y))
@@ -36,7 +36,7 @@ index 5e1f476..487dbdf 100644
  
    if (path)
      *path = real_path;
-@@ -14197,8 +14203,8 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
+@@ -14196,8 +14202,8 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
    _gtk_tree_view_find_node (tree_view, real_path, &tree, &node);
  
    /* Check if there's an expander arrow at (x, y) */
@@ -48,10 +48,10 @@ index 5e1f476..487dbdf 100644
        gboolean over_arrow;
  
 diff --git a/gtk/gtktreeviewcolumn.c b/gtk/gtktreeviewcolumn.c
-index 9e1cba8..a8ff3bc 100644
+index 7b154bd..ab74a91 100644
 --- a/gtk/gtktreeviewcolumn.c
 +++ b/gtk/gtktreeviewcolumn.c
-@@ -1553,7 +1553,7 @@ _gtk_tree_view_column_is_blank_at_pos (GtkTreeViewColumn *column,
+@@ -1541,7 +1541,7 @@ _gtk_tree_view_column_is_blank_at_pos (GtkTreeViewColumn *column,
                                                   background_area,
                                                   x, y);
    if (!match)
@@ -61,5 +61,5 @@ index 9e1cba8..a8ff3bc 100644
    gtk_cell_area_get_cell_allocation (priv->cell_area,
                                       priv->cell_area_context,
 -- 
-2.4.0
+2.6.1
 

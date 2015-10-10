@@ -1,4 +1,4 @@
-From 26d80210a0b9632d3e11d509fc65142a3ac55d69 Mon Sep 17 00:00:00 2001
+From 40ec2c465c39445cdcd0d6d3b9469a9e5fe7233b Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sun, 28 Sep 2014 15:42:11 +0200
 Subject: [PATCH 3/5] treeview: Change how toggle in handled on rubber banding
@@ -17,7 +17,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 19 insertions(+), 3 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 76187e9..76b1d27 100644
+index 93605e9..75906e2 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -926,6 +926,7 @@ static void gtk_tree_view_drag_gesture_end                  (GtkGestureDrag *ges
@@ -27,7 +27,7 @@ index 76187e9..76b1d27 100644
 +static void gtk_tree_view_rubber_banding_active             (GtkTreeView    *tree_view);
  
  static guint tree_view_signals [LAST_SIGNAL] = { 0 };
- 
+ static GParamSpec *tree_view_props [LAST_PROP] = { NULL };
 @@ -1005,6 +1006,7 @@ gtk_tree_view_class_init (GtkTreeViewClass *class)
    class->select_cursor_parent = gtk_tree_view_real_select_cursor_parent;
    class->start_interactive_search = gtk_tree_view_start_interactive_search;
@@ -36,7 +36,7 @@ index 76187e9..76b1d27 100644
  
    /* Properties */
  
-@@ -3375,6 +3377,23 @@ gtk_tree_view_test_rubber_banding (GtkTreeView *tree_view,
+@@ -3369,6 +3371,23 @@ gtk_tree_view_test_rubber_banding (GtkTreeView *tree_view,
  }
  
  static void
@@ -60,7 +60,7 @@ index 76187e9..76b1d27 100644
  gtk_tree_view_drag_gesture_begin (GtkGestureDrag *gesture,
                                    gdouble         start_x,
                                    gdouble         start_y,
-@@ -4412,9 +4431,6 @@ gtk_tree_view_update_rubber_band_selection_range (GtkTreeView *tree_view,
+@@ -4403,9 +4422,6 @@ gtk_tree_view_update_rubber_band_selection_range (GtkTreeView *tree_view,
  						 gboolean     skip_start,
  						 gboolean     skip_end)
  {
@@ -71,5 +71,5 @@ index 76187e9..76b1d27 100644
    if (skip_start)
      goto skip_first;
 -- 
-2.4.0
+2.6.1
 

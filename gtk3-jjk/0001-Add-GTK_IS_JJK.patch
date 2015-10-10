@@ -1,4 +1,4 @@
-From 6180c7d868551c4915f300c8b638575780aff18b Mon Sep 17 00:00:00 2001
+From 9db03690859bf62d56f727a390fd4e6d86f037ec Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 15:06:08 +0200
 Subject: [PATCH] Add GTK_IS_JJK
@@ -21,5 +21,5 @@ index 3cbd13f..f93bc0a 100644
  #include <gdk/gdk.h>
  #include <gtk/gtkaboutdialog.h>
 -- 
-2.4.0
+2.6.1
 

@@ -1,4 +1,4 @@
-From 828dd5f34fc6aef88be202b96c7118f0fdd1163c Mon Sep 17 00:00:00 2001
+From 6663943772d57af5adc34a9ad77caa37c3ecbd38 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 15:07:45 +0200
 Subject: [PATCH] cellrenderertext: Fix possible overwriting of markup
@@ -18,10 +18,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/gtk/gtkcellrenderertext.c b/gtk/gtkcellrenderertext.c
-index 18923e2..0b0eb54 100644
+index fe873db..3f16ae2 100644
 --- a/gtk/gtkcellrenderertext.c
 +++ b/gtk/gtkcellrenderertext.c
-@@ -1605,7 +1605,7 @@ add_attr (PangoAttrList  *attr_list,
+@@ -1544,7 +1544,7 @@ add_attr (PangoAttrList  *attr_list,
    attr->start_index = 0;
    attr->end_index = G_MAXINT;
    
@@ -31,5 +31,5 @@ index 18923e2..0b0eb54 100644
  
  static PangoLayout*
 -- 
-2.4.0
+2.6.1
 

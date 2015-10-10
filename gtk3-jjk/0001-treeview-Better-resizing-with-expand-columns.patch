@@ -1,4 +1,4 @@
-From 31f4b49d415ef1d9ac527912aecd74f46808ee3b Mon Sep 17 00:00:00 2001
+From a3fcbb0b64caeb47944dbd33deefbf1565b87ca6 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 28 Nov 2014 15:22:47 +0100
 Subject: [PATCH] treeview: Better resizing with expand columns
@@ -60,7 +60,7 @@ index a2d6d6c..b1bbc78 100644
  					     GtkTreeModel      *old_model);
  void _gtk_tree_view_column_unset_tree_view  (GtkTreeViewColumn *column);
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 5e1f476..f8a9cb1 100644
+index 3eec8e4..4d61094 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -367,9 +367,7 @@ struct _GtkTreeViewPrivate
@@ -83,16 +83,16 @@ index 5e1f476..f8a9cb1 100644
    /* Whether our key press handler is to avoid sending an unhandled binding to the search entry */
    guint search_entry_avoid_unhandled_binding : 1;
  
-@@ -1819,8 +1815,6 @@ gtk_tree_view_init (GtkTreeView *tree_view)
+@@ -1809,8 +1805,6 @@ gtk_tree_view_init (GtkTreeView *tree_view)
  
-   tree_view->priv->tooltip_column = -1;
+   priv->tooltip_column = -1;
  
--  tree_view->priv->post_validation_flag = FALSE;
+-  priv->post_validation_flag = FALSE;
 -
-   tree_view->priv->event_last_x = -10000;
-   tree_view->priv->event_last_y = -10000;
+   priv->event_last_x = -10000;
+   priv->event_last_y = -10000;
  
-@@ -2676,19 +2670,24 @@ gtk_tree_view_size_allocate_columns (GtkWidget *widget,
+@@ -2651,19 +2645,24 @@ gtk_tree_view_size_allocate_columns (GtkWidget *widget,
  				     gboolean  *width_changed)
  {
    GtkTreeView *tree_view;
@@ -121,7 +121,7 @@ index 5e1f476..f8a9cb1 100644
         last_column &&
         !(gtk_tree_view_column_get_visible (GTK_TREE_VIEW_COLUMN (last_column->data)));
         last_column = last_column->prev)
-@@ -2696,7 +2695,7 @@ gtk_tree_view_size_allocate_columns (GtkWidget *widget,
+@@ -2671,7 +2670,7 @@ gtk_tree_view_size_allocate_columns (GtkWidget *widget,
    if (last_column == NULL)
      return;
  
@@ -130,7 +130,7 @@ index 5e1f476..f8a9cb1 100644
         first_column &&
         !(gtk_tree_view_column_get_visible (GTK_TREE_VIEW_COLUMN (first_column->data)));
         first_column = first_column->next)
-@@ -2705,108 +2704,135 @@ gtk_tree_view_size_allocate_columns (GtkWidget *widget,
+@@ -2683,108 +2682,135 @@ gtk_tree_view_size_allocate_columns (GtkWidget *widget,
    rtl = (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL);
  
    /* find out how many extra space and expandable columns we have */
@@ -334,7 +334,7 @@ index 5e1f476..f8a9cb1 100644
        if (width_changed)
          *width_changed = TRUE;
      }
-@@ -3426,6 +3452,7 @@ gtk_tree_view_column_drag_gesture_begin (GtkGestureDrag *gesture,
+@@ -3420,6 +3446,7 @@ gtk_tree_view_column_drag_gesture_begin (GtkGestureDrag *gesture,
          break;
  
        tree_view->priv->in_column_resize = TRUE;
@@ -342,7 +342,7 @@ index 5e1f476..f8a9cb1 100644
  
        /* block attached dnd signal handler */
        drag_data = g_object_get_data (G_OBJECT (tree_view), "gtk-site-data");
-@@ -3436,9 +3463,6 @@ gtk_tree_view_column_drag_gesture_begin (GtkGestureDrag *gesture,
+@@ -3430,9 +3457,6 @@ gtk_tree_view_column_drag_gesture_begin (GtkGestureDrag *gesture,
                                           drag_data);
  
        column_width = gtk_tree_view_column_get_width (column);
@@ -352,7 +352,7 @@ index 5e1f476..f8a9cb1 100644
        tree_view->priv->drag_pos = i;
        tree_view->priv->x_drag = start_x + (rtl ? column_width : -column_width);
  
-@@ -3535,6 +3559,7 @@ gtk_tree_view_button_release_column_resize (GtkTreeView *tree_view)
+@@ -3529,6 +3553,7 @@ gtk_tree_view_button_release_column_resize (GtkTreeView *tree_view)
  				       drag_data);
  
    tree_view->priv->in_column_resize = FALSE;
@@ -360,7 +360,7 @@ index 5e1f476..f8a9cb1 100644
    return TRUE;
  }
  
-@@ -4131,23 +4156,55 @@ gtk_tree_view_motion_draw_column_motion_arrow (GtkTreeView *tree_view)
+@@ -4125,23 +4150,55 @@ gtk_tree_view_motion_draw_column_motion_arrow (GtkTreeView *tree_view)
    gdk_window_raise (tree_view->priv->drag_highlight_window);
  }
  
@@ -421,7 +421,7 @@ index 5e1f476..f8a9cb1 100644
  
    return FALSE;
  }
-@@ -5951,8 +6008,9 @@ gtk_tree_view_key_press (GtkWidget   *widget,
+@@ -5941,8 +5998,9 @@ gtk_tree_view_key_press (GtkWidget   *widget,
  	      column_width = column_width + 2;
              }
  
@@ -433,7 +433,7 @@ index 5e1f476..f8a9cb1 100644
            return TRUE;
          }
  
-@@ -6360,7 +6418,6 @@ validate_row (GtkTreeView *tree_view,
+@@ -6350,7 +6408,6 @@ validate_row (GtkTreeView *tree_view,
        _gtk_rbtree_node_set_height (tree, node, height);
      }
    _gtk_rbtree_node_mark_valid (tree, node);
@@ -442,7 +442,7 @@ index 5e1f476..f8a9cb1 100644
    return retval;
  }
 diff --git a/gtk/gtktreeviewcolumn.c b/gtk/gtktreeviewcolumn.c
-index 9e1cba8..4d2bf35 100644
+index 7b154bd..feeb875 100644
 --- a/gtk/gtktreeviewcolumn.c
 +++ b/gtk/gtktreeviewcolumn.c
 @@ -144,6 +144,7 @@ struct _GtkTreeViewColumnPrivate
@@ -453,7 +453,7 @@ index 9e1cba8..4d2bf35 100644
  
    /* dragging columns */
    gint drag_x;
-@@ -2111,10 +2112,23 @@ _gtk_tree_view_column_request_width (GtkTreeViewColumn *tree_column)
+@@ -2099,10 +2100,23 @@ _gtk_tree_view_column_request_width (GtkTreeViewColumn *tree_column)
    return real_requested_width;
  }
  
@@ -478,7 +478,7 @@ index 9e1cba8..4d2bf35 100644
  {
    GtkTreeViewColumnPrivate *priv;
    gboolean                  rtl;
-@@ -2129,6 +2143,7 @@ _gtk_tree_view_column_allocate (GtkTreeViewColumn *tree_column,
+@@ -2117,6 +2131,7 @@ _gtk_tree_view_column_allocate (GtkTreeViewColumn *tree_column,
  
    priv->x_offset = x_offset;
    priv->width = width;
@@ -486,7 +486,7 @@ index 9e1cba8..4d2bf35 100644
  
    gtk_cell_area_context_allocate (priv->cell_area_context, priv->width - priv->padding, -1);
  
-@@ -2433,6 +2448,8 @@ gtk_tree_view_column_set_expand (GtkTreeViewColumn *tree_column,
+@@ -2421,6 +2436,8 @@ gtk_tree_view_column_set_expand (GtkTreeViewColumn *tree_column,
    if (priv->expand == expand)
      return;
    priv->expand = expand;
@@ -496,5 +496,5 @@ index 9e1cba8..4d2bf35 100644
    if (priv->visible &&
        priv->tree_view != NULL &&
 -- 
-2.4.0
+2.6.1
 

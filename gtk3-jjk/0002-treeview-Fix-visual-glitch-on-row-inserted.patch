@@ -1,4 +1,4 @@
-From 03a2d87b6333b01b90eb13d248ed47ff62e9518e Mon Sep 17 00:00:00 2001
+From debdbd4862112b5b9fbce6a6cd36be6a8cf4d434 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 17 Jan 2014 19:19:20 +0100
 Subject: [PATCH 2/2] treeview: Fix visual glitch on row-inserted
@@ -20,10 +20,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 16 insertions(+), 10 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 4120686..3fe049b 100644
+index 9ccd6d7..79f7674 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -11377,13 +11377,16 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
+@@ -11357,13 +11357,16 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
    if (gtk_widget_get_realized (GTK_WIDGET (tree_view)))
      {
        gint dy;
@@ -47,7 +47,7 @@ index 4120686..3fe049b 100644
        dy = tree_view->priv->dy - (int) gtk_adjustment_get_value (tree_view->priv->vadjustment);
        if (dy && tree_view->priv->edited_column)
          {
-@@ -11409,9 +11412,12 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
+@@ -11389,9 +11392,12 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
                      }
                  }
          }
@@ -64,5 +64,5 @@ index 4120686..3fe049b 100644
        if (dy != 0)
          {
 -- 
-2.4.0
+2.6.1
 
