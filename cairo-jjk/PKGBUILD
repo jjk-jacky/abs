@@ -4,7 +4,7 @@
 
 _pkgname=cairo
 pkgname=$_pkgname-jjk
-pkgver=1.14.2
+pkgver=1.14.4
 pkgrel=1
 pkgdesc="Cairo vector graphics library"
 arch=(i686 x86_64)
@@ -18,8 +18,10 @@ provides=('cairo-xcb' 'cairo')
 replaces=('cairo-xcb' 'cairo')
 conflicts=('cairo')
 options=('!libtool')
-source=(http://cairographics.org/releases/$_pkgname-$pkgver.tar.xz)
-sha1sums=('c8da68aa66ca0855b5d0ff552766d3e8679e1d24')
+source=(http://cairographics.org/releases/$_pkgname-$pkgver.tar.xz
+        $_pkgname-$pkgver.tar.xz.sha1.signed-msg::http://cairographics.org/releases/$_pkgname-$pkgver.tar.xz.sha1.asc)
+validpgpkeys=('C7223EBE4EF66513B892598911A30156E0E67611')
+sha1sums=('SIGNED-MSG' 'SKIP')
 
 build() {
   cd "$srcdir/$_pkgname-$pkgver"
