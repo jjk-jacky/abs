@@ -1,0 +1,20 @@
+#!/bin/bash
+
+build() {
+    local applet
+
+    add_binary /usr/bin/busybox /bin/busybox
+
+    for applet in $(/usr/bin/busybox --list); do
+        add_symlink "/bin/$applet" busybox
+    done
+}
+
+help() {
+    cat <<HELPEOF
+This hook provides crucial runtime necessities for booting. DO NOT
+remove this hook unless you know what you're doing.
+HELPEOF
+}
+
+# vim: set ft=sh ts=4 sw=4 et:

@@ -1,0 +1,40 @@
+# Maintainer: Jens Staal <staal1978@gmail.com>
+
+_pkgname=busybox
+pkgname=$_pkgname-musl-jjk
+pkgver=1.23.2
+pkgrel=7
+pkgdesc="Combines common UNIX utilities into a single small executable, statically linked with musl libc"
+arch=('i686' 'x86_64')
+url="http://wiki.musl-libc.org/wiki/Building_Busybox"
+license=('GPL')
+provides=("$_pkgname" "mdev")
+conflicts=("$_pkgname")
+makedepends=('musl' 'kernel-headers-musl')
+source=("http://www.busybox.net/downloads/$_pkgname-$pkgver.tar.bz2"
+        "config" "ifplugd.patch" "busybox.mkinitcpio")
+md5sums=('7925683d7dd105aabe9b6b618d48cc73'
+         '77daf3c233cb2e0b6b98b9c526022c7b'
+         '187adc8319e45be12d79e8db2c514d74'
+         '4428b5e6971ffc547ad8bd9da51461b0')
+
+prepare() {
+  cd "$_pkgname-$pkgver"
+  patch -p1 -i ../ifplugd.patch
+}
+
+build() {
+  cd "$_pkgname-$pkgver"
+
+  cp ../config .config
+  sed '1,1i#include <sys/resource.h>' -i include/libbb.h
+
+  make CC=musl-gcc CFLAGS='-Os -static'
+}
+
+package() {
+  cd "$_pkgname-$pkgver"
+  install -Dm755 busybox "$pkgdir/usr/bin/busybox"
+  ln -s busybox "$pkgdir/usr/bin/mdev"
+  install -Dm644 "$srcdir/busybox.mkinitcpio" "$pkgdir/usr/lib/initcpio/install/busybox"
+}
