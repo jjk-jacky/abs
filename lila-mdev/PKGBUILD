@@ -1,0 +1,22 @@
+pkgname=lila-mdev
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="mdev configuration & helper scripts"
+arch=('any')
+url="http://jjacky.com/"
+license=('GPL3+')
+depends=('mdev')
+source=("https://github.com/jjk-jacky/$pkgname/archive/$pkgver.tar.gz")
+sha256sums=('d5fd561c136def488d78c76882731b602a20546fadfd092d8fa2d7e2faf5cb2b')
+backup=('etc/mdev.conf')
+
+build() {
+    cd "$pkgname-$pkgver"
+    ./configure --prefix=/usr
+    make
+}
+
+package() {
+    cd "$pkgname-$pkgver"
+    make DESTDIR="$pkgdir/" install
+}
