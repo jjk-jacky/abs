@@ -1,0 +1,39 @@
+# Contributor: Lukas Braun <koomi+aur at hackerspace-bamberg dot de>
+# Contributor: David Arroyo <droyo@aqwari.us>
+_pkgname=s6-linux-utils
+pkgname=s6-devd-musl-git
+pkgver=v2.0.2.3
+pkgrel=1
+pkgdesc="skarnet's s6-devd [static-musl; GIT]"
+arch=('i686' 'x86_64')
+url="http://www.skarnet.org/software/s6-linux-utils"
+license=('custom:ISC')
+makedepends=('skalibs-musl' 'musl')
+options=('staticlibs')
+source=("git://git.skarnet.org/s6-linux-utils")
+sha256sums=('SKIP')
+provides=('s6-devd')
+conflicts=('s6-linux-utils')
+
+pkgver() {
+    cd $_pkgname
+    git describe --abbrev=4 --dirty | tr - .
+}
+
+build() {
+  cd $_pkgname
+
+  export CPPFLAGS='-nostdinc -isystem /usr/lib/musl/include -isystem /usr/include'
+  export CC="musl-gcc"
+  ./configure --enable-static-libc --bindir=/usr/bin --sbindir=/usr/bin
+  make
+}
+
+package() {
+  cd $_pkgname
+
+  install -D -m755 s6-devd "$pkgdir/usr/bin/s6-devd"
+  install -D -m755 s6-uevent-listener "$pkgdir/usr/bin/s6-uevent-listener"
+  install -D -m755 s6-uevent-spawner "$pkgdir/usr/bin/s6-uevent-spawner"
+  install -D -m644 COPYING "$pkgdir/usr/share/licenses/s6-devd/LICENSE"
+}
