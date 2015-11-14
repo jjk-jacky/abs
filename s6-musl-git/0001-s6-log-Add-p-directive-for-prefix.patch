@@ -1,0 +1,153 @@
+From c2a8c9e622e86b5c02b0a28d29a7bb6e74e70e86 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Fri, 13 Mar 2015 19:48:27 +0100
+Subject: [PATCH] s6-log: Add p directive for prefix
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ src/daemontools-extras/s6-log.c | 50 ++++++++++++++++++++++++-----------------
+ 1 file changed, 29 insertions(+), 21 deletions(-)
+
+diff --git a/src/daemontools-extras/s6-log.c b/src/daemontools-extras/s6-log.c
+index 6d323b7..8444c08 100644
+--- a/src/daemontools-extras/s6-log.c
++++ b/src/daemontools-extras/s6-log.c
+@@ -120,6 +120,7 @@ struct act_s
+   acttype_t type ;
+   actstuff_t data ;
+   unsigned int flags ;
++  char const *prefix ;
+ } ;
+ 
+ typedef struct scriptelem_s scriptelem_t, *scriptelem_t_ref ;
+@@ -739,6 +740,9 @@ static inline void script_firstpass (char const *const *argv, unsigned int *sell
+         if ((*argv)[1]) goto fail ;
+         gf |= 2 ;
+         break ;
++      case 'p':
++        if (!(*argv)[1]) goto fail ;
++        break ;
+       case 'e' :
+         if (verbosity) strerr_warnw1x("directive e is deprecated, use 2 instead") ;
+       case '1' :
+@@ -789,6 +793,7 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
+   char const *processor = 0 ;
+   unsigned int sel = 0, act = 0, lidx = 0, flags = 0 ;
+   int flagacted = 0 ;
++  char const *prefix = 0 ;
+   tain_uint(&retrytto, 2) ;
+   
+   for (; *argv ; argv++)
+@@ -862,34 +867,37 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
+       case 'T' :
+         flags |= 2 ;
+         break ;
++      case 'p':
++        prefix = (*argv)[1] ? *argv + 1 : 0 ;
++        break;
+       case '1' :
+       {
+-        act_t a = { .type = ACTTYPE_FD1, .flags = flags } ;
+-        actions[act++] = a ; flagacted = 1 ; flags = 0 ;
++        act_t a = { .type = ACTTYPE_FD1, .flags = flags, .prefix = prefix } ;
++        actions[act++] = a ; flagacted = 1 ; flags = 0 ; prefix = 0 ;
+         break ;
+       }
+       case 'e' :
+       case '2' :
+       {
+-        act_t a = { .type = ACTTYPE_FD2, .flags = flags, .data = { .fd2_size = fd2_size } } ;
++        act_t a = { .type = ACTTYPE_FD2, .flags = flags, .prefix = prefix, .data = { .fd2_size = fd2_size } } ;
+         if (compat_gflags & 2) a.flags |= 1 ;
+-        actions[act++] = a ; flagacted = 1 ; flags = 0 ;
++        actions[act++] = a ; flagacted = 1 ; flags = 0 ; prefix = 0 ;
+         break ;
+       }
+       case '=' :
+       {
+-        act_t a = { .type = ACTTYPE_STATUS, .flags = flags, .data = { .status = { .file = *argv + 1, .filelen = status_size } } } ;
+-        actions[act++] = a ; flagacted = 1 ; flags = 0 ;
++        act_t a = { .type = ACTTYPE_STATUS, .flags = flags, .prefix = prefix, .data = { .status = { .file = *argv + 1, .filelen = status_size } } } ;
++        actions[act++] = a ; flagacted = 1 ; flags = 0 ; prefix = 0 ;
+         break ;
+       }
+       case '.' : 
+       case '/' :
+       {
+-        act_t a = { .type = ACTTYPE_DIR, .flags = flags, .data = { .ld = lidx } } ;
++        act_t a = { .type = ACTTYPE_DIR, .flags = flags, .prefix = prefix, .data = { .ld = lidx } } ;
+         if (compat_gflags & 1) a.flags |= 1 ;
+         logdir_init(lidx, s, n, tolerance, maxdirsize, &retrytto, processor, *argv, flags) ;
+         lidx++ ;
+-        actions[act++] = a ; flagacted = 1 ; flags = 0 ;
++        actions[act++] = a ; flagacted = 1 ; flags = 0 ; prefix = 0 ;
+         break ;
+       }
+       default : goto fail ;
+@@ -953,11 +961,11 @@ static void script_run (scriptelem_t const *script, unsigned int scriptlen, char
+       for (j = 0 ; j < script[i].actlen ; j++)
+       {
+         act_t const *act = script[i].acts + j ;
+-        siovec_t v[4] = { { .s = tstamp, .len = act->flags & 1 ? TIMESTAMP+1 : 0 }, { .s = hstamp, .len = act->flags & 2 ? hlen : 0 }, { .s = (char *)s, .len = len }, { .s = "\n", .len = 1 } } ;
++        siovec_t v[5] = { { .s = tstamp, .len = act->flags & 1 ? TIMESTAMP+1 : 0 }, { .s = hstamp, .len = act->flags & 2 ? hlen : 0 }, { .s = (char *)act->prefix, .len = act->prefix ? str_len(act->prefix) : 0 }, { .s = (char *)s, .len = len }, { .s = "\n", .len = 1 } } ;
+         switch (act->type)
+         {
+           case ACTTYPE_FD1 :
+-            if (!bufalloc_putv(bufalloc_1, v, 4)) dienomem() ;
++            if (!bufalloc_putv(bufalloc_1, v, 5)) dienomem() ;
+           case ACTTYPE_NOTHING :
+             break ;
+ 
+@@ -966,38 +974,38 @@ static void script_run (scriptelem_t const *script, unsigned int scriptlen, char
+             buffer_puts(buffer_2, ": alert: ") ;
+             if (act->data.fd2_size && act->data.fd2_size + 3 < len)
+             {
+-              v[2].len = act->data.fd2_size ;
+-              v[3].s = "...\n" ;
+-              v[3].len = 4 ;
++              v[3].len = act->data.fd2_size ;
++              v[4].s = "...\n" ;
++              v[4].len = 4 ;
+             }
+-            buffer_putv(buffer_2, v, 4) ;
++            buffer_putv(buffer_2, v, 5) ;
+             buffer_flush(buffer_2) ; /* if it blocks, too bad */
+             break ;
+ 
+           case ACTTYPE_STATUS :
+             if (act->data.status.filelen)
+             {
+-              unsigned int reallen = siovec_len(v, 4) ;
++              unsigned int reallen = siovec_len(v, 5) ;
+               if (reallen > act->data.status.filelen)
+-                siovec_trunc(v, 4, act->data.status.filelen) ;
++                siovec_trunc(v, 5, act->data.status.filelen) ;
+               else
+               {
+                 register unsigned int k = act->data.status.filelen - reallen + 1 ;
+                 char pad[k] ;
+-                v[3].s = pad ;
+-                v[3].len = k ;
++                v[4].s = pad ;
++                v[4].len = k ;
+                 while (k--) pad[k] = '\n' ;
+-                if (!openwritevnclose_suffix(act->data.status.file, v, 4, ".new") && verbosity)
++                if (!openwritevnclose_suffix(act->data.status.file, v, 5, ".new") && verbosity)
+                   strerr_warnwu2sys("write status file ", act->data.status.file) ;
+                 break ;
+               }
+             }
+-            if (!openwritevnclose_suffix(act->data.status.file, v, 4, ".new") && verbosity)
++            if (!openwritevnclose_suffix(act->data.status.file, v, 5, ".new") && verbosity)
+               strerr_warnwu2sys("write status file ", act->data.status.file) ;
+             break ;
+ 
+           case ACTTYPE_DIR :
+-            if (!bufalloc_putv(&logdirs[act->data.ld].out, v, 4)) dienomem() ;
++            if (!bufalloc_putv(&logdirs[act->data.ld].out, v, 5)) dienomem() ;
+             break ;
+ 
+           default :
+-- 
+2.5.0
+
