@@ -1,0 +1,22 @@
+pkgname=lila-system-services
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="system service definitions for use w/ anopa"
+arch=('any')
+url="http://jjacky.com/"
+license=('GPL3+')
+depends=("anopa")
+source=("https://github.com/jjk-jacky/$pkgname/archive/$pkgver.tar.gz")
+sha256sums=('60b10a5d087a32ba82cb719c13bb43f16bbca19379e05c2a56c7e16fb507c10d')
+
+build() {
+    cd "$pkgname-$pkgver"
+    ./gen-files
+    ./configure --prefix=/usr
+    make
+}
+
+package() {
+    cd "$pkgname-$pkgver"
+    make DESTDIR="$pkgdir/" install
+}
