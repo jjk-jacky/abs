@@ -3,7 +3,7 @@
 
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
-pkgver=3.18.4
+pkgver=3.18.5
 pkgrel=1
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
@@ -49,7 +49,7 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0004-treeview-Add-button-in-test-rubber-banding.patch
         0005-treeview-Add-skip_next_button_press.patch
         fix-708148.patch)
-sha256sums=('5400dcf280d28d24606f33d59ed48c717f7d3db425d4b6fb52e8002f0c76c7eb'
+sha256sums=('107aeb9a4244ce3c044becdd6dffc32d83202595181597180d4c736302a71852'
             'de961084b35507da5415640db733457161e1672ee54639828dfa399ea3d220b1'
             '551cfe72e9b76deac2fca33580a03e71293ab8a6aa8a20c2288d279827723872'
             'b225d99ac575ec3bde38f8513e7bdc94c739b7a6db9def5705d99059130a6d85'
