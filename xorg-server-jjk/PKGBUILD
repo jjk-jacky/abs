@@ -4,13 +4,13 @@
 
 _pkgname=xorg-server
 pkgname=$_pkgname-jjk
-pkgver=1.17.4
+pkgver=1.18.0
 pkgrel=1 # build first with 0.1 and then rebuild it after xf86-input-evdev rebuild
 pkgdesc="Xorg X server -- w/ scan mode instead of udev integration"
-depends=(libepoxy libxdmcp libxfont libpciaccess libdrm pixman libgcrypt libxau xorg-server-common xf86-input-evdev libxshmfence libgl libevdev)
+depends=(libepoxy libxdmcp libxfont libpciaccess libdrm pixman libgcrypt libxau xorg-server-common libxshmfence libgl libevdev)
 # see xorg-server-*/hw/xfree86/common/xf86Module.h for ABI versions - we provide major numbers that drivers can depend on
 # and /usr/lib/pkgconfig/xorg-server.pc in xorg-server-devel pkg
-provides=('X-ABI-VIDEODRV_VERSION=19' 'X-ABI-XINPUT_VERSION=21' 'X-ABI-EXTENSION_VERSION=9.0' 'x-server'
+provides=('X-ABI-VIDEODRV_VERSION=20' 'X-ABI-XINPUT_VERSION=22.1' 'X-ABI-EXTENSION_VERSION=9.0' 'x-server'
           $_pkgname)
 groups=('xorg')
 conflicts=('nvidia-utils<=331.20' 'glamor-egl' $_pkgname)
@@ -26,23 +26,28 @@ makedepends=('pixman' 'libx11' 'mesa' 'libgl' 'xf86driproto' 'xcmiscproto' 'xtra
              'xorg-xkbcomp' 'xorg-util-macros' 'xorg-font-util' 'glproto' 'dri2proto' 'libgcrypt' 'libepoxy'
              'xcb-util' 'xcb-util-image' 'xcb-util-renderutil' 'xcb-util-wm' 'xcb-util-keysyms' 'dri3proto'
              'libxshmfence' 'libunwind' 'libevdev')
+optdepends=('xf86-input-evdev: suggested input driver')
 source=(${url}/releases/individual/xserver/${_pkgname}-${pkgver}.tar.bz2{,.sig}
-        nvidia-drm-outputclass.conf
         xvfb-run
         xvfb-run.1
+        0001-privates-Clear-screen-specific-keys-during-CloseScre.patch
         0001-Add-config-scan-mode-for-hotplug-support.patch)
 validpgpkeys=('7B27A3F1A6E18CD9588B4AE8310180050905E40C'
               'C383B778255613DFDB409D91DB221A6900000011'
               'DD38563A8A8224537D1F90E45B8A2D50A0ECD0D3')
-sha256sums=('0c4b45c116a812a996eb432d8508cf26c2ec8c3916ff2a50781796882f8d6457'
+sha256sums=('195670819695d9cedd8dde95fbe069be0d0f488a77797a2d409f9f702daf312e'
             'SKIP'
-            'af1c3d2ea5de7f6a6b5f7c60951a189a4749d1495e5462f3157ae7ac8fe1dc56'
             'ff0156309470fc1d378fd2e104338020a884295e285972cc88e250e031cc35b9'
             '2460adccd3362fefd4cdc5f1c70f332d7b578091fb9167bf88b5f91265bbd776'
+            '5a469576ebe79b499f55fb1955d2b66718bd5e3e62275d45eebe23121a0ad930'
             'f559e27e1e6e551535f6f9fe0df130d25bc290c4ecd2bded015a7f841692f6d5')
 
 prepare() {
   cd "${_pkgname}-${pkgver}"
+
+  # Revert this as it causes issue when exiting Xorg (specifically the monitor
+  # turns off with no way to get it back on)
+  patch -Rp1 -i ../0001-privates-Clear-screen-specific-keys-during-CloseScre.patch
 
   patch -Np1 -i ../0001-Add-config-scan-mode-for-hotplug-support.patch
 }
@@ -63,9 +68,7 @@ build() {
       --enable-xephyr \
       --enable-glamor \
       --disable-xwayland \
-      --enable-glx-tls \
       --enable-kdrive \
-      --enable-kdrive-evdev \
       --enable-kdrive-kbd \
       --enable-kdrive-mouse \
       --disable-config-udev \
@@ -84,7 +87,7 @@ build() {
       --with-xkb-output=/var/lib/xkb \
       --with-fontrootdir=/usr/share/fonts \
       --with-sha1=libgcrypt
-      
+
 #      --without-dtrace \
 #      --disable-linux-acpi --disable-linux-apm \
 
@@ -106,7 +109,6 @@ package() {
   # distro specific files must be installed in /usr/share/X11/xorg.conf.d
   install -m755 -d "${pkgdir}/etc/X11/xorg.conf.d"
   install -m755 -d "${pkgdir}/usr/share/X11/xorg.conf.d"
-  install -m644 "${srcdir}/nvidia-drm-outputclass.conf" "${pkgdir}/usr/share/X11/xorg.conf.d/"
 
   # Needed for non-mesa drivers, libgl will restore it
   mv "${pkgdir}/usr/lib/xorg/modules/extensions/libglx.so" \
