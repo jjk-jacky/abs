@@ -8,7 +8,7 @@ _pkgbase=pulseaudio
 pkgbase=$_pkgbase-jjk
 pkgname=(pulseaudio-jjk libpulse-jjk)
 pkgdesc="A featureful, general-purpose sound server"
-pkgver=6.0
+pkgver=7.1
 pkgrel=1
 arch=(i686 x86_64)
 url="http://www.freedesktop.org/wiki/Software/PulseAudio"
@@ -18,7 +18,7 @@ makedepends=(libasyncns libcap attr libxtst libsm libsndfile libtool rtkit
              openssl orc json-c gtk3)
 options=(!emptydirs)
 source=(http://freedesktop.org/software/$_pkgbase/releases/$_pkgbase-$pkgver.tar.xz)
-sha256sums=('b50640e0b80b1607600accfad2e45aabb79d379bf6354c9671efa2065477f6f6')
+sha256sums=('e667514a28328f92aceea754a224a0150dddfe7e9a71b4c6d31489220153b9d9')
 
 build() {
   cd $_pkgbase-$pkgver
@@ -41,7 +41,8 @@ build() {
     --without-fftw \
     --disable-lirc \
     --disable-webrtc-aec \
-    --without-speex
+    --without-speex \
+    DATADIRNAME=share
 
   # fight unused direct deps
   sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
