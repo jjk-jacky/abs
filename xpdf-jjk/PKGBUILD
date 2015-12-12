@@ -4,9 +4,10 @@
 # Contributor: Sarah Hay <sarahhay@mb.sympatico.ca>
 # Xpdf-nodrm: Mark Pustjens <pustjens@dds.nl>
 
-pkgname=xpdf
+_pkgname=xpdf
+pkgname=$_pkgname-jjk
 pkgver=3.04
-pkgrel=2
+pkgrel=1
 pkgdesc='Viewer for Portable Document Format (PDF) files'
 url='http://www.foolabs.com/xpdf/'
 license=('GPL2')
@@ -14,18 +15,19 @@ arch=('i686' 'x86_64')
 depends=('lesstif' 'gsfonts' 'libxt')
 optdepends=('poppler: tools that used to be included in xpdf'
             'desktop-file-utils: for desktop environments')
-source=("ftp://ftp.foolabs.com/pub/${pkgname}/${pkgname}-${pkgver%_*}.tar.gz"
+provides=($_pkgname)
+conflicts=($_pkgname)
+source=("ftp://ftp.foolabs.com/pub/${_pkgname}/${_pkgname}-${pkgver%_*}.tar.gz"
         '02-permissions.patch'
         'desktop')
 sha1sums=('b9b1dbb0335742a09d0442c60fd02f4f934618bd'
           'f192728680aaf575c178ce25c4aefa92e798a879'
           '17ebbfe457cb92e97b12b7362e8ce961526012d9')
-
 install=install
 backup=('etc/xpdfrc')
 
 build() {
-  cd "${srcdir}/${pkgname}-${pkgver%_*}"
+  cd "${srcdir}/${_pkgname}-${pkgver%_*}"
 
   patch -p1 -i ../02-permissions.patch
 
@@ -48,7 +50,7 @@ build() {
 }
 
 package() {
-  cd "${srcdir}/${pkgname}-${pkgver%_*}"
+  cd "${srcdir}/${_pkgname}-${pkgver%_*}"
 
   make DESTDIR="${pkgdir}" install
 
