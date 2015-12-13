@@ -6,13 +6,13 @@
 _pkgname=vlc
 pkgname=$_pkgname-jjk
 pkgver=2.2.1
-pkgrel=6
+pkgrel=7
 pkgdesc="A multi-platform MPEG, VCD/DVD, and DivX player"
 arch=('i686' 'x86_64')
 url="http://www.videolan.org/vlc/"
 license=('LGPL2.1' 'GPL2')
 depends=('a52dec' 'libdvbpsi' 'libxpm' 'libdca' 'qt4' 'libproxy'
-         'sdl_image' 'libdvdnav' 'libmatroska'
+         'sdl_image' 'libdvdnav' 'libmatroska' 'libxml2'
          'taglib' 'libmpcdec' 'ffmpeg' 'faad2' 'libupnp'
          'libmad' 'libmpeg2' 'libass' 'xcb-util-keysyms'
          'xvidcore' 'libx264.so')
@@ -79,6 +79,7 @@ build() {
               --enable-faad \
               --enable-nls \
               --enable-realrtsp \
+              --enable-libxml2 \
               --disable-glx \
               --disable-lua \
               RCC=/usr/bin/rcc-qt4
