@@ -2,6 +2,8 @@
 
 ac_add_options --prefix=/usr
 ac_add_options --libdir=/usr/lib
+ac_add_options --enable-release
+ac_add_options --enable-gold
 ac_add_options --enable-pie
 
 ac_add_options --enable-official-branding
@@ -42,6 +44,6 @@ ac_add_options --disable-websms-backend
 ac_add_options --disable-webspeech
 ac_add_options --disable-eme
 ac_add_options --disable-gamepad
-ac_add_options --disable-printing
+#ac_add_options --disable-printing
 
 # vim:set ft=sh:
