@@ -5,7 +5,7 @@
 
 _pkgname=ffmpeg
 pkgname=$_pkgname-jjk
-pkgver=2.8.3
+pkgver=2.8.4
 pkgrel=1
 pkgdesc="Complete and free Internet live audio and video broadcasting solution for Linux/Unix"
 arch=('i686' 'x86_64')
@@ -21,17 +21,10 @@ depends=(
 makedepends=('yasm' 'hardening-wrapper')
 provides=($_pkgname)
 conflicts=($_pkgname)
-source=(http://ffmpeg.org/releases/$_pkgname-$pkgver.tar.xz{,.asc}
-        fix-libvpx-1.5.0.patch)
+source=(http://ffmpeg.org/releases/$_pkgname-$pkgver.tar.xz{,.asc})
 validpgpkeys=('FCF986EA15E6E293A5644F10B4322F04D67658D8') # ffmpeg-devel
-sha256sums=('18e22e3866d3b5fefcb1911c0d87ae8ababc30b7ea15901c1cf02885ccf6704a'
-            'SKIP'
-            '277994aca5a6e40c1a90750859828817e0646bfb28142fdb34d5f9d3196c3f7a')
-
-prepare() {
-  cd $_pkgname-$pkgver
-  patch -p1 -i ../fix-libvpx-1.5.0.patch
-}
+sha256sums=('8b6380a748fe2e0903d875b30aa613d1057824682d8d52f378d5aa5fc0dd951f'
+            'SKIP')
 
 build() {
   cd $_pkgname-$pkgver
