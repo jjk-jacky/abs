@@ -1,0 +1,35 @@
+From b0780d3f41d210a6a4da1a7d6d1a071aa321557a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Micka=C3=ABl?= <mickael9@gmail.com>
+Date: Sat, 9 Jan 2016 04:54:02 +0100
+Subject: [PATCH] fpm: call zend_signal_init() in child
+
+This addresses bug #71269.
+
+When an fpm child handles more than one request, zend_signal_startup() will
+override the saved signal handlers with the internal zend handlers set from the
+previous request, causing a SIGQUIT signal to result in a core dump rather than
+gracefully exiting (the expected behaviour).
+
+This is fixed by adding a call to zend_signal_init() after setting the
+signal handlers in the child. The same technique is used in the apache SAPI
+module in commit fd5a756ad44124ffa7e9a5810a31ff49e91708cf which addresses
+bug #61083.
+---
+ sapi/fpm/fpm/fpm_signals.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/sapi/fpm/fpm/fpm_signals.c b/sapi/fpm/fpm/fpm_signals.c
+index c5d0692..a637e69 100644
+--- a/sapi/fpm/fpm/fpm_signals.c
++++ b/sapi/fpm/fpm/fpm_signals.c
+@@ -241,6 +241,10 @@ int fpm_signals_init_child() /* {{{ */
+ 		zlog(ZLOG_SYSERROR, "failed to init child signals: sigaction()");
+ 		return -1;
+ 	}
++
++#ifdef ZEND_SIGNALS
++	zend_signal_init();
++#endif
+ 	return 0;
+ }
+ /* }}} */
