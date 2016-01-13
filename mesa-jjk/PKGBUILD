@@ -4,7 +4,7 @@
 
 pkgbase=mesa-jjk
 pkgname=('ati-dri-jjk' 'mesa-jjk' 'mesa-libgl-jjk')
-pkgver=11.1.0
+pkgver=11.1.1
 pkgrel=1
 arch=('i686' 'x86_64')
 makedepends=('python2' 'libxml2' 'libx11' 'glproto' 'libdrm' 'dri2proto'
@@ -16,7 +16,7 @@ source=(ftp://ftp.freedesktop.org/pub/mesa/${pkgver}/mesa-${pkgver}.tar.xz{,.sig
         LICENSE)
 validpgpkeys=('CEF8DDC8019CA66D4E3094F3600233BA9E54DC61'
               '8703B6700E7EE06D7A39B8D6EDAE37B02CEB490D')
-sha256sums=('9befe03b04223eb1ede177fa8cac001e2850292c8c12a3ec9929106afad9cf1f'
+sha256sums=('64db074fc514136b5fb3890111f0d50604db52f0b1e94ba3fcb0fe8668a7fd20'
             'SKIP'
             '7fdc119cf53c8ca65396ea73f6d10af641ba41ea1dd2bd44a824726e01c8b3f2')
 
