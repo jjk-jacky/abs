@@ -3,8 +3,8 @@
 
 _pkgname=harfbuzz
 pkgname=$_pkgname-jjk
-pkgver=1.1.2
-pkgrel=3
+pkgver=1.1.3
+pkgrel=1
 pkgdesc="OpenType text shaping engine."
 arch=('i686' 'x86_64')
 url="http://www.freedesktop.org/wiki/Software/HarfBuzz"
