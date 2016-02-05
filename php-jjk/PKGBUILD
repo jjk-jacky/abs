@@ -4,18 +4,18 @@
 pkgbase=php
 pkgname=('php-jjk'
          'php-fpm-jjk')
-pkgver=7.0.2
-pkgrel=2
+pkgver=7.0.3
+pkgrel=1
 arch=('i686' 'x86_64')
 license=('PHP')
 url='http://www.php.net'
 makedepends=('db' 'gmp'
              'libxml2' 'bzip2' 'curl')
-source=("http://www.php.net/distributions/${pkgbase}-${pkgver}.tar.xz"{,.asc}
+source=("http://php.net/distributions/${pkgbase}-${pkgver}.tar.xz"{,.asc}
         'php.ini.patch' 'php-fpm.patch' 'bug-71269.patch')
 validpgpkeys=('1A4E8B7277C42E53DBA9C7B9BCAA30EA9C0D5763'
               '6E4F6AB321FDC07F2C332E3AC2BF0BC433CFC8B3')
-sha256sums=('556121271a34c442b48e3d7fa3d3bbb4413d91897abbb92aaeced4a7df5f2ab2'
+sha256sums=('3af2b62617a0e46214500fc3e7f4a421067224913070844d3665d6cc925a1cca'
             'SKIP'
             '2586f0e1406849a526453b0ea505f57b2b5ced33b1cbd781f3533ef8f75e4b82'
             '896010fede8cfd0fc7ca04b42aea39597b34054b699507a3ebc7f303f7b8c8b3'
