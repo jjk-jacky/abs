@@ -38,7 +38,7 @@ ac_add_options --disable-gstreamer
 ac_add_options --disable-accessibility
 ac_add_options --disable-parental-controls
 ac_add_options --disable-webrtc
-ac_add_options --disable-logging
+#ac_add_options --disable-logging
 ac_add_options --disable-necko-wifi
 ac_add_options --disable-websms-backend
 ac_add_options --disable-webspeech

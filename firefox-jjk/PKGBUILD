@@ -4,7 +4,7 @@
 
 _pkgname=firefox
 pkgname=$_pkgname-jjk
-pkgver=43.0.4
+pkgver=44.0
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=('i686' 'x86_64')
@@ -25,16 +25,15 @@ source=(https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/source/
         firefox-$pkgver.source.tar.xz.sha512::https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/SHA512SUMS
         firefox-$pkgver.source.tar.xz.sha512.asc::https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/SHA512SUMS.asc
         mozconfig firefox.desktop firefox-install-dir.patch vendor.js
-        firefox-20.0.1-fixed-loading-icon.png no-logging.patch)
+        firefox-20.0.1-fixed-loading-icon.png)
 sha512sums=('FILE'
-            '65fe0419f72b2725cc9c5272d4c7332d7eac1fd5212d3c26cea5228c9dc3464048d8aca5d837f7c6294aafa304224739c1c37a73efea44b12c01614f17ea7d3c'
+            '3c9688399eb4dbe539492c1b873a8d3631639ed35d84cd03bb7dea6dc64a8a0f72fdec25a1ff65821f25cd6fb31b7ea3c8490ab067b2e9fc0f942c2b96171135'
             'SKIP'
-            'dbb6becc429b15093b9cb8f60042cf570c8f5c0e1c40285ca62e89082ef8a4bc704505ed63c6ca4e56aa345abf1ecb223dab0bc6935889978780dfa1dced9d12'
+            'f1dad2eeeb43216747b5e8246583a48684cf453ee588705921f1e338122bde1e3662d11c26ae0c53f6cc0b1b890a78f0efd12cd49a7f05a3e1bcdaf405237a43'
             '6338bd399df04dcbfd2d4150c59be8716aebcb60edbfd298ba8671059c4f02ffcec3e9f750255c951fb197edf6130b0c25a4157e27fe0087dad89b3d40eb2627'
             '266989b0c4a37254a40836a6193284a186230b48716907e4d249d73616f58382b258c41baa8c1ffc98d405f77bfafcd3438f749edcf391c7bd22185399adf4bd'
             'd927e5e882115c780aa0d45034cb1652eaa191d95c15013639f9172ae734245caae070018465d73fdf86a01601d08c9e65f28468621422d799fe8451e6175cb7'
-            'd51119170cc8fb99c50610a8e5e94f38a31722c1c1a2260ca32d8e376732e30c8e1deac7d8c599348892e783fb4c75ce8c38bbd238282b0c9da21608d902ba28'
-            '7ee1058fe2feedfe23442558607b654a150152e2898211598483869374ecde3c4460aa5f85bee81b293bcc282e8e5d0baf7d50b6dd089d0f2e7c24cb49f38de5')
+            'd51119170cc8fb99c50610a8e5e94f38a31722c1c1a2260ca32d8e376732e30c8e1deac7d8c599348892e783fb4c75ce8c38bbd238282b0c9da21608d902ba28')
 validpgpkeys=('2B90598A745E992F315E22C58AB132963A06537A'
               '14F26682D0916CDD81E37B6D61B7B526D98F0353')
 
@@ -46,7 +45,6 @@ _google_api_key=AIzaSyDwr302FpOSkGRpLlUpPThNTDPbXcIn_FM
 
 prepare() {
   cd $_pkgname-$pkgver
-  patch -p2 -i ../no-logging.patch
 
   cp ../mozconfig .mozconfig
   patch -Np1 -i ../firefox-install-dir.patch
