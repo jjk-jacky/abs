@@ -4,8 +4,8 @@
 
 _pkgname=xorg-server
 pkgname=$_pkgname-jjk
-pkgver=1.18.0
-pkgrel=2 # build first with 0.1 and then rebuild it after xf86-input-evdev rebuild
+pkgver=1.18.1
+pkgrel=1 # build first with 0.1 and then rebuild it after xf86-input-evdev rebuild
 pkgdesc="Xorg X server -- w/ scan mode instead of udev integration"
 depends=(libepoxy libxdmcp libxfont libpciaccess libdrm pixman libgcrypt libxau xorg-server-common libxshmfence libgl libevdev)
 # see xorg-server-*/hw/xfree86/common/xf86Module.h for ABI versions - we provide major numbers that drivers can depend on
@@ -30,29 +30,18 @@ optdepends=('xf86-input-evdev: suggested input driver')
 source=(${url}/releases/individual/xserver/${_pkgname}-${pkgver}.tar.bz2{,.sig}
         xvfb-run
         xvfb-run.1
-        0001-privates-Clear-screen-specific-keys-during-CloseScre.patch
-        0001-modesetting-add-zaphod-support-v3.patch
         0001-Add-config-scan-mode-for-hotplug-support.patch)
 validpgpkeys=('7B27A3F1A6E18CD9588B4AE8310180050905E40C'
               'C383B778255613DFDB409D91DB221A6900000011'
               'DD38563A8A8224537D1F90E45B8A2D50A0ECD0D3')
-sha256sums=('195670819695d9cedd8dde95fbe069be0d0f488a77797a2d409f9f702daf312e'
+sha256sums=('85ec56dbeb89a951295cdf4f39bf38e515f900d35e06d4a8081b114d1520789d'
             'SKIP'
             'ff0156309470fc1d378fd2e104338020a884295e285972cc88e250e031cc35b9'
             '2460adccd3362fefd4cdc5f1c70f332d7b578091fb9167bf88b5f91265bbd776'
-            '5a469576ebe79b499f55fb1955d2b66718bd5e3e62275d45eebe23121a0ad930'
-            'f9a5adfcd4c324fabd15cd96b9fa4737ed4c86603d91d9ec9c8b63c9d23b7cf6'
             'f559e27e1e6e551535f6f9fe0df130d25bc290c4ecd2bded015a7f841692f6d5')
 
 prepare() {
   cd "${_pkgname}-${pkgver}"
-
-  # Revert this as it causes issue when exiting Xorg (specifically the monitor
-  # turns off with no way to get it back on)
-  patch -Rp1 -i ../0001-privates-Clear-screen-specific-keys-during-CloseScre.patch
-
-  # Revert this as it causes segfault on start in QEMU (not tested more yet)
-  patch -Rp1 -i ../0001-modesetting-add-zaphod-support-v3.patch
 
   patch -Np1 -i ../0001-Add-config-scan-mode-for-hotplug-support.patch
 }
