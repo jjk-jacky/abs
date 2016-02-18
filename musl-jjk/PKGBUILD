@@ -4,7 +4,7 @@
 
 _pkgname=musl
 pkgname=$_pkgname-jjk
-pkgver=1.1.12
+pkgver=1.1.13
 pkgrel=1
 pkgdesc='Lightweight implementation of C standard library'
 arch=('i686' 'x86_64')
@@ -13,10 +13,17 @@ license=('MIT')
 options=('staticlibs' '!buildflags')
 provides=($_pkgname)
 conflicts=($_pkgname)
-source=(http://www.musl-libc.org/releases/musl-$pkgver.tar.gz{,.asc})
+source=(http://www.musl-libc.org/releases/musl-$pkgver.tar.gz{,.asc}
+        0001-fix-assumption-in-fputs-that-fwrite-returning-0-impl.patch)
 validpgpkeys=('836489290BB6B70F99FFDA0556BCDB593020450F')
-md5sums=('42875e0c111aa1cb9d08663f8d42c799'
-         'SKIP')
+sha1sums=('080b790c9aa0aefa94f6239a8b0d7d3f4ea3456d'
+          'SKIP'
+          'dac928b86cc30b78971039961836eb6f1f0a5fda')
+
+prepare() {
+    cd $_pkgname-$pkgver
+    patch -p1 -i ../0001-fix-assumption-in-fputs-that-fwrite-returning-0-impl.patch
+}
 
 build() {
   cd $_pkgname-$pkgver
