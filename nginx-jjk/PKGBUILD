@@ -6,7 +6,7 @@
 _pkgname=nginx
 pkgname=$_pkgname-jjk
 pkgver=1.8.1
-pkgrel=1
+pkgrel=2
 pkgdesc="Lightweight HTTP server and IMAP/POP3 proxy server"
 arch=('i686' 'x86_64')
 depends=('pcre' 'zlib' 'openssl')
