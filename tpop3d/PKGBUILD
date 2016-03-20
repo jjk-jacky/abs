@@ -1,0 +1,32 @@
+# Maintainer: jjacky
+pkgname=tpop3d
+pkgver=1.5.5
+pkgrel=1
+pkgdesc="fast, extensible, secure POP3 server"
+arch=('i686' 'x86_64')
+url="http://savannah.nongnu.org/projects/tpop3d/"
+license=('GPL+')
+source=(http://download.savannah.gnu.org/releases/$pkgname/$pkgname-$pkgver.tar.gz{,.sig})
+sha1sums=('73f52ded60219636fb0fa02745b799a4c0a0f382'
+          'SKIP')
+validpgpkeys=('79D4F2E419BE30844BCC53E80CA28B243DB19BBD')
+backup=('etc/tpop3d.conf')
+
+build() {
+  cd "$pkgname-$pkgver"
+  ./configure --prefix=/usr --sbindir=/usr/bin --sysconfdir=/etc \
+    --disable-auth-pam \
+    --disable-mbox-bsd \
+    --disable-sha1-passwords \
+    --enable-auth-flatfile \
+    --enable-mbox-maildir
+  make
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  make DESTDIR="$pkgdir/" install
+  install -m644 -D tpop3d.conf.sample "$pkgdir/etc/tpop3d.conf"
+}
+
+# vim:set ts=2 sw=2 et:
