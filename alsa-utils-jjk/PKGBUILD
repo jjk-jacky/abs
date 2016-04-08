@@ -4,7 +4,7 @@
 
 _pkgname=alsa-utils
 pkgname=$_pkgname-jjk
-pkgver=1.1.0
+pkgver=1.1.1
 pkgrel=1
 pkgdesc="An alternative implementation of Linux sound support"
 arch=('i686' 'x86_64')
@@ -17,7 +17,7 @@ conflicts=("$_pkgname")
 license=('GPL')
 source=(ftp://ftp.alsa-project.org/pub/utils/$_pkgname-${pkgver}.tar.bz2
         90alsa)
-sha256sums=('3b1c3135b76e14532d3dd23fb15759ddd7daf9ffbc183f7a9a0a3a86374748f1'
+sha256sums=('89757c9abaf420831b088fce354d492acc170bd02bb50eb7392c175f594b8041'
             'df0170be687bd474e0677ab97b94b86879fd1a86e5a714fa8b46b3af785f2496')
 
 build() {
