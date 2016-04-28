@@ -22,7 +22,6 @@ optdepends=('python2:           needed for some tools and python plugin'
 replaces=('sylpheed-claws' 'claws-mail-extra-plugins')
 conflicts=("$_pkgname" 'claws-mail-extra-plugins')
 provides=("$_pkgname" 'claws')
-install=claws-mail.install
 source=(http://www.claws-mail.org/download.php?file=releases/claws-mail-$pkgver.tar.xz{,.asc}
         0001-Fix-diff-format-detection.patch
         0002-Add-coloring-of-diff-patches-inside-emails.patch
