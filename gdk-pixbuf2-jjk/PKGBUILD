@@ -4,7 +4,7 @@
 _pkgname=gdk-pixbuf2
 pkgname=$_pkgname-jjk
 pkgver=2.34.0
-pkgrel=1
+pkgrel=2
 pkgdesc="An image loading library"
 arch=('i686' 'x86_64')
 url="http://www.gtk.org/"
@@ -14,8 +14,10 @@ makedepends=('gtk-doc' 'gobject-introspection')
 provides=("$_pkgname=$pkgver")
 conflicts=($_pkgname)
 install=gdk-pixbuf2.install
-source=(http://download.gnome.org/sources/gdk-pixbuf/${pkgver%.*}/gdk-pixbuf-$pkgver.tar.xz)
-sha256sums=('d55e5b383ee219bd0e23bf6ed4427d56a7db5379729a6e3e0a0e0eba9a8d8879')
+source=(http://download.gnome.org/sources/gdk-pixbuf/${pkgver%.*}/gdk-pixbuf-$pkgver.tar.xz
+        gdk-pixbuf-query-loaders.hook)
+sha256sums=('d55e5b383ee219bd0e23bf6ed4427d56a7db5379729a6e3e0a0e0eba9a8d8879'
+            '963afcfacde9fd36031d93c8aa4c94a669ab1dbe9ba0d2cf17599b7d358e54c2')
 
 build() {
   cd gdk-pixbuf-$pkgver
@@ -31,6 +33,11 @@ package() {
   cd gdk-pixbuf-$pkgver
 
   make DESTDIR="$pkgdir" install
+
+  # hook
+  install -dm755 "$pkgdir"/usr/share/libalpm/hooks
+  install -Dm644 ../gdk-pixbuf-query-loaders.hook \
+    "$pkgdir"/usr/share/libalpm/hooks/gdk-pixbuf-query-loaders.hook
 }
 
 # vim:set ts=2 sw=2 et:
