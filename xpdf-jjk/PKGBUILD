@@ -23,7 +23,6 @@ source=("ftp://ftp.foolabs.com/pub/${_pkgname}/${_pkgname}-${pkgver%_*}.tar.gz"
 sha1sums=('b9b1dbb0335742a09d0442c60fd02f4f934618bd'
           'f192728680aaf575c178ce25c4aefa92e798a879'
           '17ebbfe457cb92e97b12b7362e8ce961526012d9')
-install=install
 backup=('etc/xpdfrc')
 
 build() {
