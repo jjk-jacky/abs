@@ -18,7 +18,6 @@ makedepends=('intltool')
 optdepends=('libcanberra: for sound control')
 provides=($_pkgname)
 conflicts=($_pkgname)
-install=$_pkgname.install
 source=(http://archive.xfce.org/src/xfce/$_pkgname/${pkgver%.*}/$_pkgname-$pkgver.tar.bz2
         default-xsettings-xml.patch)
 sha256sums=('04becef105c19d0266cfe8dbf42619e7233c3b9fa99b43dbfc9c6a5959501f81'
