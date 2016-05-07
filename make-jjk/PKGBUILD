@@ -11,10 +11,9 @@ arch=('i686' 'x86_64')
 url="http://www.gnu.org/software/make"
 license=('GPL3')
 groups=('base-devel')
-depends=('glibc' 'sh')
+depends=('glibc')
 provides=($_pkgname)
 conflicts=($_pkgname)
-install=$_pkgname.install
 source=(ftp://ftp.gnu.org/gnu/${_pkgname}/${_pkgname}-${pkgver}.tar.bz2{,.sig})
 md5sums=('57a7a224a822f94789a587ccbcedff69'
          'SKIP')
