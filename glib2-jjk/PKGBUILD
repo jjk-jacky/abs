@@ -16,7 +16,7 @@ provides=($_pkgname)
 conflicts=($_pkgname)
 options=('!emptydirs' '!strip' 'debug')
 source=(http://ftp.gnome.org/pub/GNOME/sources/glib/${pkgver%.*}/glib-$pkgver.tar.xz
-        glib-compile-schemes.hook
+        glib-compile-schemas.hook
         gio-querymodules.hook
         revert-warn-glib-compile-schemas.patch
         0001-GRWLock-Tweak-doc-to-make-things-a-bit-clearer.patch
@@ -61,5 +61,5 @@ package() {
 
   # install hooks
   install -dm755 "$pkgdir"/usr/share/libalpm/hooks/
-  install -m644 "$srcdir"/{glib-compile-schemes,gio-querymodules}.hook "$pkgdir"/usr/share/libalpm/hooks/
+  install -m644 "$srcdir"/{glib-compile-schemas,gio-querymodules}.hook "$pkgdir"/usr/share/libalpm/hooks/
 }
