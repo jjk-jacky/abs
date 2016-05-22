@@ -1,0 +1,12 @@
+post_install() {
+  getent passwd smtpd >/dev/null || \
+      useradd -c "SMTP daemon" -d /var/empty -s /usr/bin/nologin -u 91 -g 2 smtpd
+  getent passwd smtpq >/dev/null || \
+      useradd -c "smtpd queue" -d /var/empty -s /usr/bin/nologin -u 92 -g 1 smtpq
+  getent group smtpq >/dev/null || \
+      groupadd -r smtpq
+}
+
+post_upgrade() {
+  post_install
+}
