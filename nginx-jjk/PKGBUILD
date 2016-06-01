@@ -5,11 +5,12 @@
 
 _pkgname=nginx
 pkgname=$_pkgname-jjk
-pkgver=1.10.0
-pkgrel=2
+pkgver=1.10.1
+pkgrel=1
 pkgdesc="Lightweight HTTP server and IMAP/POP3 proxy server"
 arch=('i686' 'x86_64')
 depends=('pcre' 'zlib' 'openssl')
+makedepends=('hardening-wrapper')
 provides=('nginx')
 conflicts=('nginx')
 url="http://nginx.org"
@@ -29,7 +30,7 @@ source=(http://nginx.org/download/nginx-$pkgver.tar.gz{,.asc}
         logrotate)
 install=install
 validpgpkeys=('B0F4253373F8F6F510D42178520A9993A1C052F8')
-md5sums=('c184c873d2798c5ba92be95ed1209c02'
+md5sums=('088292d9caf6059ef328aa7dda332e44'
          'SKIP'
          '5dd4d09914a4403b9df778ec1d66167c'
          '7711fc234ef2f35151885c1994f8fe73')
