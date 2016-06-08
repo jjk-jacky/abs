@@ -1,0 +1,64 @@
+# $Id$
+# Maintainer: Tobias Powalowski <tpowa@archlinux.org>
+# Contributor: Sébastien "Seblu" Luttringer <seblu@seblu.net>
+
+_pkgname=qemu
+pkgname=$_pkgname-jjk
+pkgdesc='A generic and open source processor emulator which achieves a good emulation speed by using dynamic translation'
+pkgver=2.6.0
+pkgrel=1
+arch=('i686' 'x86_64')
+license=('GPL2' 'LGPL2.1')
+url='http://wiki.qemu.org/'
+options=('!strip')
+depends=('pixman' 'libjpeg' 'libpng' 'sdl' 'alsa-lib' 'nss' 'glib2'
+         'gnutls' 'vde2' 'util-linux' 'libsasl' 'libgl'
+         'seabios' 'libcap' 'libcap-ng' 'libaio' 'libseccomp' 'libcacard'
+         'spice' 'usbredir' 'lzo' 'snappy' 'gcc-libs' 'zlib' 'bzip2' 'nspr'
+         'ncurses' 'libx11' 'libusb' 'libpulse' 'curl')
+makedepends=('spice-protocol' 'python2')
+provides=($_pkgname)
+conflicts=($_pkgname)
+source=(http://wiki.qemu.org/download/${_pkgname}-${pkgver}.tar.bz2{,.sig})
+validpgpkeys=('CEACC9E15534EBABB82D3FA03353C9CEF108B584')
+md5sums=('ca3f70b43f093e33e9e014f144067f13'
+         'SKIP')
+
+build ()
+{
+  cd ${_pkgname}-${pkgver}
+  # qemu vs. make 4 == bad
+  export ARFLAGS="rv"
+  # http://permalink.gmane.org/gmane.comp.emulators.qemu/238740
+  export CFLAGS+=' -fPIC'
+  # gtk gui breaks keymappings at the moment
+  ./configure --prefix=/usr --sysconfdir=/etc --audio-drv-list='pa alsa sdl' \
+              --python=/usr/bin/python2 \
+              --enable-docs --libexecdir=/usr/lib/qemu \
+              --disable-gtk --enable-linux-aio --enable-seccomp \
+              --enable-spice --localstatedir=/var \
+              --enable-modules --enable-curl \
+              --disable-guest-agent \
+              --target-list=arm-softmmu,x86_64-softmmu
+  make
+}
+
+package() {
+
+  make -C ${_pkgname}-${pkgver} DESTDIR="${pkgdir}" libexecdir="/usr/lib/qemu" install
+
+  cd "${pkgdir}"
+
+  # provided by seabios package
+  rm usr/share/qemu/bios.bin
+  rm usr/share/qemu/acpi-dsdt.aml
+  rm usr/share/qemu/bios-256k.bin
+  rm usr/share/qemu/vgabios-cirrus.bin
+  rm usr/share/qemu/vgabios-qxl.bin
+  rm usr/share/qemu/vgabios-stdvga.bin
+  rm usr/share/qemu/vgabios-vmware.bin
+
+  # bridge_helper needs suid
+  # https://bugs.archlinux.org/task/32565
+  chmod u+s usr/lib/qemu/qemu-bridge-helper
+}
