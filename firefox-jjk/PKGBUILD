@@ -4,7 +4,7 @@
 
 _pkgname=firefox
 pkgname=$_pkgname-jjk
-pkgver=46.0.1
+pkgver=47.0.1
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=('i686' 'x86_64')
@@ -12,9 +12,9 @@ license=('MPL' 'GPL' 'LGPL')
 url="https://www.mozilla.org/firefox/"
 depends=('gtk2' 'mozilla-common' 'libxt' 'startup-notification' 'mime-types'
          'dbus-glib' 'alsa-lib' 'desktop-file-utils' 'hicolor-icon-theme'
-         'libvpx' 'libevent' 'nss' 'hunspell' 'sqlite')
+         'libvpx' 'libevent' 'nss' 'sqlite')
 makedepends=('unzip' 'zip' 'diffutils' 'python2' 'yasm' 'mesa' 'imake'
-             'xorg-server-xvfb' 'libpulse'
+             'xorg-server-xvfb' 'libpulse' 'autoconf2.13'
              'inetutils' 'gconf')
 optdepends=('networkmanager: Location detection via available WiFi networks')
 provides=($_pkgname)
@@ -28,9 +28,9 @@ source=(https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/source/
         rb39195.patch
         firefox-20.0.1-fixed-loading-icon.png)
 sha512sums=('FILE'
-            '5358fe609d5d2a7d3c8354663d311a5931970a7484884cd2f2d6547564f7da3dab77d002d3bad9369d7c4b29fbbb4b1242fff5d8c4618ed1b98eecfc2cb46f67'
+            '78c1566595cc3f7eff63c03153709442da56054845f2553a72738241128d9a7978c535d14d0bffda9b9570b9070be8c4e1dec3ea4b809ab5cc90a4477c154323'
             'SKIP'
-            'c2087ade8b2404b4f7b474d30c3a4900420c1c6e7cd657c6a92222a70ffd8d3a2d50f1ababe4fbff2f33c570f4692b115344600950c9ecbfd8c8f8edd7387607'
+            '14dbb6a317d65bf41c67d771ff9fe6616f3c42c93b930e4bcf79429bc9df3a106da60569e1e2b187c1feecc7f8b079efd94abd751362b83974730e2f20593815'
             '6338bd399df04dcbfd2d4150c59be8716aebcb60edbfd298ba8671059c4f02ffcec3e9f750255c951fb197edf6130b0c25a4157e27fe0087dad89b3d40eb2627'
             '266989b0c4a37254a40836a6193284a186230b48716907e4d249d73616f58382b258c41baa8c1ffc98d405f77bfafcd3438f749edcf391c7bd22185399adf4bd'
             'd927e5e882115c780aa0d45034cb1652eaa191d95c15013639f9172ae734245caae070018465d73fdf86a01601d08c9e65f28468621422d799fe8451e6175cb7'
@@ -58,6 +58,7 @@ prepare() {
   patch -p1 -i ../rb39195.patch
   # see bug above & https://bugzilla.mozilla.org/show_bug.cgi?id=1245783
   echo 'ac_add_options --enable-optimize=" -fno-lifetime-dse -fno-delete-null-pointer-checks -fno-schedule-insns2"' >> .mozconfig
+  cp -f {old-,}configure
 
   echo -n "$_google_api_key" >google-api-key
   echo "ac_add_options --with-google-api-keyfile=\"$PWD/google-api-key\"" >>.mozconfig
@@ -110,11 +111,6 @@ package() {
 
   install -Dm644 ../firefox.desktop \
     "$pkgdir/usr/share/applications/firefox.desktop"
-
-  # Use system-provided dictionaries
-  rm -rf "$pkgdir"/usr/lib/firefox/{dictionaries,hyphenation}
-  ln -s /usr/share/hunspell "$pkgdir/usr/lib/firefox/dictionaries"
-  ln -s /usr/share/hyphen "$pkgdir/usr/lib/firefox/hyphenation"
 
   #workaround for now
   #https://bugzilla.mozilla.org/show_bug.cgi?id=658850
