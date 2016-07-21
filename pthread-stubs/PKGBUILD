@@ -1,0 +1,20 @@
+pkgname=libpthread-stubs
+pkgver=0.3
+pkgrel=1
+pkgdesc="Library that provides pthread stubs that are missing from libc"
+arch=('i686' 'x86_64')
+url="https://cgit.freedesktop.org/xcb/pthread-stubs"
+license=('MIT')
+source=(http://xcb.freedesktop.org/dist/libpthread-stubs-$pkgver.tar.bz2)
+sha256sums=('35b6d54e3cc6f3ba28061da81af64b9a92b7b757319098172488a660e3d87299')
+
+build() {
+    cd $pkgname-$pkgver
+    ./configure --prefix=/usr
+    make
+}
+
+package() {
+    cd $pkgname-$pkgver
+    make DESTDIR="$pkgdir" install
+}
