@@ -4,19 +4,19 @@
 
 pkgbase=mesa-jjk
 pkgname=('ati-dri-jjk' 'mesa-jjk' 'mesa-libgl-jjk')
-pkgver=11.2.2
+pkgver=12.0.1
 pkgrel=1
 arch=('i686' 'x86_64')
 makedepends=('python2' 'libxml2' 'libx11' 'glproto' 'libdrm' 'dri2proto'
              'dri3proto' 'presentproto' 'libxxf86vm' 'libxdamage' 'elfutils'
-             'systemd' 'libxshmfence' 'python2-mako')
+             'systemd' 'libxshmfence' 'python2-mako' 'libpthread-stubs')
 url="http://mesa3d.sourceforge.net"
 license=('custom')
 source=(ftp://ftp.freedesktop.org/pub/mesa/${pkgver}/mesa-${pkgver}.tar.xz{,.sig}
         LICENSE)
 validpgpkeys=('CEF8DDC8019CA66D4E3094F3600233BA9E54DC61'
               '8703B6700E7EE06D7A39B8D6EDAE37B02CEB490D')
-sha256sums=('40e148812388ec7c6d7b6657d5a16e2e8dabba8b97ddfceea5197947647bdfb4'
+sha256sums=('bab24fb79f78c876073527f515ed871fc9c81d816f66c8a0b051d8d653896389'
             'SKIP'
             '7fdc119cf53c8ca65396ea73f6d10af641ba41ea1dd2bd44a824726e01c8b3f2')
 
