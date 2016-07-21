@@ -4,7 +4,7 @@
 
 _pkgname=xorg-server
 pkgname=$_pkgname-jjk
-pkgver=1.18.3
+pkgver=1.18.4
 pkgrel=1 # build first with 0.1 and then rebuild it after xf86-input-evdev rebuild
 pkgdesc="Xorg X server -- w/ scan mode instead of udev integration"
 depends=(libepoxy libxdmcp libxfont libpciaccess libdrm pixman libgcrypt libxau xorg-server-common libxshmfence libgl libevdev)
@@ -34,7 +34,7 @@ source=(${url}/releases/individual/xserver/${_pkgname}-${pkgver}.tar.bz2{,.sig}
 validpgpkeys=('7B27A3F1A6E18CD9588B4AE8310180050905E40C'
               'C383B778255613DFDB409D91DB221A6900000011'
               'DD38563A8A8224537D1F90E45B8A2D50A0ECD0D3')
-sha256sums=('ea739c22517cdbe2b5f7c0a5fd05fe8a10ac0629003e71c0c7862f4bb60142cd'
+sha256sums=('278459b2c31d61a15655d95a72fb79930c480a6bb8cf9226e48a07df8b1d31c8'
             'SKIP'
             'ff0156309470fc1d378fd2e104338020a884295e285972cc88e250e031cc35b9'
             '2460adccd3362fefd4cdc5f1c70f332d7b578091fb9167bf88b5f91265bbd776'
