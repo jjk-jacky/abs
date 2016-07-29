@@ -68,10 +68,10 @@ package_mesa-jjk() {
   depends=('libdrm' 'libxxf86vm' 'libxdamage' 'libxshmfence' 'systemd' 'elfutils'
            'libgl' 'libgcrypt')
   optdepends=('opengl-man-pages: for the OpenGL API man pages')
-  provides=('libglapi' 'libgbm' 'libgles' 'libegl' 'khrplatform-devel'
+  provides=('libglapi' 'libgbm' 'khrplatform-devel'
             "mesa=${pkgver}")
-  conflicts=('libglapi' 'libgbm' 'libgles' 'libegl' 'khrplatform-devel' 'mesa')
-  replaces=('libglapi' 'libgbm' 'libgles' 'libegl' 'khrplatform-devel' 'mesa')
+  conflicts=('libglapi' 'libgbm' 'khrplatform-devel' 'mesa')
+  replaces=('libglapi' 'libgbm' 'khrplatform-devel' 'mesa')
 
   mv -v ${srcdir}/fakeinstall/* ${pkgdir}
   install -m755 -d ${pkgdir}/usr/lib/mesa
@@ -87,8 +87,8 @@ package_mesa-jjk() {
 package_mesa-libgl-jjk() {
   pkgdesc="Mesa 3-D graphics library"
   depends=('mesa')
-  provides=('libgl')
-  replaces=('libgl')
+  provides=('libgl' 'libegl' 'libgles')
+  replaces=('libgl' 'libegl' 'libgles')
 
   # See FS#26284
   install -m755 -d "${pkgdir}/usr/lib/xorg/modules/extensions"
