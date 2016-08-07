@@ -4,7 +4,7 @@
 
 _pkgname=firefox
 pkgname=$_pkgname-jjk
-pkgver=47.0.1
+pkgver=48.0
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=('i686' 'x86_64')
@@ -24,18 +24,14 @@ source=(https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/source/
         firefox-$pkgver.source.tar.xz.sha512::https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/SHA512SUMS
         firefox-$pkgver.source.tar.xz.sha512.asc::https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/SHA512SUMS.asc
         mozconfig firefox.desktop firefox-install-dir.patch vendor.js
-        rb39193.patch
-        rb39195.patch
         firefox-20.0.1-fixed-loading-icon.png)
 sha512sums=('FILE'
-            '78c1566595cc3f7eff63c03153709442da56054845f2553a72738241128d9a7978c535d14d0bffda9b9570b9070be8c4e1dec3ea4b809ab5cc90a4477c154323'
+            'ec36145c4fcee50ce79990c61637293e6178c58196eb316b908ef50d088b487e50788bbaa848c2941c353308151fcd2c4e37b7d9211480d7f01c435b90f2f6a3'
             'SKIP'
-            '14dbb6a317d65bf41c67d771ff9fe6616f3c42c93b930e4bcf79429bc9df3a106da60569e1e2b187c1feecc7f8b079efd94abd751362b83974730e2f20593815'
+            'd79b026ae2e0a6617f676b1711833f4a5fbb4bee9d5ed9b1064791c50e9ce200c858dd81c185309f739e4bf9b3f9382d12ded6bf3a5aa5083c9b551a2acf3cd8'
             '6338bd399df04dcbfd2d4150c59be8716aebcb60edbfd298ba8671059c4f02ffcec3e9f750255c951fb197edf6130b0c25a4157e27fe0087dad89b3d40eb2627'
             '266989b0c4a37254a40836a6193284a186230b48716907e4d249d73616f58382b258c41baa8c1ffc98d405f77bfafcd3438f749edcf391c7bd22185399adf4bd'
             'd927e5e882115c780aa0d45034cb1652eaa191d95c15013639f9172ae734245caae070018465d73fdf86a01601d08c9e65f28468621422d799fe8451e6175cb7'
-            '7a0319e1ffc2d357cdb2a9d2be2b80f31bd65a151ff6c8e1b81c356f3152175279308ea48df61e16ae130a3c6447d41884bc65133a14bf8763c88ec9274a06c8'
-            '77429d81d9c6e5359df83670a14c5636ba8e70db37bff95271002ea42ae0ec4e05340cd5cfdd4f028df60c3a44107ba4541239c234f05ad015c5c130a48babc3'
             'd51119170cc8fb99c50610a8e5e94f38a31722c1c1a2260ca32d8e376732e30c8e1deac7d8c599348892e783fb4c75ce8c38bbd238282b0c9da21608d902ba28')
 validpgpkeys=('2B90598A745E992F315E22C58AB132963A06537A'
               '14F26682D0916CDD81E37B6D61B7B526D98F0353')
@@ -52,25 +48,14 @@ prepare() {
   cp ../mozconfig .mozconfig
   patch -Np1 -i ../firefox-install-dir.patch
 
-  ## gcc6
-  # https://bugzilla.mozilla.org/show_bug.cgi?id=1245076
-  patch -p1 -i ../rb39193.patch
-  patch -p1 -i ../rb39195.patch
-  # see bug above & https://bugzilla.mozilla.org/show_bug.cgi?id=1245783
-  echo 'ac_add_options --enable-optimize=" -fno-lifetime-dse -fno-delete-null-pointer-checks -fno-schedule-insns2"' >> .mozconfig
-  cp -f {old-,}configure
-
   echo -n "$_google_api_key" >google-api-key
   echo "ac_add_options --with-google-api-keyfile=\"$PWD/google-api-key\"" >>.mozconfig
 
   mkdir "$srcdir/path"
+  ln -s /usr/bin/python2 "$srcdir"/path/python
 
   # Use gold, as Mozilla can use some of its features, such as safe ICF
   #ln -s /usr/bin/ld.gold "$srcdir/path/ld"
-
-  # configure script misdetects the preprocessor without an optimization level
-  # https://bugs.archlinux.org/task/34644
-  sed -i '/ac_cpp=/s/$CPPFLAGS/& -O2/' configure
 
   # Fix tab loading icon (flickers with libpng 1.6)
   # https://bugzilla.mozilla.org/show_bug.cgi?id=841734
@@ -82,12 +67,15 @@ build() {
   cd $_pkgname-$pkgver
 
   export PATH="$srcdir/path:$PATH"
-#  export LDFLAGS="$LDFLAGS -Wl,-rpath,/usr/lib/firefox"
-  export PYTHON="/usr/bin/python2"
+
+  # _FORTIFY_SOURCE causes configure failures
+  CPPFLAGS+=" -O2"
+  # Hardening
+  LDFLAGS+=" -Wl,-z,now"
 
   # Set up PGO
-  xvfb-run -a -s "-extension GLX -screen 0 1280x1024x24" \
-    make -f client.mk build MOZ_PGO=1
+#  xvfb-run -a -s "-extension GLX -screen 0 1280x1024x24" \
+    make -f client.mk build #MOZ_PGO=1
 }
 
 package() {
