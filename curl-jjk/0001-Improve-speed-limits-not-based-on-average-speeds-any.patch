@@ -1,0 +1,381 @@
+From f6aa4190a10928f6135342b06302f6814a56b664 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Tue, 16 Aug 2016 20:32:02 +0200
+Subject: [PATCH] Improve speed limits, not based on average speeds anymore
+
+Speed limits (from CURLOPT_MAX_RECV_SPEED_LARGE & CURLOPT_MAX_SEND_SPEED_LARGE)
+were applied simply by comparing limits with the cumulative average speed of the
+entire transfer; While this might work at times with good/constant connections,
+in other cases it can result to the limits simply being "ignored" for more than
+"short bursts" (as told in man page).
+
+Consider a download that goes on much slower than the limit for some time
+(because bandwidth is used elsewhere, server is slow, whatever the reason), then
+once things get better, curl would simply ignore the limit up until the average
+speed (since the beginning of the transfer) reached the limit.
+This could prove the limit useless to effectively avoid using the entire
+bandwidth (at least for quite some time).
+
+So instead, we now use a "moving starting point" as reference, and every time at
+least as much as the limit as been transferred, we can reset this starting point
+to the current position. This gets a good limiting effect that applies to the
+"current speed" with instant reactivity (in case of sudden speed burst).
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ docs/curl.1                                      |  4 --
+ docs/libcurl/opts/CURLOPT_MAX_RECV_SPEED_LARGE.3 |  5 +-
+ docs/libcurl/opts/CURLOPT_MAX_SEND_SPEED_LARGE.3 |  6 +-
+ lib/multi.c                                      | 60 ++++++++++---------
+ lib/progress.c                                   | 75 ++++++++++++++++++++++++
+ lib/progress.h                                   |  6 +-
+ lib/transfer.c                                   | 54 -----------------
+ lib/transfer.h                                   |  3 -
+ lib/urldata.h                                    |  8 +++
+ 9 files changed, 125 insertions(+), 96 deletions(-)
+
+diff --git a/docs/curl.1 b/docs/curl.1
+index c573ff9..5308c03 100644
+--- a/docs/curl.1
++++ b/docs/curl.1
+@@ -1018,10 +1018,6 @@ The given speed is measured in bytes/second, unless a suffix is appended.
+ Appending 'k' or 'K' will count the number as kilobytes, 'm' or M' makes it
+ megabytes, while 'g' or 'G' makes it gigabytes. Examples: 200K, 3m and 1G.
+ 
+-The given rate is the average speed counted during the entire transfer. It
+-means that curl might use higher transfer speeds in short bursts, but over
+-time it uses no more than the given rate.
+-
+ If you also use the \fI-Y, --speed-limit\fP option, that option will take
+ precedence and might cripple the rate-limiting slightly, to help keeping the
+ speed-limit logic working.
+diff --git a/docs/libcurl/opts/CURLOPT_MAX_RECV_SPEED_LARGE.3 b/docs/libcurl/opts/CURLOPT_MAX_RECV_SPEED_LARGE.3
+index 031f2cd..c99ff61 100644
+--- a/docs/libcurl/opts/CURLOPT_MAX_RECV_SPEED_LARGE.3
++++ b/docs/libcurl/opts/CURLOPT_MAX_RECV_SPEED_LARGE.3
+@@ -31,9 +31,8 @@ CURLcode curl_easy_setopt(CURL *handle, CURLOPT_MAX_RECV_SPEED_LARGE,
+                           curl_off_t speed);
+ .SH DESCRIPTION
+ Pass a curl_off_t as parameter.  If a download exceeds this \fIspeed\fP
+-(counted in bytes per second) on cumulative average during the transfer, the
+-transfer will pause to keep the average rate less than or equal to the
+-parameter value. Defaults to unlimited speed.
++(counted in bytes per second) the transfer will pause to keep the speed less
++than or equal to the parameter value. Defaults to unlimited speed.
+ 
+ This option doesn't affect transfer speeds done with FILE:// URLs.
+ .SH DEFAULT
+diff --git a/docs/libcurl/opts/CURLOPT_MAX_SEND_SPEED_LARGE.3 b/docs/libcurl/opts/CURLOPT_MAX_SEND_SPEED_LARGE.3
+index c2c6336..7f3efe5 100644
+--- a/docs/libcurl/opts/CURLOPT_MAX_SEND_SPEED_LARGE.3
++++ b/docs/libcurl/opts/CURLOPT_MAX_SEND_SPEED_LARGE.3
+@@ -31,9 +31,9 @@ CURLcode curl_easy_setopt(CURL *handle, CURLOPT_MAX_SEND_SPEED_LARGE,
+                           curl_off_t maxspeed);
+ .SH DESCRIPTION
+ Pass a curl_off_t as parameter with the \fImaxspeed\fP.  If an upload exceeds
+-this speed (counted in bytes per second) on cumulative average during the
+-transfer, the transfer will pause to keep the average rate less than or equal
+-to the parameter value.  Defaults to unlimited speed.
++this speed (counted in bytes per second) the transfer will pause to keep the
++speed less than or equal to the parameter value.  Defaults to unlimited
++speed.
+ 
+ This option doesn't affect transfer speeds done with FILE:// URLs.
+ .SH DEFAULT
+diff --git a/lib/multi.c b/lib/multi.c
+index 7a25103..90035d2 100644
+--- a/lib/multi.c
++++ b/lib/multi.c
+@@ -1800,9 +1800,17 @@ static CURLMcode multi_runsingle(struct Curl_multi *multi,
+         result = Curl_speedcheck(data, now);
+ 
+       if(( (data->set.max_send_speed == 0) ||
+-           (data->progress.ulspeed < data->set.max_send_speed))  &&
++           (Curl_pgrsLimitWaitTime(data->progress.downloaded,
++                                   data->progress.dl_limit_size,
++                                   data->set.max_recv_speed,
++                                   data->progress.dl_limit_start,
++                                   now) <= 0))  &&
+          ( (data->set.max_recv_speed == 0) ||
+-           (data->progress.dlspeed < data->set.max_recv_speed)))
++           (Curl_pgrsLimitWaitTime(data->progress.downloaded,
++                                   data->progress.dl_limit_size,
++                                   data->set.max_recv_speed,
++                                   data->progress.dl_limit_start,
++                                   now) <= 0)))
+         multistate(data, CURLM_STATE_PERFORM);
+       break;
+ 
+@@ -1813,35 +1821,31 @@ static CURLMcode multi_runsingle(struct Curl_multi *multi,
+       bool comeback = FALSE;
+ 
+       /* check if over send speed */
+-      if((data->set.max_send_speed > 0) &&
+-         (data->progress.ulspeed > data->set.max_send_speed)) {
+-        int buffersize;
+-
+-        multistate(data, CURLM_STATE_TOOFAST);
+-
+-        /* calculate upload rate-limitation timeout. */
+-        buffersize = (int)(data->set.buffer_size ?
+-                           data->set.buffer_size : BUFSIZE);
+-        timeout_ms = Curl_sleep_time(data->set.max_send_speed,
+-                                     data->progress.ulspeed, buffersize);
+-        Curl_expire_latest(data, timeout_ms);
+-        break;
++      if(data->set.max_send_speed > 0) {
++        timeout_ms = Curl_pgrsLimitWaitTime(data->progress.uploaded,
++                                            data->progress.ul_limit_size,
++                                            data->set.max_send_speed,
++                                            data->progress.ul_limit_start,
++                                            now);
++        if(timeout_ms > 0) {
++          multistate(data, CURLM_STATE_TOOFAST);
++          Curl_expire_latest(data, timeout_ms);
++          break;
++        }
+       }
+ 
+       /* check if over recv speed */
+-      if((data->set.max_recv_speed > 0) &&
+-         (data->progress.dlspeed > data->set.max_recv_speed)) {
+-        int buffersize;
+-
+-        multistate(data, CURLM_STATE_TOOFAST);
+-
+-        /* Calculate download rate-limitation timeout. */
+-        buffersize = (int)(data->set.buffer_size ?
+-                           data->set.buffer_size : BUFSIZE);
+-        timeout_ms = Curl_sleep_time(data->set.max_recv_speed,
+-                                     data->progress.dlspeed, buffersize);
+-        Curl_expire_latest(data, timeout_ms);
+-        break;
++      if(data->set.max_recv_speed > 0) {
++        timeout_ms = Curl_pgrsLimitWaitTime(data->progress.downloaded,
++                                            data->progress.dl_limit_size,
++                                            data->set.max_recv_speed,
++                                            data->progress.dl_limit_start,
++                                            now);
++        if(timeout_ms > 0) {
++          multistate(data, CURLM_STATE_TOOFAST);
++          Curl_expire_latest(data, timeout_ms);
++          break;
++        }
+       }
+ 
+       /* read/write data if it is ready to do so */
+diff --git a/lib/progress.c b/lib/progress.c
+index 760ca1c..0f67ef2 100644
+--- a/lib/progress.c
++++ b/lib/progress.c
+@@ -216,18 +216,93 @@ void Curl_pgrsStartNow(struct Curl_easy *data)
+ {
+   data->progress.speeder_c = 0; /* reset the progress meter display */
+   data->progress.start = Curl_tvnow();
++  data->progress.ul_limit_start.tv_sec = 0;
++  data->progress.ul_limit_start.tv_usec = 0;
++  data->progress.dl_limit_start.tv_sec = 0;
++  data->progress.dl_limit_start.tv_usec = 0;
+   /* clear all bits except HIDE and HEADERS_OUT */
+   data->progress.flags &= PGRS_HIDE|PGRS_HEADERS_OUT;
+ }
+ 
++/*
++ * This is used to handle speed limits, calculating how much milliseconds we
++ * need to wait until we're back under the speed limit, if needed.
++ *
++ * The way it works is by having a "starting point" (time & amount of data
++ * transfered by then) used in the speed computation, to be used instead of the
++ * start of the transfer.
++ * This starting point is regularly moved as transfer goes on, to keep getting
++ * accurate values (instead of average over the entire tranfer).
++ *
++ * This function takes the current amount of data transfered, the amount at the
++ * starting point, the limit (in bytes/s), the time of the starting point and
++ * the current time.
++ *
++ * Returns -1 if no waiting is needed (not enough data transfered since
++ * starting point yet), 0 when no waiting is needed but the starting point
++ * should be reset (to current), or the number of milliseconds to wait to get
++ * back under the speed limit.
++ */
++long Curl_pgrsLimitWaitTime(curl_off_t cursize,
++                            curl_off_t startsize,
++                            curl_off_t limit,
++                            struct timeval start,
++                            struct timeval now)
++{
++    curl_off_t size = cursize - startsize;
++    long minimum, actual;
++
++    /* we don't have a starting point yet -- return 0 so it gets (re)set */
++    if(start.tv_sec == 0 && start.tv_usec == 0)
++        return 0;
++
++    /* not enough data yet */
++    if(size < limit)
++      return -1;
++
++    minimum = (long) (CURL_OFF_T_C(1000) * size / limit);
++    actual = Curl_tvdiff(now, start);
++
++    if(actual < minimum)
++      return minimum - actual;
++    else
++      return 0;
++}
++
+ void Curl_pgrsSetDownloadCounter(struct Curl_easy *data, curl_off_t size)
+ {
++  struct timeval now = Curl_tvnow();
++
+   data->progress.downloaded = size;
++
++  /* download speed limit */
++  if((data->set.max_recv_speed > 0) &&
++     (Curl_pgrsLimitWaitTime(data->progress.downloaded,
++                             data->progress.dl_limit_size,
++                             data->set.max_recv_speed,
++                             data->progress.dl_limit_start,
++                             now) == 0)) {
++    data->progress.dl_limit_start = now;
++    data->progress.dl_limit_size = size;
++  }
+ }
+ 
+ void Curl_pgrsSetUploadCounter(struct Curl_easy *data, curl_off_t size)
+ {
++  struct timeval now = Curl_tvnow();
++
+   data->progress.uploaded = size;
++
++  /* upload speed limit */
++  if((data->set.max_send_speed > 0) &&
++     (Curl_pgrsLimitWaitTime(data->progress.uploaded,
++                             data->progress.ul_limit_size,
++                             data->set.max_send_speed,
++                             data->progress.ul_limit_start,
++                             now) == 0)) {
++    data->progress.ul_limit_start = now;
++    data->progress.ul_limit_size = size;
++  }
+ }
+ 
+ void Curl_pgrsSetDownloadSize(struct Curl_easy *data, curl_off_t size)
+diff --git a/lib/progress.h b/lib/progress.h
+index a77b7ce..155ff04 100644
+--- a/lib/progress.h
++++ b/lib/progress.h
+@@ -49,7 +49,11 @@ void Curl_pgrsSetUploadCounter(struct Curl_easy *data, curl_off_t size);
+ int Curl_pgrsUpdate(struct connectdata *);
+ void Curl_pgrsResetTimesSizes(struct Curl_easy *data);
+ void Curl_pgrsTime(struct Curl_easy *data, timerid timer);
+-
++long Curl_pgrsLimitWaitTime(curl_off_t cursize,
++                            curl_off_t startsize,
++                            curl_off_t limit,
++                            struct timeval start,
++                            struct timeval now);
+ 
+ /* Don't show progress for sizes smaller than: */
+ #define LEAST_SIZE_PROGRESS BUFSIZE
+diff --git a/lib/transfer.c b/lib/transfer.c
+index e4a2835..5d5ee6b 100644
+--- a/lib/transfer.c
++++ b/lib/transfer.c
+@@ -1264,60 +1264,6 @@ int Curl_single_getsock(const struct connectdata *conn,
+   return bitmap;
+ }
+ 
+-/*
+- * Determine optimum sleep time based on configured rate, current rate,
+- * and packet size.
+- * Returns value in milliseconds.
+- *
+- * The basic idea is to adjust the desired rate up/down in this method
+- * based on whether we are running too slow or too fast.  Then, calculate
+- * how many milliseconds to wait for the next packet to achieve this new
+- * rate.
+- */
+-long Curl_sleep_time(curl_off_t rate_bps, curl_off_t cur_rate_bps,
+-                             int pkt_size)
+-{
+-  curl_off_t min_sleep = 0;
+-  curl_off_t rv = 0;
+-
+-  if(rate_bps == 0)
+-    return 0;
+-
+-  /* If running faster than about .1% of the desired speed, slow
+-   * us down a bit.  Use shift instead of division as the 0.1%
+-   * cutoff is arbitrary anyway.
+-   */
+-  if(cur_rate_bps > (rate_bps + (rate_bps >> 10))) {
+-    /* running too fast, decrease target rate by 1/64th of rate */
+-    rate_bps -= rate_bps >> 6;
+-    min_sleep = 1;
+-  }
+-  else if(cur_rate_bps < (rate_bps - (rate_bps >> 10))) {
+-    /* running too slow, increase target rate by 1/64th of rate */
+-    rate_bps += rate_bps >> 6;
+-  }
+-
+-  /* Determine number of milliseconds to wait until we do
+-   * the next packet at the adjusted rate.  We should wait
+-   * longer when using larger packets, for instance.
+-   */
+-  rv = ((curl_off_t)(pkt_size * 1000) / rate_bps);
+-
+-  /* Catch rounding errors and always slow down at least 1ms if
+-   * we are running too fast.
+-   */
+-  if(rv < min_sleep)
+-    rv = min_sleep;
+-
+-  /* Bound value to fit in 'long' on 32-bit platform.  That's
+-   * plenty long enough anyway!
+-   */
+-  if(rv > 0x7fffffff)
+-    rv = 0x7fffffff;
+-
+-  return (long)rv;
+-}
+-
+ /* Curl_init_CONNECT() gets called each time the handle switches to CONNECT
+    which means this gets called once for each subsequent redirect etc */
+ void Curl_init_CONNECT(struct Curl_easy *data)
+diff --git a/lib/transfer.h b/lib/transfer.h
+index 0058f8c..5189672 100644
+--- a/lib/transfer.h
++++ b/lib/transfer.h
+@@ -64,8 +64,5 @@ Curl_setup_transfer (struct connectdata *data,
+                curl_off_t *writecountp /* return number of bytes written */
+ );
+ 
+-long Curl_sleep_time(curl_off_t rate_bps, curl_off_t cur_rate_bps,
+-                     int pkt_size);
+-
+ #endif /* HEADER_CURL_TRANSFER_H */
+ 
+diff --git a/lib/urldata.h b/lib/urldata.h
+index 3cf7ed9..0b7e93c 100644
+--- a/lib/urldata.h
++++ b/lib/urldata.h
+@@ -1171,6 +1171,14 @@ struct Progress {
+   struct timeval t_startsingle;
+   struct timeval t_startop;
+   struct timeval t_acceptdata;
++
++  /* upload speed limit */
++  struct timeval ul_limit_start;
++  curl_off_t ul_limit_size;
++  /* download speed limit */
++  struct timeval dl_limit_start;
++  curl_off_t dl_limit_size;
++
+ #define CURR_TIME (5+1) /* 6 entries for 5 seconds */
+ 
+   curl_off_t speeder[ CURR_TIME ];
+-- 
+2.9.2
+
