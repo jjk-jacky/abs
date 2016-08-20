@@ -2,22 +2,23 @@
 # Maintainer: Evangelos Foutras <evangelos@foutrelis.com>
 # Contributor: tobias <tobias funnychar archlinux.org>
 
-pkgname=xfce4-notifyd
+_pkgname=xfce4-notifyd
+pkgname=$_pkgname-jjk
 pkgver=0.2.4
-pkgrel=3
+pkgrel=1
 pkgdesc="Notification daemon for the Xfce desktop"
 arch=('i686' 'x86_64')
 url="http://goodies.xfce.org/projects/applications/xfce4-notifyd"
 license=('GPL2')
-groups=('xfce4-goodies')
 depends=('libxfce4ui' 'libnotify' 'hicolor-icon-theme')
 makedepends=('intltool')
-provides=('notification-daemon')
-source=(http://archive.xfce.org/src/apps/$pkgname/0.2/$pkgname-$pkgver.tar.bz2)
+provides=('notification-daemon' $_pkgname)
+conflicts=($_pkgname)
+source=(http://archive.xfce.org/src/apps/$_pkgname/0.2/$_pkgname-$pkgver.tar.bz2)
 sha256sums=('8c7ed62f9496816d1391281f77d1b32216f9bf6fd22fbe4f6f3f4e07a6bbced0')
 
 build() {
-  cd "$srcdir/$pkgname-$pkgver"
+  cd "$srcdir/$_pkgname-$pkgver"
 
   ./configure \
     --prefix=/usr \
@@ -30,7 +31,7 @@ build() {
 }
 
 package() {
-  cd "$srcdir/$pkgname-$pkgver"
+  cd "$srcdir/$_pkgname-$pkgver"
   make DESTDIR="$pkgdir" install
 }
 
