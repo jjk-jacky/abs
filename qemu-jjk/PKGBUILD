@@ -5,7 +5,7 @@
 _pkgname=qemu
 pkgname=$_pkgname-jjk
 pkgdesc='A generic and open source processor emulator which achieves a good emulation speed by using dynamic translation'
-pkgver=2.6.1
+pkgver=2.7.0
 pkgrel=1
 arch=('i686' 'x86_64')
 license=('GPL2' 'LGPL2.1')
@@ -21,7 +21,7 @@ provides=($_pkgname)
 conflicts=($_pkgname)
 source=(http://wiki.qemu.org/download/${_pkgname}-${pkgver}.tar.bz2{,.sig})
 validpgpkeys=('CEACC9E15534EBABB82D3FA03353C9CEF108B584')
-md5sums=('6a183b192018192943b6781e1bb9b72f'
+md5sums=('08d4d06d1cb598efecd796137f4844ab'
          'SKIP')
 
 build ()
