@@ -4,7 +4,7 @@
 
 _pkgname=firefox
 pkgname=$_pkgname-jjk
-pkgver=48.0
+pkgver=49.0.1
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=('i686' 'x86_64')
@@ -26,9 +26,9 @@ source=(https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/source/
         mozconfig firefox.desktop firefox-install-dir.patch vendor.js
         firefox-20.0.1-fixed-loading-icon.png)
 sha512sums=('FILE'
-            'ec36145c4fcee50ce79990c61637293e6178c58196eb316b908ef50d088b487e50788bbaa848c2941c353308151fcd2c4e37b7d9211480d7f01c435b90f2f6a3'
+            '0199d4b1346fa88559c9645e07988d0968cadd27341fa3a7bdb35af846a2f1e1030b1af315290681446b26268e137bc57cbc1d8bba171b79eb198d671c24b466'
             'SKIP'
-            'd79b026ae2e0a6617f676b1711833f4a5fbb4bee9d5ed9b1064791c50e9ce200c858dd81c185309f739e4bf9b3f9382d12ded6bf3a5aa5083c9b551a2acf3cd8'
+            'eb01316272ccd2944a284508adeeb4384b0cfa772eadf1fa7aeb53966fc5bcee5cb054f0ac7517e84a87b88c0424741c3c9ebb6a7391580f8837e8df05b740e3'
             '6338bd399df04dcbfd2d4150c59be8716aebcb60edbfd298ba8671059c4f02ffcec3e9f750255c951fb197edf6130b0c25a4157e27fe0087dad89b3d40eb2627'
             '266989b0c4a37254a40836a6193284a186230b48716907e4d249d73616f58382b258c41baa8c1ffc98d405f77bfafcd3438f749edcf391c7bd22185399adf4bd'
             'd927e5e882115c780aa0d45034cb1652eaa191d95c15013639f9172ae734245caae070018465d73fdf86a01601d08c9e65f28468621422d799fe8451e6175cb7'

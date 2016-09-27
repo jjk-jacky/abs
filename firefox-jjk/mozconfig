@@ -8,7 +8,8 @@ ac_add_options --enable-pie
 
 # branding
 ac_add_options --enable-official-branding
-ac_add_options --disable-update-channel
+#ac_add_options --disable-update-channel
+ac_add_options --enable-update-channel=release
 MOZ_ADDON_SIGNING=1
 
 # System libraries
