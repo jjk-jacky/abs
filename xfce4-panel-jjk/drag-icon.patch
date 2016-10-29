@@ -1,0 +1,24 @@
+From 8dc83f507d7340fa46c5b8927e5b320c5595fb7d Mon Sep 17 00:00:00 2001
+From: Thaddaeus Tintenfisch <thad.fisch@gmail.com>
+Date: Fri, 20 Feb 2015 21:26:24 +0100
+Subject: Do not use widget snapshot as tasklist draw icon
+
+
+diff --git a/plugins/tasklist/tasklist-widget.c b/plugins/tasklist/tasklist-widget.c
+index d596813..53174a9 100644
+--- a/plugins/tasklist/tasklist-widget.c
++++ b/plugins/tasklist/tasklist-widget.c
+@@ -3029,7 +3029,9 @@ xfce_tasklist_button_drag_begin (GtkWidget         *button,
+ 
+   if (child->tasklist->show_labels)
+     {
+-      pixmap = gtk_widget_get_snapshot (button, NULL);
++      /* FIXME Triggers specific repaint error (bug 11283) */
++      //pixmap = gtk_widget_get_snapshot (button, NULL);
++      pixmap = NULL;
+       if (pixmap != NULL)
+         {
+           gtk_drag_set_icon_pixmap (context,
+-- 
+cgit v0.10.1
+
