@@ -3,7 +3,7 @@
 
 _pkgname=claws-mail
 pkgname=$_pkgname-jjk
-pkgver=3.14.0
+pkgver=3.14.1
 pkgrel=1
 pkgdesc="A GTK+ based e-mail client."
 arch=('i686' 'x86_64')
@@ -26,7 +26,7 @@ source=(http://www.claws-mail.org/download.php?file=releases/claws-mail-$pkgver.
         0001-Fix-diff-format-detection.patch
         0002-Add-coloring-of-diff-patches-inside-emails.patch
         0003-Always-sort-by-date-ASC-within-a-thread-when-by-thre.patch)
-sha256sums=('466bd70350c69055d980dc84038d13f231f4ed060af899910e29c7a1de83cc59'
+sha256sums=('b79a1dc04f0b3d1f693e84d7fa7282f140fb5280179281445a8b954ce423c335'
             'SKIP'
             'f89365263c77e9812b18a740a34d035ccb48fb8795cad94be6e5d77f8c3aabaf'
             'e53f77b9dc6edba80fb415cfcc11a8b7ae6fc21303911f0015a2786d6ef50316'
