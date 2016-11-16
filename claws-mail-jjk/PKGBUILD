@@ -4,7 +4,7 @@
 _pkgname=claws-mail
 pkgname=$_pkgname-jjk
 pkgver=3.14.1
-pkgrel=1
+pkgrel=2
 pkgdesc="A GTK+ based e-mail client."
 arch=('i686' 'x86_64')
 license=('GPL3')
@@ -23,11 +23,13 @@ replaces=('sylpheed-claws' 'claws-mail-extra-plugins')
 conflicts=("$_pkgname" 'claws-mail-extra-plugins')
 provides=("$_pkgname" 'claws')
 source=(http://www.claws-mail.org/download.php?file=releases/claws-mail-$pkgver.tar.xz{,.asc}
+        claws.git-afe0203a640d39817f068e0fb9b5f2cb631cf677.patch
         0001-Fix-diff-format-detection.patch
         0002-Add-coloring-of-diff-patches-inside-emails.patch
         0003-Always-sort-by-date-ASC-within-a-thread-when-by-thre.patch)
 sha256sums=('b79a1dc04f0b3d1f693e84d7fa7282f140fb5280179281445a8b954ce423c335'
             'SKIP'
+            '49ecbb30849a519c27f12d1c8bc2d290d8c2d857438639b1f6f071fb5e788291'
             'f89365263c77e9812b18a740a34d035ccb48fb8795cad94be6e5d77f8c3aabaf'
             'e53f77b9dc6edba80fb415cfcc11a8b7ae6fc21303911f0015a2786d6ef50316'
             '0168c5067d2d875fea8085513d26750fe8059136ac0a0ec2ca5b7fdc08a80eb6')
@@ -35,6 +37,7 @@ validpgpkeys=('8B3B297A03468356692F8D592CD716D654D6BBD4') # Paul <paul@claws-mai
 
 prepare() {
   cd "${_pkgname}-${pkgver}"
+  patch -p1 -i ../claws.git-afe0203a640d39817f068e0fb9b5f2cb631cf677.patch
   patch -p1 -i ../0001-Fix-diff-format-detection.patch
   patch -p1 -i ../0002-Add-coloring-of-diff-patches-inside-emails.patch
   patch -p1 -i ../0003-Always-sort-by-date-ASC-within-a-thread-when-by-thre.patch
