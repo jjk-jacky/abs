@@ -6,24 +6,23 @@
 # Contributor: Daniel J Griffiths <ghost1227@archlinux.us>
 # Contributor: Christian Hesse <mail@eworm.de>
 
-pkgname=gvim-jjk
-pkgver=8.0.0055
+pkgbase=vim
+pkgname=(vim-runtime-jjk gvim-jjk)
+pkgver=8.0.0086
 _versiondir=80
 pkgrel=1
-pkgdesc='Vi Improved, a highly configurable, improved version of the vi text editor (with advanced features, such as a GUI)'
-depends=("vim-runtime=${pkgver}" 'gpm' 'libxt' 'gtk2')
-optdepends=('python2: Python 2 language support'
-            'python: Python 3 language support'
-            'perl: Perl language support')
-provides=("vim=${pkgver}" "xxd" 'gvim')
-conflicts=('vim-minimal' 'vim' 'gvim')
-replaces=('gvim-python3')
 arch=(i686 x86_64)
 license=('custom:vim')
 url='http://www.vim.org'
 makedepends=(gpm python2 python libxt gtk2 gawk)
-source=(vim-$pkgver.tar.gz::http://github.com/vim/vim/archive/v$pkgver.tar.gz)
-sha1sums=('20f144e8dc42bb2f5201b18b2f3a9990efc294f6')
+source=(vim-$pkgver.tar.gz::http://github.com/vim/vim/archive/v$pkgver.tar.gz
+        vimrc
+        archlinux.vim
+        vimdoc.hook)
+sha1sums=('d4e6cf6223965aedda744c5f97a8d5d55ff77b33'
+          '539bfaa0517dfff6d61c37f9c2d81a0db756a4c9'
+          '94f7bb87b5d06bace86bc4b3ef1372813b4eedf2'
+          'adc4c82b6c4097944e5a767270a772721455eb8c')
 
 prepare() {
   cd vim-$pkgver/src
@@ -60,27 +59,81 @@ build() {
 #  TERM=xterm make -j1 test
 #}
 
-package() {
-  cd "${srcdir}"/vim-$pkgver
-  make -j1 VIMRCLOC=/etc DESTDIR="${pkgdir}" install
+package_vim-runtime-jjk() {
+    pkgdesc="Runtime for (g)vim"
+    backup=("etc/vimrc")
+    provides=("vim-runtime=$pkgver")
+    conflicts=("vim-runtime")
 
-  # provided by (n)vi in core
-  rm "${pkgdir}"/usr/bin/{ex,view}
+    cd vim-$pkgver
 
-  # delete some manpages
-  find "${pkgdir}"/usr/share/man -type d -name 'man1' 2>/dev/null | \
-    while read _mandir; do
-    cd ${_mandir}
-    rm -f ex.1 view.1 # provided by (n)vi
-  done
+    make -j1 VIMRCLOC=/etc DESTDIR="$pkgdir" install
+    # man and bin files belong to 'vim'
+    rm -r "$pkgdir"/usr/share/man/ "$pkgdir"/usr/bin/
 
-  # need to remove since this is provided by vim-runtime
-  rm -r "${pkgdir}"/usr/share/vim
+    # Don't forget logtalk.dict
+    install -Dm644 runtime/ftplugin/logtalk.dict \
+        "$pkgdir"/usr/share/vim/vim$_versiondir/ftplugin/logtalk.dict
 
-  # keep gvim desktop file only, remove vim
-  rm "${pkgdir}"/usr/share/applications/vim.desktop
+    # fix FS#17216
+    sed -i 's|messages,/var|messages,/var/log/messages.log,/var|' \
+        "$pkgdir"/usr/share/vim/vim$_versiondir/filetype.vim
 
-  # license
-   install -Dm644 runtime/doc/uganda.txt \
-    "${pkgdir}"/usr/share/licenses/gvim/license.txt
+    # patch filetype.vim for better handling of pacman related files
+    sed -i "s/rpmsave/pacsave/;s/rpmnew/pacnew/;s/,\*\.ebuild/\0,PKGBUILD*,*.install/" \
+        "$pkgdir"/usr/share/vim/vim$_versiondir/filetype.vim
+    sed -i "/find the end/,+3{s/changelog_date_entry_search/changelog_date_end_entry_search/}" \
+        "$pkgdir"/usr/share/vim/vim$_versiondir/ftplugin/changelog.vim
+
+    # rc files
+    install -Dm644 ../vimrc "$pkgdir"/etc/vimrc
+    install -Dm644 ../archlinux.vim "$pkgdir"/usr/share/vim/vimfiles/archlinux.vim
+
+    # rgb.txt file
+    install -Dm644 runtime/rgb.txt "$pkgdir"/usr/share/vim/vim$_versiondir/rgb.txt
+
+    # no desktop files and icons
+    rm -r "$pkgdir"/usr/share/{applications,icons}
+
+    # license
+    install -dm755 "$pkgdir"/usr/share/licenses/vim-runtime
+    ln -s /usr/share/vim/vim$_versiondir/doc/uganda.txt \
+        "$pkgdir"/usr/share/licenses/vim-runtime/license.txt
+
+    # pacman hook for documentation helptags
+    install -Dm644 ../vimdoc.hook "$pkgdir"/usr/share/libalpm/hooks/vimdoc.hook
+}
+
+package_gvim-jjk() {
+    pkgdesc='Vi Improved, a highly configurable, improved version of the vi text editor (with advanced features, such as a GUI)'
+    depends=("vim-runtime=$pkgver" 'gpm' 'libxt' 'gtk2')
+    optdepends=('python2: Python 2 language support'
+                'python: Python 3 language support'
+                'perl: Perl language support')
+    provides=("vim=$pkgver" "xxd" 'gvim')
+    conflicts=('vim-minimal' 'vim' 'gvim')
+    replaces=('gvim-python3')
+
+    cd vim-$pkgver
+    make -j1 VIMRCLOC=/etc DESTDIR="$pkgdir" install
+
+    # provided by (n)vi in core
+    rm "$pkgdir"/usr/bin/{ex,view}
+
+    # delete some manpages
+    find "$pkgdir"/usr/share/man -type d -name 'man1' 2>/dev/null | \
+        while read _mandir; do
+            cd $_mandir
+            rm -f ex.1 view.1 # provided by (n)vi
+        done
+
+    # need to remove since this is provided by vim-runtime
+    rm -r "$pkgdir"/usr/share/vim
+
+    # keep gvim desktop file only, remove vim
+    rm "$pkgdir"/usr/share/applications/vim.desktop
+
+    # license
+    install -Dm644 runtime/doc/uganda.txt \
+        "$pkgdir"/usr/share/licenses/gvim/license.txt
 }
