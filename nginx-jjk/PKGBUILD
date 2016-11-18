@@ -13,7 +13,7 @@ depends=('pcre' 'zlib' 'openssl')
 makedepends=('hardening-wrapper')
 provides=('nginx')
 conflicts=('nginx')
-url="http://nginx.org"
+url="https://nginx.org"
 license=('custom')
 backup=('etc/nginx/fastcgi.conf'
         'etc/nginx/fastcgi_params'
@@ -25,7 +25,7 @@ backup=('etc/nginx/fastcgi.conf'
         'etc/nginx/uwsgi_params'
         'etc/nginx/win-utf'
         'etc/logrotate.d/nginx')
-source=(http://nginx.org/download/nginx-$pkgver.tar.gz{,.asc}
+source=(https://nginx.org/download/nginx-$pkgver.tar.gz{,.asc}
         service
         logrotate)
 install=install
