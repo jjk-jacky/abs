@@ -4,18 +4,17 @@
 pkgbase=php
 pkgname=('php-jjk'
          'php-fpm-jjk')
-pkgver=7.0.13
+pkgver=7.1.0
 pkgrel=1
 arch=('i686' 'x86_64')
 license=('PHP')
 url='http://www.php.net'
-makedepends=('db' 'gmp'
+makedepends=('db' 'gmp' 'pcre'
              'libxml2' 'bzip2' 'curl')
-source=("http://php.net/distributions/${pkgbase}-${pkgver}.tar.xz"{,.asc}
+source=("https://php.net/distributions/${pkgbase}-${pkgver}.tar.xz"{,.asc}
         'php.ini.patch' 'php-fpm.patch')
-validpgpkeys=('1A4E8B7277C42E53DBA9C7B9BCAA30EA9C0D5763'
-              '6E4F6AB321FDC07F2C332E3AC2BF0BC433CFC8B3')
-sha256sums=('357ba7f93975d7d836abed0852dc3ed96a988af539e87750613294cbee82f1bf'
+validpgpkeys=('A917B1ECDA84AEC2B568FED6F50ABC807BD5DCD0')
+sha256sums=('a810b3f29c21407c24caa88f50649320d20ba6892ae1923132598b8a0ca145b6'
             'SKIP'
             'd5b1532d99c57f094310658d40a8514441104e91c08d8947540ddd9544fecbf6'
             'f0df874a0956f8738160fb20e107fc6d4c7c65c678843baca9109d09a4bece24')
@@ -90,7 +89,7 @@ build() {
 
 package_php-jjk() {
 	pkgdesc='An HTML-embedded scripting language'
-	depends=('libxml2' 'bzip2' 'curl')
+	depends=('libxml2' 'bzip2' 'curl' 'pcre')
 	provides=('php')
 	conflicts=('php')
 	backup=('etc/php/php.ini')
