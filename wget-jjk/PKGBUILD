@@ -1,24 +1,27 @@
 # $Id$
 # Maintainer: Eric Bélanger <eric@archlinux.org>
 
-pkgname=wget
+_pkgname=wget
+pkgname=$_pkgname-jjk
 pkgver=1.18
-pkgrel=2
+pkgrel=1
 pkgdesc="A network utility to retrieve files from the Web"
 arch=('i686' 'x86_64')
 url="http://www.gnu.org/software/wget/wget.html"
 license=('GPL3')
-depends=('openssl' 'libidn' 'libutil-linux' 'libpsl')
+depends=('openssl' 'libidn' 'libutil-linux')
 checkdepends=('perl-http-daemon' 'perl-io-socket-ssl' 'python')
 optdepends=('ca-certificates: HTTPS downloads')
+provides=($_pkgname)
+conflicts=($_pkgname)
 backup=('etc/wgetrc')
-source=(ftp://ftp.gnu.org/gnu/${pkgname}/${pkgname}-${pkgver}.tar.xz{,.sig})
+source=(ftp://ftp.gnu.org/gnu/$_pkgname/$_pkgname-$pkgver.tar.xz{,.sig})
 sha1sums=('02d451e658f600ee519c42cbf4d3bfe4e49b6c4f'
           'SKIP')
 validpgpkeys=('AC404C1C0BF735C63FF4D562263D6DF2E163E1EA')
 
 prepare() {
-  cd ${pkgname}-${pkgver}
+  cd $_pkgname-$pkgver
   cat >> doc/sample.wgetrc <<EOF
 
 # default root certs location
@@ -27,17 +30,17 @@ EOF
 }
 
 build() {
-  cd ${pkgname}-${pkgver}
-  ./configure --prefix=/usr --sysconfdir=/etc --enable-nls --with-ssl=openssl
+  cd $_pkgname-$pkgver
+  ./configure --prefix=/usr --sysconfdir=/etc --disable-nls --with-ssl=openssl
   make
 }
 
 check() {
-  cd ${pkgname}-${pkgver}
+  cd $_pkgname-$pkgver
   make check
 }
 
 package() {
-  cd ${pkgname}-${pkgver}
-  make DESTDIR="${pkgdir}" install
+  cd $_pkgname-$pkgver
+  make DESTDIR="$pkgdir" install
 }
