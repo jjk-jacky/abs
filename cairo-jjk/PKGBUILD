@@ -4,12 +4,12 @@
 
 _pkgname=cairo
 pkgname=$_pkgname-jjk
-pkgver=1.14.6
+pkgver=1.14.8
 pkgrel=1
 pkgdesc="Cairo vector graphics library"
 arch=(i686 x86_64)
 license=('LGPL' 'MPL')
-url="http://cairographics.org/"
+url="https://cairographics.org/"
 makedepends=('mesa' 'libgl' 'librsvg' 'gtk2' 'gtk-doc'
              'valgrind')
 depends=('libpng' 'libxrender' 'libxext' 'fontconfig' 'pixman>=0.28.0' 'glib2'
@@ -18,8 +18,8 @@ provides=('cairo-xcb' 'cairo')
 replaces=('cairo-xcb' 'cairo')
 conflicts=('cairo')
 options=('!libtool')
-source=(http://cairographics.org/releases/$_pkgname-$pkgver.tar.xz
-        $_pkgname-$pkgver.tar.xz.sha1.signed-msg::http://cairographics.org/releases/$_pkgname-$pkgver.tar.xz.sha1.asc)
+source=(https://cairographics.org/releases/$_pkgname-$pkgver.tar.xz
+        $_pkgname-$pkgver.tar.xz.sha1.signed-msg::https://cairographics.org/releases/$_pkgname-$pkgver.tar.xz.sha1.asc)
 validpgpkeys=('C7223EBE4EF66513B892598911A30156E0E67611')
 sha1sums=('SIGNED-MSG' 'SKIP')
 
