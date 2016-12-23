@@ -5,7 +5,7 @@
 _pkgname=xorg-server
 pkgname=$_pkgname-jjk
 pkgver=1.18.4
-pkgrel=1 # build first with 0.1 and then rebuild it after xf86-input-evdev rebuild
+pkgrel=2 # build first with 0.1 and then rebuild it after xf86-input-evdev rebuild
 pkgdesc="Xorg X server -- w/ scan mode instead of udev integration"
 depends=(libepoxy libxdmcp libxfont libpciaccess libdrm pixman libgcrypt libxau xorg-server-common libxshmfence libgl libevdev)
 # see xorg-server-*/hw/xfree86/common/xf86Module.h for ABI versions - we provide major numbers that drivers can depend on
@@ -18,7 +18,7 @@ replaces=('glamor-egl')
 install=xorg-server.install
 arch=('i686' 'x86_64')
 license=('custom')
-url="http://xorg.freedesktop.org"
+url="https://xorg.freedesktop.org"
 makedepends=('pixman' 'libx11' 'mesa' 'libgl' 'xf86driproto' 'xcmiscproto' 'xtrans' 'bigreqsproto' 'randrproto' 
              'inputproto' 'fontsproto' 'videoproto' 'presentproto' 'compositeproto' 'recordproto' 'scrnsaverproto'
              'resourceproto' 'xineramaproto' 'libxkbfile' 'libxfont' 'renderproto' 'libpciaccess' 'libxv'
@@ -99,6 +99,9 @@ build() {
 package() {
   cd "${_pkgname}-${pkgver}"
   make DESTDIR="${pkgdir}" install
+
+  chown :210 "$pkgdir"/usr/lib/xorg-server/Xorg
+  chmod g+s "$pkgdir"/usr/lib/xorg-server/Xorg
 
   # distro specific files must be installed in /usr/share/X11/xorg.conf.d
   install -m755 -d "${pkgdir}/etc/X11/xorg.conf.d"
