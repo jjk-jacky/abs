@@ -2,20 +2,10 @@
 # Maintainer: AndyRTR <andyrtr@archlinux.org>
 # Maintainer: Jan de Groot <jgc@archlinux.org>
 
-_pkgname=xorg-server
-pkgname=$_pkgname-jjk
+pkgbase=xorg-server
+pkgname=(xorg-server-jjk xorg-server-xephyr-jjk)
 pkgver=1.18.4
 pkgrel=2 # build first with 0.1 and then rebuild it after xf86-input-evdev rebuild
-pkgdesc="Xorg X server -- w/ scan mode instead of udev integration"
-depends=(libepoxy libxdmcp libxfont libpciaccess libdrm pixman libgcrypt libxau xorg-server-common libxshmfence libgl libevdev)
-# see xorg-server-*/hw/xfree86/common/xf86Module.h for ABI versions - we provide major numbers that drivers can depend on
-# and /usr/lib/pkgconfig/xorg-server.pc in xorg-server-devel pkg
-provides=('X-ABI-VIDEODRV_VERSION=20' 'X-ABI-XINPUT_VERSION=22.1' 'X-ABI-EXTENSION_VERSION=9.0' 'x-server'
-          $_pkgname)
-groups=('xorg')
-conflicts=('nvidia-utils<=331.20' 'glamor-egl' $_pkgname)
-replaces=('glamor-egl')
-install=xorg-server.install
 arch=('i686' 'x86_64')
 license=('custom')
 url="https://xorg.freedesktop.org"
@@ -26,10 +16,8 @@ makedepends=('pixman' 'libx11' 'mesa' 'libgl' 'xf86driproto' 'xcmiscproto' 'xtra
              'xorg-xkbcomp' 'xorg-util-macros' 'xorg-font-util' 'glproto' 'dri2proto' 'libgcrypt' 'libepoxy'
              'xcb-util' 'xcb-util-image' 'xcb-util-renderutil' 'xcb-util-wm' 'xcb-util-keysyms' 'dri3proto'
              'libxshmfence' 'libunwind' 'libevdev')
-optdepends=('xf86-input-evdev: suggested input driver')
-source=(${url}/releases/individual/xserver/${_pkgname}-${pkgver}.tar.bz2{,.sig}
-        xvfb-run
-        xvfb-run.1
+source=($url/releases/individual/xserver/xorg-server-$pkgver.tar.bz2{,.sig}
+        xvfb-run xvfb-run.1
         0001-Add-config-scan-mode-for-hotplug-support.patch)
 validpgpkeys=('7B27A3F1A6E18CD9588B4AE8310180050905E40C'
               'C383B778255613DFDB409D91DB221A6900000011'
@@ -41,13 +29,13 @@ sha256sums=('278459b2c31d61a15655d95a72fb79930c480a6bb8cf9226e48a07df8b1d31c8'
             'f559e27e1e6e551535f6f9fe0df130d25bc290c4ecd2bded015a7f841692f6d5')
 
 prepare() {
-  cd "${_pkgname}-${pkgver}"
+  cd "$pkgbase-$pkgver"
 
   patch -Np1 -i ../0001-Add-config-scan-mode-for-hotplug-support.patch
 }
 
 build() {
-  cd "${_pkgname}-${pkgver}"
+  cd "$pkgbase-$pkgver"
   autoreconf -fi
   ./configure --prefix=/usr \
       --enable-ipv6 \
@@ -96,30 +84,55 @@ build() {
       -i hw/Makefile
 }
 
-package() {
-  cd "${_pkgname}-${pkgver}"
-  make DESTDIR="${pkgdir}" install
+package_xorg-server-jjk() {
+  pkgdesc="Xorg X server -- w/ scan mode instead of udev integration"
+  depends=(libepoxy libxdmcp libxfont libpciaccess libdrm pixman libgcrypt
+           libxau xorg-server-common libxshmfence libgl libevdev)
+  # see xorg-server-*/hw/xfree86/common/xf86Module.h for ABI versions
+  # we provide major numbers that drivers can depend on and
+  # /usr/lib/pkgconfig/xorg-server.pc in xorg-server-devel pkg
+  provides=('X-ABI-VIDEODRV_VERSION=20' 'X-ABI-XINPUT_VERSION=22.1'
+            'X-ABI-EXTENSION_VERSION=9.0' 'x-server' xorg-server)
+  groups=('xorg')
+  conflicts=('nvidia-utils<=331.20' 'glamor-egl' xorg-server)
+  replaces=('glamor-egl')
+  install=xorg-server.install
+
+  cd "$pkgbase-$pkgver"
+  make DESTDIR="$pkgdir" install
 
   chown :210 "$pkgdir"/usr/lib/xorg-server/Xorg
   chmod g+s "$pkgdir"/usr/lib/xorg-server/Xorg
 
   # distro specific files must be installed in /usr/share/X11/xorg.conf.d
-  install -m755 -d "${pkgdir}/etc/X11/xorg.conf.d"
-  install -m755 -d "${pkgdir}/usr/share/X11/xorg.conf.d"
+  install -m755 -d "$pkgdir/etc/X11/xorg.conf.d"
+  install -m755 -d "$pkgdir/usr/share/X11/xorg.conf.d"
 
   # Needed for non-mesa drivers, libgl will restore it
-  mv "${pkgdir}/usr/lib/xorg/modules/extensions/libglx.so" \
-     "${pkgdir}/usr/lib/xorg/modules/extensions/libglx.xorg"
+  mv "$pkgdir/usr/lib/xorg/modules/extensions/libglx.so" \
+     "$pkgdir/usr/lib/xorg/modules/extensions/libglx.xorg"
 
-  rm -rf "${pkgdir}/var"
+  rm -rf "$pkgdir/var"
 
-  rm -f "${pkgdir}/usr/share/man/man1/Xserver.1"
-  rm -f "${pkgdir}/usr/lib/xorg/protocol.txt"
+  rm -f "$pkgdir/usr/share/man/man1/Xserver.1"
+  rm -f "$pkgdir/usr/lib/xorg/protocol.txt"
 
-  install -m755 -d "${pkgdir}/usr/share/licenses/xorg-server"
-  ln -sf ../xorg-server-common/COPYING "${pkgdir}/usr/share/licenses/xorg-server/COPYING"
+  install -m755 -d "$pkgdir/usr/share/licenses/xorg-server"
+  ln -sf ../xorg-server-common/COPYING "$pkgdir/usr/share/licenses/xorg-server/COPYING"
 
-  rm -rf "${pkgdir}/usr/lib/pkgconfig"
-  rm -rf "${pkgdir}/usr/include"
-  rm -rf "${pkgdir}/usr/share/aclocal"
+  rm -rf "$pkgdir/usr/lib/pkgconfig"
+  rm -rf "$pkgdir/usr/include"
+  rm -rf "$pkgdir/usr/share/aclocal"
+}
+
+package_xorg-server-xephyr-jjk() {
+  pkgdesc="A nested X server that runs as an X application"
+  depends=(libxfont libgl libepoxy libgcrypt libxv pixman xorg-server-common
+           'xcb-util-image' 'xcb-util-renderutil' 'xcb-util-wm' 'xcb-util-keysyms')
+
+  cd "$pkgbase-$pkgver/hw/kdrive"
+  make DESTDIR="$pkgdir" install
+
+  install -m755 -d "$pkgdir/usr/share/licenses/xorg-server-xephyr"
+  ln -sf ../xorg-server-common/COPYING "$pkgdir/usr/share/licenses/xorg-server-xephyr/COPYING"
 }
