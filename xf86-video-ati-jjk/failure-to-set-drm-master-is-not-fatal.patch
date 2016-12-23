@@ -1,0 +1,14 @@
+--- src/radeon_kms.c.org	2016-12-22 19:36:34.868229139 +0100
++++ src/radeon_kms.c	2016-12-22 19:37:44.904891498 +0100
+@@ -1997,9 +1997,9 @@
+ 
+     err = drmSetMaster(info->dri2.drm_fd);
+     if (err)
+-        ErrorF("Unable to retrieve master\n");
++        xf86DrvMsg(pScrn->scrnIndex, X_WARNING, "Unable to retrieve master\n");
+ 
+-    return err == 0;
++    return TRUE;
+ }
+ 
+ static void radeon_drop_drm_master(ScrnInfoPtr pScrn)
