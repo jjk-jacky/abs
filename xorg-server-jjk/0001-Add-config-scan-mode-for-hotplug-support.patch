@@ -1,34 +1,36 @@
-From 94380f3d2dc16e48020299fe68a342f6691c2727 Mon Sep 17 00:00:00 2001
+From a7c0dbc36d0ba8b170051ce9fa6678370e2faf68 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
-Date: Thu, 5 Mar 2015 14:42:05 +0100
+Date: Sat, 14 Jan 2017 20:58:08 +0100
 Subject: [PATCH] Add config-scan mode for hotplug support
 
-For systems where there's neither HAL nor udev, this adds a "scan" mode that
-will simply read /dev/input and "feed" Xorg all character devic found there.
+For systems where there's neither HAL nor udev, this adds a "scan" mode
+that will simply read /dev/input and "feed" Xorg all character device
+found there.
 
-This allows to still benefit from dynamic loading and InputClass configuration
-in such cases. (Besides the name and device path, the attribute (keyboard,
-mouse, etc) is set using the same logic as in the evdev driver
-(xf86-input-evdev).)
+This allows to still benefit from dynamic loading and InputClass
+configuration in such cases. (Besides the name and device path, the
+attribute (keyboard, mouse, etc) is set using the same logic as in the
+evdev driver (xf86-input-evdev).)
 
-Note that this only works on start, but it might even be possible to add an
-inotify on /dev/input and react when files are added/removed, to provide actual
-hotplug support.
+Note that this only works on start, but it might even be possible to add
+an inotify on /dev/input and react when files are added/removed, to
+provide actual hotplug support.
 
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
- config/Makefile.am             |  11 ++-
- config/config-backends.h       |   3 +
- config/config.c                |   5 ++
- config/scan.c                  | 172 +++++++++++++++++++++++++++++++++++++++++
- configure.ac                   |  19 ++++-
- hw/xfree86/common/xf86Xinput.c |   6 +-
- include/dix-config.h.in        |   3 +
- 7 files changed, 214 insertions(+), 5 deletions(-)
+ config/Makefile.am              |  11 ++-
+ config/config-backends.h        |   3 +
+ config/config.c                 |   5 ++
+ config/scan.c                   | 172 ++++++++++++++++++++++++++++++++++++++++
+ configure.ac                    |  19 ++++-
+ hw/xfree86/common/xf86Globals.c |   2 +-
+ hw/xfree86/common/xf86Xinput.c  |   6 +-
+ include/dix-config.h.in         |   3 +
+ 8 files changed, 215 insertions(+), 6 deletions(-)
  create mode 100644 config/scan.c
 
 diff --git a/config/Makefile.am b/config/Makefile.am
-index 0e20e8b..11a2223 100644
+index 51aae47..29d5692 100644
 --- a/config/Makefile.am
 +++ b/config/Makefile.am
 @@ -32,7 +32,16 @@ else
@@ -62,7 +64,7 @@ index 5f07557..311544e 100644
 +void config_scan_fini(void);
  #endif
 diff --git a/config/config.c b/config/config.c
-index b5d634b..f774c85 100644
+index fb60295..b378775 100644
 --- a/config/config.c
 +++ b/config/config.c
 @@ -55,6 +55,9 @@ config_init(void)
@@ -263,10 +265,10 @@ index 0000000..47a7efe
 +    /* void */
 +}
 diff --git a/configure.ac b/configure.ac
-index 280c369..a198c3d 100644
+index b0daff9..f956c34 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -604,6 +604,7 @@ AC_ARG_ENABLE(config-udev,    AS_HELP_STRING([--enable-config-udev], [Build udev
+@@ -628,6 +628,7 @@ AC_ARG_ENABLE(config-udev,    AS_HELP_STRING([--enable-config-udev], [Build udev
  AC_ARG_ENABLE(config-udev-kms,    AS_HELP_STRING([--enable-config-udev-kms], [Build udev kms support (default: auto)]), [CONFIG_UDEV_KMS=$enableval], [CONFIG_UDEV_KMS=auto])
  AC_ARG_ENABLE(config-hal,     AS_HELP_STRING([--disable-config-hal], [Build HAL support (default: auto)]), [CONFIG_HAL=$enableval], [CONFIG_HAL=auto])
  AC_ARG_ENABLE(config-wscons,  AS_HELP_STRING([--enable-config-wscons], [Build wscons config support (default: auto)]), [CONFIG_WSCONS=$enableval], [CONFIG_WSCONS=auto])
@@ -274,7 +276,7 @@ index 280c369..a198c3d 100644
  AC_ARG_ENABLE(xfree86-utils,     AS_HELP_STRING([--enable-xfree86-utils], [Build xfree86 DDX utilities (default: enabled)]), [XF86UTILS=$enableval], [XF86UTILS=yes])
  AC_ARG_ENABLE(vgahw,          AS_HELP_STRING([--enable-vgahw], [Build Xorg with vga access (default: enabled)]), [VGAHW=$enableval], [VGAHW=yes])
  AC_ARG_ENABLE(vbe,            AS_HELP_STRING([--enable-vbe], [Build Xorg with VBE module (default: enabled)]), [VBE=$enableval], [VBE=yes])
-@@ -697,6 +698,7 @@ case $host_os in
+@@ -719,6 +720,7 @@ case $host_os in
  		CONFIG_HAL=no
  		CONFIG_UDEV=no
  		CONFIG_UDEV_KMS=no
@@ -282,7 +284,7 @@ index 280c369..a198c3d 100644
  		DGA=no
  		DRM=no
  		DRI2=no
-@@ -849,6 +851,19 @@ if test "x$CONFIG_UDEV" = xyes && test "x$CONFIG_HAL" = xyes; then
+@@ -920,6 +922,19 @@ if test "x$CONFIG_UDEV" = xyes && test "x$CONFIG_HAL" = xyes; then
  	AC_MSG_ERROR([Hotplugging through both libudev and hal not allowed])
  fi
  
@@ -302,7 +304,7 @@ index 280c369..a198c3d 100644
  PKG_CHECK_MODULES(UDEV, $LIBUDEV, [HAVE_LIBUDEV=yes], [HAVE_LIBUDEV=no])
  if test "x$CONFIG_UDEV" = xauto; then
  	CONFIG_UDEV="$HAVE_LIBUDEV"
-@@ -2506,10 +2521,10 @@ AC_SUBST([prefix])
+@@ -2566,10 +2581,10 @@ AC_SUBST([prefix])
  
  AC_CONFIG_COMMANDS([sdksyms], [touch hw/xfree86/sdksyms.dep])
  
@@ -315,35 +317,48 @@ index 280c369..a198c3d 100644
               Input device hotplugging will not be available!
               ***********************************************])
  fi
+diff --git a/hw/xfree86/common/xf86Globals.c b/hw/xfree86/common/xf86Globals.c
+index 07cfabf..804d4a9 100644
+--- a/hw/xfree86/common/xf86Globals.c
++++ b/hw/xfree86/common/xf86Globals.c
+@@ -122,7 +122,7 @@ xf86InfoRec xf86Info = {
+     .pmFlag = TRUE,
+     .disableRandR = FALSE,
+     .randRFrom = X_DEFAULT,
+-#if defined(CONFIG_HAL) || defined(CONFIG_UDEV) || defined(CONFIG_WSCONS)
++#if defined(CONFIG_HAL) || defined(CONFIG_UDEV) || defined(CONFIG_WSCONS) || defined(CONFIG_SCAN)
+     .forceInputDevices = FALSE,
+     .autoAddDevices = TRUE,
+     .autoEnableDevices = TRUE,
 diff --git a/hw/xfree86/common/xf86Xinput.c b/hw/xfree86/common/xf86Xinput.c
-index 1fb5b16..c4908a8 100644
+index 39de498..b735cc1 100644
 --- a/hw/xfree86/common/xf86Xinput.c
 +++ b/hw/xfree86/common/xf86Xinput.c
-@@ -992,7 +992,8 @@ NewInputDeviceRequest(InputOption *options, InputAttributes * attrs,
+@@ -1034,7 +1034,8 @@ NewInputDeviceRequest(InputOption *options, InputAttributes * attrs,
          if (strcmp(key, "_source") == 0 &&
              (strcmp(value, "server/hal") == 0 ||
               strcmp(value, "server/udev") == 0 ||
 -             strcmp(value, "server/wscons") == 0)) {
 +             strcmp(value, "server/wscons") == 0 ||
-+             strcmp(value, "server/scan"))) {
++             strcmp(value, "server/scan") == 0)) {
              is_auto = 1;
              if (!xf86Info.autoAddDevices) {
                  rval = BadMatch;
-@@ -1543,7 +1544,8 @@ xf86InputEnableVTProbe(void)
-             if (strcmp(key, "_source") == 0 &&
-                 (strcmp(value, "server/hal") == 0 ||
-                  strcmp(value, "server/udev") == 0 ||
--                 strcmp(value, "server/wscons") == 0))
-+                 strcmp(value, "server/wscons") == 0 ||
-+                 strcmp(value, "server/scan")))
-                 is_auto = 1;
-         }
+@@ -1574,7 +1575,8 @@ xf86InputEnableVTProbe(void)
+         if (value &&
+             (strcmp(value, "server/hal") == 0 ||
+              strcmp(value, "server/udev") == 0 ||
+-             strcmp(value, "server/wscons") == 0))
++             strcmp(value, "server/wscons") == 0 ||
++             strcmp(value, "server/scan") == 0))
+             is_auto = 1;
+ 
          xf86NewInputDevice(pInfo, &pdev,
 diff --git a/include/dix-config.h.in b/include/dix-config.h.in
-index 1aa77a5..950428c 100644
+index 4f020e5..1a56279 100644
 --- a/include/dix-config.h.in
 +++ b/include/dix-config.h.in
-@@ -430,6 +430,9 @@
+@@ -442,6 +442,9 @@
  /* Support HAL for hotplug */
  #undef CONFIG_HAL
  
@@ -354,5 +369,5 @@ index 1aa77a5..950428c 100644
  #undef SYSTEMD_LOGIND 1
  
 -- 
-2.3.1
+2.11.0
 
