@@ -4,7 +4,7 @@
 _pkgname=claws-mail
 pkgname=$_pkgname-jjk
 pkgver=3.14.1
-pkgrel=2
+pkgrel=3
 pkgdesc="A GTK+ based e-mail client."
 arch=('i686' 'x86_64')
 license=('GPL3')
@@ -26,13 +26,21 @@ source=(http://www.claws-mail.org/download.php?file=releases/claws-mail-$pkgver.
         claws.git-afe0203a640d39817f068e0fb9b5f2cb631cf677.patch
         0001-Fix-diff-format-detection.patch
         0002-Add-coloring-of-diff-patches-inside-emails.patch
-        0003-Always-sort-by-date-ASC-within-a-thread-when-by-thre.patch)
+        0003-Always-sort-by-date-ASC-within-a-thread-when-by-thre.patch
+        0004-summaryview-Minor-fix.patch
+        0005-prefs_filtering-Add-missing-shadow-on-the-list.patch
+        0006-plugins-notification-Update-more-tray-s-items-sensit.patch
+        0007-Add-vfolder-plugin.patch)
 sha256sums=('b79a1dc04f0b3d1f693e84d7fa7282f140fb5280179281445a8b954ce423c335'
             'SKIP'
             '49ecbb30849a519c27f12d1c8bc2d290d8c2d857438639b1f6f071fb5e788291'
-            'f89365263c77e9812b18a740a34d035ccb48fb8795cad94be6e5d77f8c3aabaf'
-            'e53f77b9dc6edba80fb415cfcc11a8b7ae6fc21303911f0015a2786d6ef50316'
-            '0168c5067d2d875fea8085513d26750fe8059136ac0a0ec2ca5b7fdc08a80eb6')
+            '5f2cb9873d6598678fac52db872cea443bba4ccbe374c622057177841a422f09'
+            '720dfe9d6cb18d29757e05034072d3dc48c09d9ca12536ad995c413edd0e589f'
+            '35fba3c5f12ee62abbe6b3cc109651b93b496dc9fd127eeb97155e3afcca60a5'
+            'e344ef8b1c96ddb21ce75d93165b3eb8444c51f441cdb59eac9a12de86075814'
+            '148e50fdae90a11f920172b9c9b5a35b3268dca064bcd1b526fa7e076ede6c87'
+            '41eeba168b59b75860369042cb88219cb131628e6fbe993f43dd600736a6d32c'
+            'e033e4406abc4c3a4b8ca83d6abc0780b460c4d1577bd88ec3112b19abdacbb9')
 validpgpkeys=('8B3B297A03468356692F8D592CD716D654D6BBD4') # Paul <paul@claws-mail.org>
 
 prepare() {
@@ -41,6 +49,12 @@ prepare() {
   patch -p1 -i ../0001-Fix-diff-format-detection.patch
   patch -p1 -i ../0002-Add-coloring-of-diff-patches-inside-emails.patch
   patch -p1 -i ../0003-Always-sort-by-date-ASC-within-a-thread-when-by-thre.patch
+  patch -p1 -i ../0004-summaryview-Minor-fix.patch
+  patch -p1 -i ../0005-prefs_filtering-Add-missing-shadow-on-the-list.patch
+  patch -p1 -i ../0006-plugins-notification-Update-more-tray-s-items-sensit.patch
+  patch -p1 -i ../0007-Add-vfolder-plugin.patch
+
+  NOCONFIGURE=1 ./autogen.sh
 }
 
 build() {
@@ -63,6 +77,8 @@ build() {
     --enable-notification-plugin \
     --enable-pgpcore-plugin \
     --enable-pgpmime-plugin \
+    --enable-python-plugin \
+    --enable-vfolder-plugin \
     --disable-acpi_notifier-plugin \
     --disable-address_keeper-plugin \
     --disable-archive-plugin \

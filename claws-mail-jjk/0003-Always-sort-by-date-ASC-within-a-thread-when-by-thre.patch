@@ -1,15 +1,16 @@
-From f056ee8949819fc9038ea5f87b5f4dc3efbea814 Mon Sep 17 00:00:00 2001
+From 5c98309712633280c6eb8ea4d96350d6344ea8b1 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sun, 15 Nov 2015 17:53:30 +0100
-Subject: [PATCH 3/3] Always sort by date ASC within a thread when by thread
+Subject: [PATCH 3/7] Always sort by date ASC within a thread when by thread
  date
 
-When sorting by date descendingly, it doesn't really make sense to sort messages
-within a thread any other way than ascendingly (regardless of sort order), since
-most will already be done so, due to their parent/children relationship.
+When using thread view & sorting by date descendingly, it doesn't really
+make sense to sort messages within a thread any other way than ascendingly
+(regardless of sort order), since most will already be done so, due to
+their parent/children relationship.
 
-So, when sorting by thread date we sort messages within a thread by date
-ascendingly, regardless of current sort order.
+So, when threaded & sorting by thread date we sort messages within a
+thread by date ascendingly, regardless of current sort order.
 
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
@@ -17,10 +18,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/src/summaryview.c b/src/summaryview.c
-index 1843801..67b4f2d 100644
+index 2bf539965..ff511add1 100644
 --- a/src/summaryview.c
 +++ b/src/summaryview.c
-@@ -7493,8 +7493,13 @@ static gint summary_cmp_by_thread_date(GtkCMCList *clist,
+@@ -7446,8 +7446,13 @@ static gint summary_cmp_by_thread_date(GtkCMCList *clist,
  	
  	if (msginfo1->thread_date > 0 && msginfo2->thread_date > 0)
  		return thread_diff;
@@ -28,7 +29,7 @@ index 1843801..67b4f2d 100644
 -		return msginfo1->date_t - msginfo2->date_t;
 +	else {
 +		const SummaryView *sv = g_object_get_data(G_OBJECT(clist), "summaryview");
-+		if (sv->sort_type == SORT_DESCENDING)
++		if (sv->threaded && sv->sort_type == SORT_DESCENDING)
 +			return msginfo2->date_t - msginfo1->date_t;
 +		else
 +			return msginfo1->date_t - msginfo2->date_t;
@@ -37,5 +38,5 @@ index 1843801..67b4f2d 100644
  
  static gint summary_cmp_by_from(GtkCMCList *clist, gconstpointer ptr1,
 -- 
-2.6.2
+2.11.0
 

@@ -1,0 +1,4157 @@
+From 6b916517b828c96e49f856f79e857848573cf6b1 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Sat, 14 Jan 2017 18:32:38 +0100
+Subject: [PATCH 7/7] Add vfolder plugin
+
+This adds support for "Virtual folders" aka folders that show search
+results. Unlike elsewhere in Claws, such folders can include messages
+from different folders. In fact, they can show combined results of
+multiple searches (useful to do same search in multiple (non related,
+i.e. can't be done simply via recursive search) folders).
+
+What is done to "virtual messages" is relayed to the source ones: flags,
+tags, etc (Re)moving such messages will also be done on the source ones,
+obviously.
+
+Searches are set under a folder's properties, new page "Content" Some
+general options are also available under Preferences/Plugins/VFolder,
+to add some VFolder-version of known features:
+- Move to trash: so that it is applied as if from the source folder, so
+  messages are moved to their respective correct trashes.
+- Reply: so that used folder properties are of the source folders (and
+  not the virtual one)
+
+A new menu "Find in source folder" will also be available from virtual
+folders.
+
+Lastly, a 'search results' feature is provided, which is really just a
+quick way to edit the "Content" properties of a given virtual folder and
+go there. So it does feel somewhat like a "classic" search feature.
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ configure.ac                             |   15 +
+ src/plugins/Makefile.am                  |    3 +-
+ src/plugins/vfolder/Makefile.am          |   37 +
+ src/plugins/vfolder/plugin.c             |  158 ++++
+ src/plugins/vfolder/plugin.h             |   52 ++
+ src/plugins/vfolder/plugin_gtk.c         |  879 +++++++++++++++++++
+ src/plugins/vfolder/plugin_gtk.h         |   31 +
+ src/plugins/vfolder/vfolder.c            | 1370 ++++++++++++++++++++++++++++++
+ src/plugins/vfolder/vfolder.h            |   59 ++
+ src/plugins/vfolder/vfolder_item_prefs.c | 1101 ++++++++++++++++++++++++
+ src/plugins/vfolder/vfolder_item_prefs.h |   33 +
+ src/plugins/vfolder/vfolder_prefs.c      |  223 +++++
+ src/plugins/vfolder/vfolder_prefs.h      |   29 +
+ 13 files changed, 3989 insertions(+), 1 deletion(-)
+ create mode 100644 src/plugins/vfolder/Makefile.am
+ create mode 100644 src/plugins/vfolder/plugin.c
+ create mode 100644 src/plugins/vfolder/plugin.h
+ create mode 100644 src/plugins/vfolder/plugin_gtk.c
+ create mode 100644 src/plugins/vfolder/plugin_gtk.h
+ create mode 100644 src/plugins/vfolder/vfolder.c
+ create mode 100644 src/plugins/vfolder/vfolder.h
+ create mode 100644 src/plugins/vfolder/vfolder_item_prefs.c
+ create mode 100644 src/plugins/vfolder/vfolder_item_prefs.h
+ create mode 100644 src/plugins/vfolder/vfolder_prefs.c
+ create mode 100644 src/plugins/vfolder/vfolder_prefs.h
+
+diff --git a/configure.ac b/configure.ac
+index 9e031c81f..38240591f 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1068,6 +1068,10 @@ AC_ARG_ENABLE(vcalendar-plugin,
+ 		[  --disable-vcalendar-plugin      Do not build vcalendar plugin],
+ 		[enable_vcalendar_plugin=$enableval], [enable_vcalendar_plugin=auto])
+ 
++AC_ARG_ENABLE(vfolder-plugin,
++		[  --disable-vfolder-plugin        Do not build vfolder plugin],
++		[enable_vfolder_plugin=$enableval], [enable_vfolder_plugin=auto])
++
+ dnl disabled by default
+ AC_ARG_ENABLE(demo-plugin,
+ 		[  --enable-demo-plugin		Build demo plugin],
+@@ -1849,6 +1853,15 @@ else
+ 	AC_MSG_RESULT(no)
+ fi
+ 
++AC_MSG_CHECKING([whether to build vfolder plugin])
++if test x"$enable_vfolder_plugin" != xno; then
++	PLUGINS="$PLUGINS vfolder"
++	AC_MSG_RESULT(yes)
++else
++	DISABLED_PLUGINS="$DISABLED_PLUGINS vfolder"
++	AC_MSG_RESULT(no)
++fi
++
+ dnl And finally the automake conditionals.
+ 
+ AM_CONDITIONAL(BUILD_ACPI_NOTIFIER_PLUGIN,	test x"$enable_acpi_notifier_plugin" != xno)
+@@ -1881,6 +1894,7 @@ AM_CONDITIONAL(BUILD_SPAMASSASSIN_PLUGIN,	test x"$enable_spamassassin_plugin" !=
+ AM_CONDITIONAL(BUILD_SPAM_REPORT_PLUGIN,	test x"$enable_spam_report_plugin" != xno)
+ AM_CONDITIONAL(BUILD_TNEF_PARSE_PLUGIN,		test x"$enable_tnef_parse_plugin" != xno)
+ AM_CONDITIONAL(BUILD_VCALENDAR_PLUGIN,		test x"$enable_vcalendar_plugin" != xno)
++AM_CONDITIONAL(BUILD_VFOLDER_PLUGIN,		test x"$enable_vfolder_plugin" != xno)
+ 
+ 
+ dnl ****************************
+@@ -1937,6 +1951,7 @@ src/plugins/vcalendar/libical/libical/icalversion.h
+ src/plugins/vcalendar/libical/libical/Makefile
+ src/plugins/vcalendar/libical/design-data/Makefile
+ src/plugins/vcalendar/libical/scripts/Makefile
++src/plugins/vfolder/Makefile
+ doc/Makefile
+ doc/man/Makefile
+ tools/Makefile
+diff --git a/src/plugins/Makefile.am b/src/plugins/Makefile.am
+index 6acc1fb36..e42d066e8 100644
+--- a/src/plugins/Makefile.am
++++ b/src/plugins/Makefile.am
+@@ -32,4 +32,5 @@ SUBDIRS = \
+ 	spamassassin \
+ 	spam_report \
+ 	tnef_parse \
+-	vcalendar
++	vcalendar \
++	vfolder
+diff --git a/src/plugins/vfolder/Makefile.am b/src/plugins/vfolder/Makefile.am
+new file mode 100644
+index 000000000..67f01a8c3
+--- /dev/null
++++ b/src/plugins/vfolder/Makefile.am
+@@ -0,0 +1,37 @@
++# Copyright 1999-2014 the Claws Mail team.
++# This file is part of Claws Mail package, and distributed under the
++# terms of the General Public License version 3 (or later).
++# See COPYING file for license details.
++
++plugindir = $(pkglibdir)/plugins
++
++if BUILD_VFOLDER_PLUGIN
++plugin_LTLIBRARIES = vfolder.la
++endif
++
++vfolder_la_SOURCES = \
++	plugin.c plugin.h \
++	vfolder.c vfolder.h \
++	vfolder_item_prefs.c vfolder_item_prefs.h \
++	vfolder_prefs.c vfolder_prefs.h \
++	plugin_gtk.c plugin_gtk.h
++
++vfolder_la_LDFLAGS = \
++	-avoid-version -module
++
++if CYGWIN
++cygwin_export_lib = -L$(top_builddir)/src -lclaws-mail
++else
++cygwin_export_lib = 
++endif
++
++vfolder_la_LIBADD = $(cygwin_export_lib) \
++	$(GTK_LIBS) 
++
++vfolder_la_CPPFLAGS = \
++	-I$(top_srcdir)/src \
++	-I$(top_srcdir)/src/common \
++	-I$(top_builddir)/src/common \
++	-I$(top_srcdir)/src/gtk \
++	$(GLIB_CFLAGS) \
++	$(GTK_CFLAGS)
+diff --git a/src/plugins/vfolder/plugin.c b/src/plugins/vfolder/plugin.c
+new file mode 100644
+index 000000000..beb90bdd9
+--- /dev/null
++++ b/src/plugins/vfolder/plugin.c
+@@ -0,0 +1,158 @@
++/* vfolder -- Claws Mail plugin to add virtual folders
++ * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ *
++ */
++
++#include <glib.h>
++#include <glib/gi18n.h>
++
++
++#include "version.h"
++#include "claws.h"
++#include "plugin.h"
++#include "utils.h"
++#include "hooks.h"
++#include "main.h"
++#include "common/plugin.h"
++#include "common/defs.h"
++#include "common/prefs.h"
++#include "prefs_gtk.h"
++
++#include "vfolder.h"
++#include "plugin_gtk.h"
++
++
++static VFolderConfig vconfig;
++static PrefParam param[] =
++{
++	{ "add_trash", "TRUE", &vconfig.add_trash, P_BOOL,
++		NULL, NULL, NULL },
++	{ "hide_trash_org", "TRUE", &vconfig.hide_trash_org, P_BOOL,
++		NULL, NULL, NULL },
++
++	{ "add_reply", "TRUE", &vconfig.add_reply, P_BOOL,
++		NULL, NULL, NULL },
++	{ "hide_reply_org", "FALSE", &vconfig.hide_reply_org, P_BOOL,
++		NULL, NULL, NULL },
++
++	{ "enable_search", "FALSE", &vconfig.enable_search, P_BOOL,
++		NULL, NULL, NULL },
++	{ "id_search_folder", "", &vconfig.id_search_folder, P_STRING,
++		NULL, NULL, NULL },
++
++	{ NULL, NULL, NULL, P_OTHER, NULL, NULL, NULL }
++};
++
++VFolderConfig *vfolder_get_config(void)
++{
++	return &vconfig;
++}
++
++gboolean vfolder_save_config(void)
++{
++	PrefFile *pfile;
++	gchar *file;
++
++	file = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S, COMMON_RC, NULL);
++	pfile = prefs_write_open(file);
++	g_free(file);
++
++	if (!pfile)
++		return FALSE;
++	if (prefs_set_block_label(pfile, "VFolder") < 0)
++		return FALSE;
++
++	if (prefs_write_param(param, pfile->fp) < 0)
++	{
++		g_warning("Failed to write VFolder configuration to file");
++		prefs_file_close_revert(pfile);
++		return FALSE;
++	}
++
++	if (prefs_file_close(pfile) < 0)
++	{
++		g_warning("Failed to write configuration to file");
++		return FALSE;
++	}
++
++	return TRUE;
++}
++
++gint plugin_init(gchar **error)
++{
++	gchar *file;
++	gint r;
++
++	r = check_plugin_version(MAKE_NUMERIC_VERSION(3,8,1,46),
++			VERSION_NUMERIC, PLUGIN_NAME, error);
++	if (r < 0)
++		return r;
++
++	folder_register_class(vfolder_get_class());
++
++	prefs_set_default(param);
++	file = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S, COMMON_RC, NULL);
++	prefs_read_config(param, "VFolder", file, NULL);
++	g_free(file);
++
++	r = vfolder_gtk_init(error);
++	if (r < 0)
++		return r;
++
++	return 0;
++}
++
++gboolean plugin_done(void)
++{
++	vfolder_gtk_done();
++	if (!claws_is_exiting())
++		folder_unregister_class(vfolder_get_class());
++	return TRUE;
++}
++
++const gchar *plugin_name(void)
++{
++	return PLUGIN_NAME;
++}
++
++const gchar *plugin_desc(void)
++{
++	return _("This Plugin adds virtual folders.");
++}
++
++const gchar *plugin_type(void)
++{
++	return "GTK2";
++}
++
++const gchar *plugin_licence(void)
++{
++	return "GPL3+";
++}
++
++const gchar *plugin_version(void)
++{
++	return VERSION;
++}
++
++struct PluginFeature *plugin_provides(void)
++{
++	static struct PluginFeature features[] = {
++		{ PLUGIN_FOLDERCLASS, N_("VFolder") },
++		{ PLUGIN_NOTHING, NULL }
++	};
++	return features;
++}
+diff --git a/src/plugins/vfolder/plugin.h b/src/plugins/vfolder/plugin.h
+new file mode 100644
+index 000000000..9ef20708d
+--- /dev/null
++++ b/src/plugins/vfolder/plugin.h
+@@ -0,0 +1,52 @@
++/* vfolder -- Claws Mail plugin to add virtual folders
++ * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ *
++ */
++
++#ifndef __VFOLDER_PLUGIN_H__
++#define __VFOLDER_PLUGIN_H__
++
++#include <glib.h>
++
++#define PLUGIN_NAME (_("VFolder"))
++
++#if 0
++#define dbg(...)    g_printf(__VA_ARGS__)
++#else
++#define dbg(...)    debug_print(__VA_ARGS__)
++#endif
++
++#include "vfolder.h"
++
++typedef struct _VFolderConfig VFolderConfig;
++
++
++struct _VFolderConfig
++{
++	gboolean add_reply;
++	gboolean hide_reply_org;
++
++	gboolean add_trash;
++	gboolean hide_trash_org;
++
++	gboolean enable_search;
++	gchar *id_search_folder;
++};
++
++VFolderConfig *vfolder_get_config(void);
++gboolean vfolder_save_config(void);
++
++#endif /* __VFOLDER_PLUGIN_H__ */
+diff --git a/src/plugins/vfolder/plugin_gtk.c b/src/plugins/vfolder/plugin_gtk.c
+new file mode 100644
+index 000000000..7c28d2581
+--- /dev/null
++++ b/src/plugins/vfolder/plugin_gtk.c
+@@ -0,0 +1,879 @@
++/* vfolder -- Claws Mail plugin to add virtual folders
++ * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ *
++ */
++
++#ifdef HAVE_CONFIG_H
++#  include "config.h"
++#  include "claws-features.h"
++#endif
++
++#include <glib.h>
++#include <glib/gi18n.h>
++
++#include <gtk/gtk.h>
++
++#include "plugin.h"
++#include "folder.h"
++#include "mainwindow.h"
++#include "folderview.h"
++#include "inputdialog.h"
++#include "foldersel.h"
++#include "alertpanel.h"
++#include "main.h"
++#include "menu.h"
++#include "account.h"
++#include "prefs_actions.h"
++#include "summaryview.h"
++#include "folder_item_prefs.h"
++#include "toolbar.h"
++#include "prefs_toolbar.h"
++#include "manage_window.h"
++
++
++#include "plugin.h"
++#include "plugin_gtk.h"
++#include "vfolder_item_prefs.h"
++#include "vfolder_prefs.h"
++
++
++static void add_mailbox(GtkAction *action, gpointer data);
++static void refresh_content(GtkAction *action, gpointer data);
++static void remove_mailbox(GtkAction *action, gpointer data);
++static void new_folder(GtkAction *action, gpointer data);
++static void rename_folder(GtkAction *action, gpointer data);
++static void move_folder(GtkAction *action, gpointer data);
++static void delete_folder(GtkAction *action, gpointer data);
++static void move_to_trash(GtkAction *action, gpointer data);
++static void move_thread_to_trash(GtkAction *action, gpointer data);
++static void find_in_src_folder(GtkAction *action, gpointer data);
++static void reply(GtkAction *action, gpointer data);
++static void search(GtkAction *action, gpointer data);
++
++
++static GtkActionEntry mainwindow_actions[] = {
++	{ "File/AddMailbox/VFolder", NULL, "VFolder...",
++		NULL, NULL, G_CALLBACK(add_mailbox) },
++	{ "Message/TrashVF", NULL,  N_("Move to _trash [VFolder]"),
++		NULL, NULL, G_CALLBACK(move_to_trash) },
++	{ "Message/TrashThreadVF", NULL,  N_("Move thread to tr_ash [VFolder]"),
++		NULL, NULL, G_CALLBACK(move_thread_to_trash) },
++	{ "Message/FindInSrcFolder", NULL,  N_("Find in source folder [VFolder]"),
++		NULL, NULL, G_CALLBACK(find_in_src_folder) },
++	{ "Message/ReplyVF", NULL,  N_("_Reply [VFolder]"),
++		NULL, NULL, G_CALLBACK(reply) },
++	{ "Edit/SearchVF", NULL,  N_("_Search... [VFolder]"),
++		NULL, NULL, G_CALLBACK(search) }
++};
++
++static GtkActionEntry vfolder_popup_entries[] = {
++	{ "FolderViewPopup/CreateNewFolder",    NULL,   N_("Create _new folder..."),
++		NULL, NULL, G_CALLBACK(new_folder) },
++	{ "FolderViewPopup/RenameFolder",    NULL,   N_("_Rename folder..."),
++		NULL, NULL, G_CALLBACK(rename_folder) },
++	{ "FolderViewPopup/MoveFolder",    NULL,   N_("M_ove folder..."),
++		NULL, NULL, G_CALLBACK(move_folder) },
++	{ "FolderViewPopup/DeleteFolder",    NULL,   N_("_Delete folder..."),
++		NULL, NULL, G_CALLBACK(delete_folder) },
++	{ "FolderViewPopup/RefreshContent",    NULL,   N_("Re_fresh content"),
++		NULL, NULL, G_CALLBACK(refresh_content) },
++	{ "FolderViewPopup/RemoveMailbox",    NULL,   N_("Remove _mailbox..."),
++		NULL, NULL, G_CALLBACK(remove_mailbox) }
++};
++static void add_menuitems(GtkUIManager *ui_mngr, FolderItem *item);
++static void set_sensitivity(GtkUIManager *ui_mngr, FolderItem *item);
++static FolderViewPopup vfolder_popup = {
++	"vfolder", "<VFolderFolder>",
++	vfolder_popup_entries, G_N_ELEMENTS(vfolder_popup_entries),
++	NULL, 0,
++	NULL, 0, 0, NULL,
++	add_menuitems,
++	set_sensitivity
++};
++
++
++static guint id_add_mailbox = 0;
++static guint id_move_to_trash = 0;
++static guint id_move_to_trash_popup = 0;
++static guint id_move_thread_to_trash = 0;
++static guint id_reply = 0;
++static guint id_reply_popup = 0;
++static guint id_find_in_src_folder = 0;
++static guint id_find_in_src_folder_popup = 0;
++static guint id_search = 0;
++
++gint vfolder_gtk_init(gchar **error)
++{
++	MainWindow *mainwin = mainwindow_get_mainwindow();
++
++	gtk_action_group_add_actions(mainwin->action_group, mainwindow_actions,
++		G_N_ELEMENTS(mainwindow_actions), (gpointer)mainwin);
++
++	MENUITEM_ADDUI_ID_MANAGER(mainwin->ui_manager, "/Menu/File/AddMailbox",
++		"AddVF", "File/AddMailbox/VFolder",
++		GTK_UI_MANAGER_MENUITEM,
++		id_add_mailbox);
++	MENUITEM_ADDUI_ID_MANAGER(mainwin->ui_manager, "/Menu/View/Goto/ParentMessage",
++		"FindInSrcFolder", "Message/FindInSrcFolder",
++		GTK_UI_MANAGER_MENUITEM,
++		id_find_in_src_folder);
++	MENUITEM_ADDUI_ID_MANAGER(mainwin->ui_manager, "/Menus/SummaryViewPopup/Separator5",
++		"FindInSrcFolder", "Message/FindInSrcFolder",
++		GTK_UI_MANAGER_MENUITEM,
++		id_find_in_src_folder_popup);
++
++	vfolder_gtk_set_menus(FALSE);
++
++	folderview_register_popup(&vfolder_popup);
++
++	vfolder_gtk_set_sensitive("/Menu/View/Goto/FindInSrcFolder", FALSE);
++	vfolder_gtk_set_visible("/Menus/SummaryViewPopup/FindInSrcFolder", FALSE);
++
++	prefs_toolbar_register_plugin_item(TOOLBAR_MAIN, PLUGIN_NAME, _("Trash"),
++		(ToolbarPluginCallback) move_to_trash, NULL);
++	prefs_toolbar_register_plugin_item(TOOLBAR_MAIN, PLUGIN_NAME, _("Reply"),
++		(ToolbarPluginCallback) reply, NULL);
++
++
++	vfolder_prefs_register();
++	vfolder_item_prefs_register();
++
++	return 0;
++}
++
++void vfolder_gtk_done(void)
++{
++	MainWindow *mainwin = mainwindow_get_mainwindow();
++
++	if (mainwin == NULL || claws_is_exiting())
++		return;
++
++	MENUITEM_REMUI_MANAGER(mainwin->ui_manager,mainwin->action_group,
++		"File/AddMailbox/VFolder", id_add_mailbox);
++	id_add_mailbox = 0;
++	MENUITEM_REMUI_MANAGER(mainwin->ui_manager,mainwin->action_group,
++		"Message/FindInSrcFolder", id_find_in_src_folder);
++	id_find_in_src_folder = 0;
++	MENUITEM_REMUI_MANAGER(mainwin->ui_manager,mainwin->action_group,
++		"Message/FindInSrcFolder", id_find_in_src_folder_popup);
++	id_find_in_src_folder_popup = 0;
++
++	vfolder_gtk_set_menus(TRUE);
++
++	folderview_unregister_popup(&vfolder_popup);
++
++	prefs_toolbar_unregister_plugin_item(TOOLBAR_MAIN, PLUGIN_NAME, _("Trash"));
++	prefs_toolbar_unregister_plugin_item(TOOLBAR_MAIN, PLUGIN_NAME, _("Reply"));
++
++
++	vfolder_prefs_unregister();
++	vfolder_item_prefs_unregister();
++}
++
++void vfolder_gtk_set_menus(gboolean unloading)
++{
++	VFolderConfig *vconfig = vfolder_get_config();
++	MainWindow *mainwin = mainwindow_get_mainwindow();
++
++	if (!unloading && vconfig->add_trash)
++	{
++		if (id_move_to_trash == 0)
++		{
++			MENUITEM_ADDUI_ID_MANAGER(mainwin->ui_manager,
++				"/Menu/Message/Trash",
++				"TrashVF", "Message/TrashVF",
++				GTK_UI_MANAGER_MENUITEM,
++				id_move_to_trash);
++		}
++		if (id_move_thread_to_trash == 0)
++		{
++			MENUITEM_ADDUI_ID_MANAGER(mainwin->ui_manager,
++				"/Menu/Message/TrashThread",
++				"TrashThreadVF", "Message/TrashThreadVF",
++				GTK_UI_MANAGER_MENUITEM,
++				id_move_thread_to_trash);
++		}
++		if (id_move_to_trash_popup == 0)
++		{
++			MENUITEM_ADDUI_ID_MANAGER(mainwin->ui_manager,
++				"/Menus/SummaryViewPopup/Trash",
++				"TrashVF", "Message/TrashVF",
++				GTK_UI_MANAGER_MENUITEM,
++				id_move_to_trash_popup);
++		}
++	}
++	else
++	{
++		if (id_move_to_trash > 0)
++		{
++			MENUITEM_REMUI_MANAGER(mainwin->ui_manager,mainwin->action_group,
++				"/Menu/Message/TrashVF",
++				id_move_to_trash);
++			id_move_to_trash = 0;
++		}
++		if (id_move_to_trash_popup > 0)
++		{
++			MENUITEM_REMUI_MANAGER(mainwin->ui_manager,mainwin->action_group,
++				"/Menus/SummaryViewPopup/TrashVF",
++				id_move_to_trash_popup);
++			id_move_to_trash_popup = 0;
++		}
++		if (id_move_thread_to_trash > 0)
++		{
++			MENUITEM_REMUI_MANAGER(mainwin->ui_manager,mainwin->action_group,
++				"/Menu/Message/TrashThreadVF",
++				id_move_thread_to_trash);
++			id_move_thread_to_trash = 0;
++		}
++	}
++	vfolder_gtk_set_visible("/Menu/Message/Trash",
++		unloading || !vconfig->add_trash || !vconfig->hide_trash_org);
++	vfolder_gtk_set_visible("/Menu/Message/TrashThread",
++		unloading || !vconfig->add_trash || !vconfig->hide_trash_org);
++	vfolder_gtk_set_visible("/Menus/SummaryViewPopup/Trash",
++		unloading || !vconfig->add_trash || !vconfig->hide_trash_org);
++
++	if (!unloading && vconfig->add_reply)
++	{
++		if (id_reply == 0)
++		{
++			MENUITEM_ADDUI_ID_MANAGER(mainwin->ui_manager,
++				"/Menu/Message/Reply",
++				"ReplyVF", "Message/ReplyVF",
++				GTK_UI_MANAGER_MENUITEM,
++				id_reply);
++		}
++		if (id_reply_popup == 0)
++		{
++			MENUITEM_ADDUI_ID_MANAGER(mainwin->ui_manager,
++				"/Menus/SummaryViewPopup/Reply",
++				"ReplyVF", "Message/ReplyVF",
++				GTK_UI_MANAGER_MENUITEM,
++				id_reply_popup);
++		}
++	}
++	else
++	{
++		if (id_reply > 0)
++		{
++			MENUITEM_REMUI_MANAGER(mainwin->ui_manager,mainwin->action_group,
++				"/Menu/Message/ReplyVF", id_reply);
++			id_reply = 0;
++		}
++		if (id_reply_popup > 0)
++		{
++			MENUITEM_REMUI_MANAGER(mainwin->ui_manager,mainwin->action_group,
++				"/Menus/SummaryViewPopup/ReplyVF", id_reply_popup);
++			id_reply_popup = 0;
++		}
++	}
++	vfolder_gtk_set_visible("/Menu/Message/Reply",
++		unloading || !vconfig->add_reply || !vconfig->hide_reply_org);
++	vfolder_gtk_set_visible("/Menus/SummaryViewPopup/Reply",
++		unloading || !vconfig->add_reply || !vconfig->hide_reply_org);
++
++	if (!unloading && vconfig->enable_search)
++	{
++		if (id_search == 0)
++		{
++			MENUITEM_ADDUI_ID_MANAGER(mainwin->ui_manager, "/Menu/Edit",
++				"SearchVF", "Edit/SearchVF",
++				GTK_UI_MANAGER_MENUITEM,
++				id_search);
++			prefs_toolbar_register_plugin_item(TOOLBAR_MAIN, PLUGIN_NAME,
++				_("Search"), (ToolbarPluginCallback) search, NULL);
++		}
++	}
++	else
++	{
++		if (id_search > 0)
++		{
++			MENUITEM_REMUI_MANAGER(mainwin->ui_manager,mainwin->action_group,
++				"/Menu/Edit/SearchVF", id_search);
++			id_search = 0;
++			prefs_toolbar_unregister_plugin_item(TOOLBAR_MAIN, PLUGIN_NAME,
++				_("Search"));
++		}
++	}
++}
++
++void vfolder_gtk_set_visible(const gchar *path, gboolean visible)
++{
++	GtkWidget *w;
++
++	w = gtk_ui_manager_get_widget(mainwindow_get_mainwindow()->ui_manager, path);
++	if (!w)
++		return;
++	gtk_widget_set_visible(w, visible);
++}
++
++void vfolder_gtk_set_sensitive(const gchar *path, gboolean sensitive)
++{
++	GtkWidget *w;
++
++	w = gtk_ui_manager_get_widget(mainwindow_get_mainwindow()->ui_manager, path);
++	if (!w)
++		return;
++	gtk_widget_set_sensitive(w, sensitive);
++}
++
++static void add_menuitems(GtkUIManager *ui_mngr, FolderItem *item)
++{
++	MENUITEM_ADDUI_MANAGER(ui_mngr, "/Popup/FolderViewPopup", "CreateNewFolder",
++		"FolderViewPopup/CreateNewFolder", GTK_UI_MANAGER_MENUITEM);
++	MENUITEM_ADDUI_MANAGER(ui_mngr, "/Popup/FolderViewPopup", "Separator1",
++		"FolderViewPopup/---", GTK_UI_MANAGER_SEPARATOR);
++	MENUITEM_ADDUI_MANAGER(ui_mngr, "/Popup/FolderViewPopup", "RenameFolder",
++		"FolderViewPopup/RenameFolder", GTK_UI_MANAGER_MENUITEM);
++	MENUITEM_ADDUI_MANAGER(ui_mngr, "/Popup/FolderViewPopup", "MoveFolder",
++		"FolderViewPopup/MoveFolder", GTK_UI_MANAGER_MENUITEM);
++	MENUITEM_ADDUI_MANAGER(ui_mngr, "/Popup/FolderViewPopup", "Separator2",
++		"FolderViewPopup/---", GTK_UI_MANAGER_SEPARATOR);
++	MENUITEM_ADDUI_MANAGER(ui_mngr, "/Popup/FolderViewPopup", "DeleteFolder",
++		"FolderViewPopup/DeleteFolder", GTK_UI_MANAGER_MENUITEM);
++	MENUITEM_ADDUI_MANAGER(ui_mngr, "/Popup/FolderViewPopup", "Separator3",
++		"FolderViewPopup/---", GTK_UI_MANAGER_SEPARATOR);
++	MENUITEM_ADDUI_MANAGER(ui_mngr, "/Popup/FolderViewPopup", "RefreshContent",
++		"FolderViewPopup/RefreshContent", GTK_UI_MANAGER_MENUITEM);
++	MENUITEM_ADDUI_MANAGER(ui_mngr, "/Popup/FolderViewPopup", "Separator4",
++		"FolderViewPopup/---", GTK_UI_MANAGER_SEPARATOR);
++	MENUITEM_ADDUI_MANAGER(ui_mngr, "/Popup/FolderViewPopup", "RemoveMailbox",
++		"FolderViewPopup/RemoveMailbox", GTK_UI_MANAGER_MENUITEM);
++	MENUITEM_ADDUI_MANAGER(ui_mngr, "/Popup/FolderViewPopup", "Separator5",
++		"FolderViewPopup/---", GTK_UI_MANAGER_SEPARATOR);
++}
++
++static void set_sensitivity(GtkUIManager *ui_mngr, FolderItem *item)
++{
++	cm_menu_set_sensitive_full(ui_mngr, "Popup/FolderViewPopup/CreateNewFolder", TRUE);
++	cm_menu_set_sensitive_full(ui_mngr, "Popup/FolderViewPopup/RenameFolder", folder_item_parent(item) != NULL);
++	cm_menu_set_sensitive_full(ui_mngr, "Popup/FolderViewPopup/MoveFolder", folder_item_parent(item) != NULL);
++	cm_menu_set_sensitive_full(ui_mngr, "Popup/FolderViewPopup/DeleteFolder", folder_item_parent(item) != NULL);
++	cm_menu_set_sensitive_full(ui_mngr, "Popup/FolderViewPopup/RefreshContent", folder_item_parent(item) != NULL);
++	cm_menu_set_sensitive_full(ui_mngr, "Popup/FolderViewPopup/RemoveMailbox", folder_item_parent(item) == NULL);
++}
++
++/* for vfolder.c */
++gchar *vfolder_gtk_get_current_msgid(void)
++{
++	SummaryView *sv = mainwindow_get_mainwindow()->summaryview;
++	MsgInfo *mi = summary_get_selected_msg(sv);
++
++	if (!mi)
++		return NULL;
++
++	return g_strdup(mi->msgid);
++}
++
++static guint id_refresh_summary = 0;
++static gint new_msgnum = 0;
++static gboolean refresh_summary(gpointer data)
++{
++	SummaryView *sv = mainwindow_get_mainwindow()->summaryview;
++	FolderItem *item = data;
++	dbg("refresh_summary lock=%d %d\n",summary_is_locked(sv), item->opened);
++
++	if (summary_is_locked(sv))
++		return TRUE;
++	if (item->opened)
++	{
++		summary_show(sv, item);
++		if (new_msgnum > 0)
++			summary_select_by_msgnum(sv, new_msgnum);
++	}
++	id_refresh_summary = 0;
++	new_msgnum = 0;
++
++	return FALSE;
++}
++/* for vfolder.c */
++void vfolder_gtk_refresh_summary(FolderItem *item, gint msgnum)
++{
++	SummaryView *sv = mainwindow_get_mainwindow()->summaryview;
++	dbg("vfolder_gtk_refresh_summary lock=%d %d\n",summary_is_locked(sv), item->opened);
++	if (!item->opened)
++		return;
++	new_msgnum = msgnum;
++	if (summary_is_locked(sv))
++	{
++		if (id_refresh_summary == 0)
++			id_refresh_summary = g_timeout_add(10, refresh_summary, item);
++	}
++	else
++		refresh_summary(item);
++}
++
++static void add_mailbox(GtkAction *action, gpointer data)
++{
++	MainWindow *mainwin = (MainWindow *) data;
++	gchar *name;
++	FolderClass *klass;
++	Folder *folder;
++
++	name = input_dialog(_("Add mailbox"), _("Input name of the mailbox"), "Virtual");
++	if (!name)
++		return;
++
++	klass = folder_get_class_from_string("vfolder");
++	if (folder_find_from_name(name, klass))
++	{
++		alertpanel_error(_("Virtual mailbox '%s' already exists."), name);
++		g_free(name);
++		return;
++	}
++
++	folder = folder_new(klass, name, NULL);
++	g_free(name);
++
++	folder_add(folder);
++	folderview_set(mainwin->folderview);
++
++	return;
++}
++
++static void refresh_content(GtkAction *action, gpointer data)
++{
++	FolderView *fv = (FolderView *) data;
++	FolderItem *item;
++
++	item = folderview_get_selected_item(fv);
++	cm_return_if_fail(item != NULL);
++	cm_return_if_fail(item->folder != NULL);
++
++	vfolder_refresh_content((VFolderItem *) item);
++}
++
++static void remove_mailbox(GtkAction *action, gpointer data)
++{
++	FolderView *fv = (FolderView *) data;
++	FolderItem *item;
++	AlertValue av;
++	gchar *s;
++
++	if (!fv->selected)
++		return;
++
++	item = folderview_get_selected_item(fv);
++	cm_return_if_fail(item != NULL);
++	cm_return_if_fail(item->folder != NULL);
++
++	s = g_strdup_printf(_("Really remove the mailbox '%s'?\n"
++			"(The messages are NOT deleted from the disk)"),
++		item->name);
++	av = alertpanel_full(_("Remove mailbox"), s,
++		GTK_STOCK_CANCEL, _("_Remove"), NULL, FALSE,
++		NULL, ALERT_WARNING, G_ALERTDEFAULT);
++	g_free(s);
++	if (av != G_ALERTALTERNATE)
++		return;
++
++	folderview_unselect(fv);
++	summary_clear_all(fv->summaryview);
++
++	folder_destroy(item->folder);
++}
++
++static void new_folder(GtkAction *action, gpointer data)
++{
++	FolderView *fv = (FolderView *) data;
++	FolderItem *item, *new_item;
++	gchar *name;
++
++	if (!fv->selected)
++		return;
++
++	item = folderview_get_selected_item(fv);
++	cm_return_if_fail(item != NULL);
++	cm_return_if_fail(item->folder != NULL);
++
++	name = input_dialog(_("New folder"), _("Input name of new folder"), _("NewFolder"));
++	if (!name)
++		return;
++	AUTORELEASE_STR(name, { g_free(name); return; });
++
++	if (folder_find_child_item_by_name(item, name))
++	{
++		alertpanel_error(_("Virtual folder '%s' already exists in '%s'."),
++			name, item->name);
++		return;
++	}
++
++	new_item = folder_create_folder(item, name);
++	if (!new_item)
++	{
++		alertpanel_error(_("Can't create the folder '%s'."), name);
++		return;
++	}
++
++	folder_write_list();
++}
++
++static void rename_folder(GtkAction *action, gpointer data)
++{
++	FolderView *fv = (FolderView *) data;
++	FolderItem *item;
++	gchar *s, *name;
++	gchar *oldid, *newid;
++
++	if (!fv->selected)
++		return;
++
++	item = folderview_get_selected_item(fv);
++	cm_return_if_fail(item != NULL);
++	cm_return_if_fail(item->folder != NULL);
++
++	s = g_strdup_printf(_("Input new name for '%s':"), item->name);
++	name = input_dialog(_("Rename folder"), s, item->name);
++	g_free(s);
++	if (!name)
++		return;
++	AUTORELEASE_STR(name, { g_free(name); return; });
++
++	{
++		FolderItem *parent = folder_item_parent(item);
++
++		if (parent && folder_find_child_item_by_name(parent, name))
++		{
++			alertpanel_error(_("Virtual folder '%s' already exists in '%s'."),
++				name, parent->name);
++			return;
++		}
++	}
++
++	oldid = folder_item_get_identifier(item);
++
++	if (folder_item_rename(item, name) < 0)
++	{
++		alertpanel_error(_("The folder could not be renamed."));
++		g_free(oldid);
++		return;
++	}
++
++	newid = folder_item_get_identifier(item);
++	prefs_filtering_rename_path(oldid, newid);
++	account_rename_path(oldid, newid);
++	prefs_actions_rename_path(oldid, newid);
++
++	g_free(oldid);
++	g_free(newid);
++
++	folder_item_prefs_save_config_recursive(item);
++	folder_write_list();
++}
++
++static void move_folder(GtkAction *action, gpointer data)
++{
++	FolderView *fv = (FolderView *) data;
++	FolderItem *from_folder, *to_folder;
++
++	from_folder = folderview_get_selected_item(fv);
++	if (!from_folder || from_folder->folder->klass != vfolder_get_class())
++		return;
++
++	to_folder = foldersel_folder_sel(NULL, FOLDER_SEL_MOVE, NULL, TRUE);
++	if (!to_folder)
++		return;
++
++	folderview_move_folder(fv, from_folder, to_folder, 0);
++}
++
++static void delete_folder(GtkAction *action, gpointer data)
++{
++	FolderView *fv = (FolderView *) data;
++	FolderItem *item, *opened;
++	AlertValue av;
++	gchar *s;
++	gchar *oldid;
++
++	if (!fv->selected)
++		return;
++
++	item = folderview_get_selected_item(fv);
++	cm_return_if_fail(item != NULL);
++	cm_return_if_fail(item->folder != NULL);
++
++	opened = folderview_get_opened_item(fv);
++
++	s = g_strdup_printf(_("Do you really want to delete '%s'?"), item->name);
++	av = alertpanel_full(_("Delete folder"), s,
++		GTK_STOCK_CANCEL, GTK_STOCK_DELETE, NULL, FALSE,
++		NULL, ALERT_NOTICE, G_ALERTDEFAULT);
++	g_free(s);
++	if (av != G_ALERTALTERNATE)
++		return;
++
++	if (item == opened ||
++		folder_is_child_of(item, opened))
++	{
++		summary_clear_all(fv->summaryview);
++		folderview_close_opened(fv, TRUE);
++	}
++
++	oldid = folder_item_get_identifier(item);
++
++	if (item->folder->klass->remove_folder(item->folder, item) < 0)
++	{
++		alertpanel_error(_("Can't remove the folder '%s'."), item->name);
++		if (item == opened)
++			summary_show(fv->summaryview, fv->summaryview->folder_item);
++		g_free(oldid);
++		return;
++	}
++
++	folder_write_list();
++
++	prefs_filtering_delete_path(oldid);
++	g_free(oldid);
++}
++
++static void move_to_trash_perfolder(MsgInfoList *msglist, gpointer data)
++{
++	GSList **to_delete = (GSList **) data;
++	MsgInfo *mi = (MsgInfo *) msglist->data;
++	PrefsAccount *ac;
++	FolderItem *item = mi->folder;
++	FolderItem *to_folder = NULL;
++
++	vfolder_get_src_folder_msgnum(mi, &item, NULL);
++
++	ac = account_find_from_item(item);
++	if (ac)
++		to_folder = account_get_special_folder(ac, F_TRASH);
++	if (!to_folder)
++		to_folder = item->folder->trash;
++
++	if (!to_folder || to_folder == item ||
++		folder_has_parent_of_type(item, F_TRASH))
++	{
++		if (*to_delete)
++			g_slist_last(*to_delete)->next = g_slist_copy(msglist);
++		else
++			*to_delete = g_slist_copy(msglist);
++	}
++	else
++	{
++		SummaryView *sv = mainwindow_get_mainwindow()->summaryview;
++
++		summary_unselect_all(sv);
++		summary_select_by_msg_list(sv, msglist);
++		summary_move_selected_to(sv, to_folder);
++	}
++}
++
++static void move_to_trash(GtkAction *action, gpointer data)
++{
++	SummaryView *sv;
++	GSList *msglist;
++	GSList *to_delete = NULL;
++
++	sv = mainwindow_get_mainwindow()->summaryview;
++	if (summary_is_locked(sv))
++		return;
++
++	msglist = summary_get_selected_msg_list(sv);
++	if (!msglist)
++		return;
++
++	folder_item_update_freeze();
++
++	vfolder_workon_msginfo_perfolder(msglist, TRUE,
++		move_to_trash_perfolder, &to_delete);
++
++	if (to_delete)
++	{
++		summary_unselect_all(sv);
++		summary_select_by_msg_list(sv, to_delete);
++		summary_delete(sv);
++		g_slist_free(to_delete);
++	}
++
++	folder_item_update_thaw();
++}
++
++static void move_thread_to_trash(GtkAction *action, gpointer data)
++{
++	summary_select_thread(mainwindow_get_mainwindow()->summaryview, FALSE, FALSE);
++	move_to_trash(NULL, NULL);
++}
++
++static void find_in_src_folder(GtkAction *action, gpointer data)
++{
++	SummaryView *sv;
++	MsgInfo *mi;
++	FolderItem *item;
++	gint num;
++
++	sv = mainwindow_get_mainwindow()->summaryview;
++	mi = summary_get_selected_msg(sv);
++
++	if (summary_is_locked(sv) || !mi)
++		return;
++
++	if (vfolder_get_src_folder_msgnum(mi, &item, &num) < 0)
++		return;
++
++	folderview_select(sv->mainwin->folderview, item);
++	summary_select_by_msgnum(sv, num);
++}
++
++/* from vfolder.c */
++void _free_msglist_data(gpointer data);
++
++static void reply(GtkAction *action, gpointer data)
++{
++	SummaryView *sv;
++	GSList *msglist;
++	GSList *msglist_src = NULL;
++	GSList *prev, *cur;
++
++	sv = mainwindow_get_mainwindow()->summaryview;
++	if (summary_is_locked(sv))
++		return;
++
++	msglist = summary_get_selected_msg_list(sv);
++	if (!msglist)
++		return;
++
++	for (prev = NULL, cur = msglist; !!cur; )
++	{
++		MsgInfo *mi = (MsgInfo *) cur->data;
++		MsgInfo *mi_src;
++		gint r;
++
++		r = vfolder_get_src_msginfo(mi, &mi_src);
++		if (r == VFOLDER_ERR_NOT_VIRTUAL)
++		{
++			prev = cur;
++			cur = cur->next;
++		}
++		else
++		{
++			if (r == 0)
++				msglist_src = g_slist_prepend(msglist_src, mi_src);
++
++			if (prev)
++				prev->next = cur->next;
++			else
++				msglist = cur->next;
++
++			cur->next = NULL;
++			g_slist_free(cur);
++
++			cur = (prev) ? prev->next : msglist;
++		}
++	}
++
++	if (msglist)
++	{
++		compose_reply_from_messageview(sv->messageview, msglist, COMPOSE_REPLY);
++		g_slist_free(msglist);
++	}
++
++	if (msglist_src)
++	{
++		compose_reply_from_messageview(sv->messageview, msglist_src, COMPOSE_REPLY);
++		g_slist_free_full(msglist_src, _free_msglist_data);
++	}
++}
++
++/* from vfolder_item_prefs.c */
++void _vfolder_search_create(VFolderItem *vitem, GtkWindow *window, GtkContainer *box);
++void _vfolder_search_save(void);
++
++static void run_search(GtkWidget *window)
++{
++	FolderView *fv = mainwindow_get_mainwindow()->folderview;
++	FolderItem *item = g_object_get_data(G_OBJECT(window), "_vf_item");
++
++	_vfolder_search_save();
++	gtk_widget_destroy(window);
++	folderview_select(fv, item);
++}
++
++static gboolean key_pressed(GtkWidget *w, GdkEventKey *event, GtkWidget *window)
++{
++	if (event && event->keyval == GDK_KEY_Escape)
++		gtk_widget_destroy(window);
++	return FALSE;
++}
++
++static void search(GtkAction *action, gpointer data)
++{
++	VFolderConfig *vconfig = vfolder_get_config();
++	GdkGeometry geometry = { .min_width = 500, .min_height = 460 };
++	GtkWidget *window;
++	GtkWidget *box;
++	GtkWidget *btn_ok;
++	GtkWidget *btn_cancel;
++	GtkWidget *w;
++	FolderItem *item;
++
++	if (!vconfig->enable_search)
++	{
++		alertpanel_error(_("You need to enable 'Search results' feature "
++				"in Preferences/Plugins/VFolder"));
++		return;
++	}
++	if (!vconfig->id_search_folder)
++	{
++		alertpanel_error(_("You need to configure 'Search results' feature "
++				"in Preferences/Plugins/VFolder"));
++		return;
++	}
++	item = folder_find_item_from_identifier(vconfig->id_search_folder);
++	if (!item || item->folder->klass != vfolder_get_class())
++	{
++		alertpanel_error(_("Configuration error: Check the configuration "
++				"of the 'Search results' feature "
++				"in Preferences/Plugins/VFolder"));
++		return;
++	}
++
++	window = gtkut_window_new(GTK_WINDOW_TOPLEVEL, "search");
++	gtk_window_set_position (GTK_WINDOW (window), GTK_WIN_POS_CENTER);
++	gtk_window_set_resizable(GTK_WINDOW (window), TRUE);
++	gtk_window_set_title (GTK_WINDOW(window), _("Search... [VFolder]"));
++	gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL, &geometry,
++		GDK_HINT_MIN_SIZE);
++	MANAGE_WINDOW_SIGNALS_CONNECT (window);
++	manage_window_set_transient(GTK_WINDOW(window));
++
++	box = gtk_vbox_new (FALSE, 4);
++	gtk_widget_show (box);
++	gtk_container_set_border_width(GTK_CONTAINER (box), 2);
++	gtk_container_add(GTK_CONTAINER(window), box);
++
++	_vfolder_search_create((VFolderItem *) item, GTK_WINDOW(window), GTK_CONTAINER(box));
++
++	gtkut_stock_button_set_create(&w,
++		&btn_cancel, GTK_STOCK_CANCEL,
++		&btn_ok, GTK_STOCK_FIND,
++		NULL, NULL);
++	gtk_box_pack_end (GTK_BOX(box), w, FALSE, FALSE, 0);
++	gtk_widget_grab_default (btn_ok);
++	gtk_widget_grab_focus (btn_ok);
++
++	g_signal_connect(G_OBJECT(window), "key_press_event",
++		G_CALLBACK(key_pressed), window);
++	g_signal_connect_swapped(G_OBJECT(btn_cancel), "clicked",
++		G_CALLBACK(gtk_widget_destroy), window);
++	g_signal_connect_swapped(G_OBJECT(btn_ok), "clicked",
++		G_CALLBACK(run_search), window);
++	g_object_set_data(G_OBJECT(window), "_vf_item", item);
++
++	gtk_widget_show_all(window);
++	gtk_window_set_modal(GTK_WINDOW(window), TRUE);
++}
+diff --git a/src/plugins/vfolder/plugin_gtk.h b/src/plugins/vfolder/plugin_gtk.h
+new file mode 100644
+index 000000000..260f67ed9
+--- /dev/null
++++ b/src/plugins/vfolder/plugin_gtk.h
+@@ -0,0 +1,31 @@
++/* vfolder -- Claws Mail plugin to add virtual folders
++ * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ *
++ */
++
++#ifndef __VFOLDER_PLUGIN_GTK_H__
++#define __VFOLDER_PLUGIN_GTK_H__
++
++#include <glib.h>
++
++gint vfolder_gtk_init(gchar **error);
++void vfolder_gtk_done(void);
++void vfolder_gtk_set_menus(gboolean unloading);
++
++void vfolder_gtk_set_visible(const gchar *path, gboolean visible);
++void vfolder_gtk_set_sensitive(const gchar *path, gboolean sensitive);
++
++#endif /* __VFOLDER_PLUGIN_GTK_H__ */
+diff --git a/src/plugins/vfolder/vfolder.c b/src/plugins/vfolder/vfolder.c
+new file mode 100644
+index 000000000..460db231c
+--- /dev/null
++++ b/src/plugins/vfolder/vfolder.c
+@@ -0,0 +1,1370 @@
++/* vfolder -- Claws Mail plugin to add virtual folders
++ * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ *
++ */
++
++#ifdef HAVE_CONFIG_H
++#  include "config.h"
++#  include "claws-features.h"
++#endif
++
++#include <glib.h>
++#include <glib/gi18n.h>
++
++#include "defs.h"
++
++#include <glib.h>
++#include <glib/gi18n.h>
++
++#include "folder.h"
++#include "procmsg.h"
++#include "statusbar.h"
++#include "utils.h"
++#include "gtkutils.h"
++#include "advsearch.h"
++#include "common/prefs.h"
++#include "common/hooks.h"
++#include "msgcache.h"
++
++
++#include "plugin.h"
++#include "plugin_gtk.h"
++#include "vfolder_item_prefs.h"
++
++#define GET_VMI(vitem,num)      (&g_array_index(vitem->vmi, struct vmi, num - 1))
++#define GET_MSGINFO(vitem,num)  GET_VMI(vitem, num)->msginfo
++
++struct _VFolder
++{
++	Folder folder;
++};
++
++static FolderClass vfolder_class;
++
++struct vmi
++{
++	MsgInfo *msginfo;
++	FolderItem *src_folder;
++	guint src_msgnum;
++};
++struct search
++{
++	gchar *folder_id;
++	gboolean recursive;
++	gchar *cond;
++
++	/* keep VFolderSearch from vfolder.h in sync */
++	AdvancedSearch *as;
++	FolderItem *folder;
++};
++
++struct _VFolderItem
++{
++	FolderItem item;
++	GArray *search;
++	GArray *vmi;
++	GHashTable *ht;
++	guint hook_msginfo;
++	guint hook_folder_item;
++	guint hook_folder;
++	GSList *ignore_folder_update;
++
++	/* properties */
++	guint is_autorefresh    :1;
++	/* internal flags */
++	guint has_content       :1;
++	guint is_building       :1;
++	guint flags_from_src    :1;
++	guint update_on_close   :1;
++};
++
++static void free_search_internals(struct search *search);
++static void free_vmi_internals(struct vmi *vmi);
++static void clear_content(VFolderItem *vitem);
++static gint build_content(VFolderItem *vitem, const gchar *msgid, gint *msgnum);
++static void refresh_content(VFolderItem *vitem, gboolean manual);
++static void trigger_item_update(VFolderItem *vitem);
++
++/* Folder */
++static Folder *_vfolder_new_folder(const gchar *name, const gchar *path);
++static void _vfolder_destroy_folder(Folder *folder);
++static void _vfolder_set_xml(Folder *folder, XMLTag *tag);
++static XMLTag *_vfolder_get_xml(Folder *folder);
++
++/* FolderItem */
++static FolderItem *_vfolder_item_new(Folder *folder);
++static void _vfolder_item_destroy(Folder *folder, FolderItem *item);
++static void _vfolder_item_set_xml(Folder *folder, FolderItem *item, XMLTag *tag);
++static XMLTag *_vfolder_item_get_xml(Folder *folder, FolderItem *item);
++static gchar *_vfolder_item_get_path(Folder *folder, FolderItem *item);
++static FolderItem *_vfolder_create_folder(Folder *folder, FolderItem *parent,
++	const gchar *name);
++static gint _vfolder_rename_folder(Folder *folder, FolderItem *item, const gchar *name);
++static gint _vfolder_remove_folder(Folder *folder, FolderItem *item);
++static gint _vfolder_get_num_list(Folder *folder, FolderItem *item,
++	GSList **list, gboolean *old_uids_valid);
++static gboolean _vfolder_scan_required(Folder *folder, FolderItem *item);
++
++/* Message */
++static MsgInfo *_vfolder_get_msginfo(Folder *folder, FolderItem *item, gint num);
++static GSList *_vfolder_get_msginfos(Folder *folder, FolderItem *item, GSList *msgnum_list);
++static gchar *_vfolder_fetch_msg(Folder *folder, FolderItem *item, gint num);
++static gint _vfolder_add_msg(Folder *folder, FolderItem *dest, const gchar *file,
++	MsgFlags *flags);
++static gint _vfolder_copy_msg(Folder *folder, FolderItem *dest, MsgInfo *msginfo);
++static gint _vfolder_remove_msg(Folder *folder, FolderItem *item, gint num);
++static gint _vfolder_remove_msgs(Folder *folder, FolderItem *item,
++	MsgInfoList *msglist, GHashTable *relation);
++static gint _vfolder_remove_all_msg(Folder *folder, FolderItem *item);
++static void _vfolder_copy_private_data(Folder *folder, FolderItem *src, FolderItem *dst);
++static void _vfolder_commit_tags(FolderItem *item, MsgInfo *msginfo,
++	GSList *tags_set, GSList *tags_unset);
++static void _vfolder_item_opened(FolderItem *item);
++static void _vfolder_item_closed(FolderItem *item);
++
++FolderClass *vfolder_get_class(void)
++{
++	if (vfolder_class.idstr == NULL) {
++		vfolder_class.type = F_UNKNOWN;
++		vfolder_class.idstr = "vfolder";
++		vfolder_class.uistr = "VFolder";
++
++		/* Folder functions */
++		vfolder_class.new_folder = _vfolder_new_folder;
++		vfolder_class.destroy_folder = _vfolder_destroy_folder;
++		vfolder_class.set_xml = NULL;//_vfolder_set_xml;
++		vfolder_class.get_xml = NULL;//_vfolder_get_xml;
++
++		/* FolderItem functions */
++		vfolder_class.item_new = _vfolder_item_new;
++		vfolder_class.item_destroy = _vfolder_item_destroy;
++		vfolder_class.item_set_xml = _vfolder_item_set_xml;
++		vfolder_class.item_get_xml = _vfolder_item_get_xml;
++		vfolder_class.item_get_path = _vfolder_item_get_path;
++		vfolder_class.create_folder = _vfolder_create_folder;
++		vfolder_class.rename_folder = _vfolder_rename_folder;
++		vfolder_class.remove_folder = _vfolder_remove_folder;
++		vfolder_class.get_num_list = _vfolder_get_num_list;
++		vfolder_class.scan_required = _vfolder_scan_required;
++
++		/* Message functions */
++		vfolder_class.get_msginfo = _vfolder_get_msginfo;
++		vfolder_class.get_msginfos = _vfolder_get_msginfos;
++		vfolder_class.fetch_msg = _vfolder_fetch_msg;
++		vfolder_class.add_msg = _vfolder_add_msg;
++		vfolder_class.copy_msg = _vfolder_copy_msg;
++		vfolder_class.remove_msg = _vfolder_remove_msg;
++		vfolder_class.remove_msgs = _vfolder_remove_msgs;
++		vfolder_class.remove_all_msg = _vfolder_remove_all_msg;
++		vfolder_class.copy_private_data = _vfolder_copy_private_data;
++		vfolder_class.commit_tags = _vfolder_commit_tags;
++		vfolder_class.item_opened = _vfolder_item_opened;
++		vfolder_class.item_closed = _vfolder_item_closed;
++	}
++	return &vfolder_class;
++}
++
++
++/* Folder */
++
++static Folder *_vfolder_new_folder(const gchar *name, const gchar *path)
++{
++	Folder *folder;
++
++	folder = (Folder *) g_new0(VFolder, 1);
++	folder->klass = &vfolder_class;
++	folder_init(folder, name);
++
++
++	return folder;
++}
++
++static void _vfolder_destroy_folder(Folder *folder)
++{
++}
++
++static void _vfolder_set_xml(Folder *folder, XMLTag *tag)
++{
++
++	folder_set_xml(folder, tag);
++
++#if 0
++	VFolder *vfolder = (VFolder *) folder;
++	GList *cur;
++	for (cur = tag->attr; cur != NULL; cur = g_list_next(cur))
++	{
++		XMLAttr *attr = (XMLAttr *) cur->data;
++
++		if (!attr || !attr->name || !attr->value)
++			continue;
++		if (!strcmp(attr->name, "path"))
++		{
++			g_free(vfolder->path);
++			vfolder->path = g_strdup(attr->value);
++		}
++	}
++#endif
++}
++
++static XMLTag *_vfolder_get_xml(Folder *folder)
++{
++	XMLTag *tag;
++
++	tag = folder_get_xml(folder);
++
++#if 0
++	VFolder *vfolder = (VFolder *) folder;
++	xml_tag_add_attr(tag, xml_attr_new("path", vfolder->path));
++#endif
++
++	return tag;
++}
++
++
++/* FolderItem */
++
++static gboolean on_msginfo_update(gpointer source, gpointer data)
++{
++	dbg("on_msginfo_update\n");
++	MsgInfoUpdate *update = (MsgInfoUpdate *) source;
++	VFolderItem *vitem = (VFolderItem *) data;
++
++	cm_return_val_if_fail(update != NULL, FALSE);
++	cm_return_val_if_fail(vitem != NULL, FALSE);
++
++	if (!vitem->vmi) /* || !vitem->ht, they go together */
++		return FALSE;
++
++	if (update->flags & MSGINFO_UPDATE_FLAGS)
++	{
++		MsgInfo *mi = update->msginfo;
++		MsgPermFlags perm_add, perm_del;
++		MsgTmpFlags tmp_add, tmp_del;
++		gchar *s;
++		gchar *id;
++		gint i;
++
++		/* our of ours? then relay to the source */
++		if (mi->folder == (FolderItem *) vitem)
++		{
++			MsgInfo *src_mi;
++
++			if (vitem->flags_from_src)
++				return FALSE;
++
++			if (vfolder_get_src_msginfo(mi, &src_mi) == VFOLDER_ERR_DELETED)
++				return FALSE;
++			cm_return_val_if_fail(src_mi != NULL, FALSE);
++
++			perm_add = mi->flags.perm_flags & ~src_mi->flags.perm_flags;
++			perm_del = src_mi->flags.perm_flags & ~mi->flags.perm_flags;
++			tmp_add = mi->flags.tmp_flags & ~src_mi->flags.tmp_flags;
++			tmp_del = src_mi->flags.tmp_flags & ~mi->flags.tmp_flags;
++
++			src_mi->to_folder = mi->to_folder;
++			procmsg_msginfo_change_flags(src_mi,
++				perm_add, tmp_add, perm_del, tmp_del);
++			procmsg_msginfo_free(&src_mi);
++			return FALSE;
++		}
++
++		/* another virtual one, we don't care */
++		if (mi->folder->folder->klass == &vfolder_class)
++			return FALSE;
++
++		id = folder_item_get_identifier(mi->folder);
++		s = g_strdup_printf("%d%s", mi->msgnum, id);
++		g_free(id);
++
++		i = GPOINTER_TO_INT(g_hash_table_lookup(vitem->ht, s));
++		g_free(s);
++
++		/* we have this msg in our content, import flags */
++		if (i > 0)
++		{
++			MsgInfo *our_mi;
++
++			our_mi = GET_MSGINFO(vitem, i);
++			if (!our_mi)
++				return FALSE;
++
++			perm_add = mi->flags.perm_flags & ~our_mi->flags.perm_flags;
++			perm_del = our_mi->flags.perm_flags & ~mi->flags.perm_flags;
++			tmp_add = mi->flags.tmp_flags & ~our_mi->flags.tmp_flags;
++			tmp_del = our_mi->flags.tmp_flags & ~mi->flags.tmp_flags;
++
++			if (perm_add || perm_del || tmp_add || tmp_del)
++			{
++				vitem->flags_from_src = 1;
++				our_mi->to_folder = mi->to_folder;
++				procmsg_msginfo_change_flags(our_mi,
++					perm_add, tmp_add, perm_del, tmp_del);
++				vitem->flags_from_src = 0;
++			}
++		}
++	}
++
++	return FALSE;
++}
++
++static gboolean on_folder_item_update(gpointer source, gpointer data)
++{
++	dbg("on_folder_item_update\n");
++	FolderItemUpdateData *update = (FolderItemUpdateData *) source;
++	VFolderItem *vitem = (VFolderItem *) data;
++	GSList *cur;
++	gint i;
++
++	cm_return_val_if_fail(update != NULL, FALSE);
++	cm_return_val_if_fail(vitem != NULL, FALSE);
++
++	if (!vitem->has_content
++		|| update->item == (FolderItem *) vitem
++		|| !(update->update_flags & F_ITEM_UPDATE_CONTENT))
++		return FALSE;
++
++	for (cur = vitem->ignore_folder_update; !!cur; cur = cur->next)
++	{
++		if ((FolderItem *) cur->data == update->item)
++		{
++			vitem->ignore_folder_update = g_slist_delete_link(
++				vitem->ignore_folder_update, cur);
++			return FALSE;
++		}
++	}
++
++	for (i = 0; i < vitem->search->len; ++i)
++	{
++		struct search *search = &g_array_index(vitem->search, struct search, i);
++
++		if (!search->folder)
++		{
++			search->folder = folder_find_item_from_identifier(search->folder_id);
++			if (!search->folder)
++				continue;
++		}
++
++		if (search->folder == update->item
++			|| (search->recursive && folder_is_child_of(update->item,
++					search->folder)))
++			break;
++	}
++
++	if (i < vitem->search->len)
++		refresh_content(vitem, FALSE);
++
++	return FALSE;
++}
++
++static gboolean on_folder_update(gpointer source, gpointer data)
++{
++	dbg("on_folder_update\n");
++	FolderUpdateData *update = (FolderUpdateData *) source;
++	VFolderItem *vitem = (VFolderItem *) data;
++	gboolean save = FALSE;
++	gint i;
++
++	cm_return_val_if_fail(update != NULL, FALSE);
++	cm_return_val_if_fail(vitem != NULL, FALSE);
++
++	if (!(update->update_flags & (FOLDER_RENAME_FOLDERITEM
++				| FOLDER_MOVE_FOLDERITEM | FOLDER_REMOVE_FOLDERITEM))
++		|| update->item == (FolderItem *) vitem
++		|| !vitem->item.path)
++		return FALSE;
++
++	vfolder_load_config(vitem, FALSE);
++
++	for (i = 0; i < vitem->search->len; ++i)
++	{
++		struct search *search = &g_array_index(vitem->search,
++			struct search, i);
++
++		if (search->folder == update->item)
++		{
++			if (update->update_flags & FOLDER_REMOVE_FOLDERITEM)
++				search->folder = NULL;
++			else
++			{
++				if (update->update_flags & FOLDER_MOVE_FOLDERITEM)
++					search->folder = update->item2;
++				g_free(search->folder_id);
++				search->folder_id = folder_item_get_identifier(search->folder);
++				save = TRUE;
++			}
++		}
++	}
++
++	if (save)
++		vfolder_item_prefs_save(vitem,
++			vitem->is_autorefresh,
++			vitem->search->len,
++			(VFolderSearch *) vitem->search->data);
++
++	return FALSE;
++}
++
++static FolderItem *_vfolder_item_new(Folder *folder)
++{
++	VFolderItem *vitem;
++
++	vitem = g_new0(VFolderItem, 1);
++	vitem->hook_msginfo = hooks_register_hook(MSGINFO_UPDATE_HOOKLIST,
++		on_msginfo_update, (gpointer) vitem);
++	vitem->hook_folder_item = hooks_register_hook(FOLDER_ITEM_UPDATE_HOOKLIST,
++		on_folder_item_update, (gpointer) vitem);
++	vitem->hook_folder = hooks_register_hook(FOLDER_UPDATE_HOOKLIST,
++		on_folder_update, (gpointer) vitem);
++
++	return (FolderItem *) vitem;
++}
++
++static void _vfolder_item_destroy(Folder *folder, FolderItem *item)
++{
++	VFolderItem *vitem = (VFolderItem *) item;
++
++	cm_return_if_fail(vitem != NULL);
++
++	if (vitem->search)
++		g_array_free(vitem->search, TRUE);
++	if (vitem->vmi)
++		g_array_free(vitem->vmi, TRUE);
++	if (vitem->ht)
++		g_hash_table_destroy(vitem->ht);
++
++	hooks_unregister_hook(MSGINFO_UPDATE_HOOKLIST, vitem->hook_msginfo);
++	hooks_unregister_hook(FOLDER_ITEM_UPDATE_HOOKLIST, vitem->hook_folder_item);
++	hooks_unregister_hook(FOLDER_UPDATE_HOOKLIST, vitem->hook_folder);
++
++	g_free(item);
++}
++
++static void _vfolder_item_set_xml(Folder *folder, FolderItem *item, XMLTag *tag)
++{
++	folder_item_set_xml(folder, item, tag);
++
++#if 0
++	VFolder *vfolder = (VFolder *) folder;
++	GList *cur;
++	for (cur = tag->attr; cur != NULL; cur = g_list_next(cur))
++	{
++		XMLAttr *attr = (XMLAttr *) cur->data;
++
++		if (!attr || !attr->name || !attr->value)
++			continue;
++		if (!strcmp(attr->name, "path"))
++		{
++			g_free(vfolder->path);
++			vfolder->path = g_strdup(attr->value);
++		}
++	}
++#endif
++}
++
++static XMLTag *_vfolder_item_get_xml(Folder *folder, FolderItem *item)
++{
++	XMLTag *tag;
++
++	tag = folder_item_get_xml(folder, item);
++
++#if 0
++	VFolder *vfolder = (VFolder *) folder;
++	xml_tag_add_attr(tag, xml_attr_new("path", vfolder->path));
++#endif
++
++	return tag;
++}
++
++static gchar *_vfolder_item_get_path(Folder *folder, FolderItem *item)
++{
++	return g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S, "VFoldercache",
++		G_DIR_SEPARATOR_S, folder->name, G_DIR_SEPARATOR_S, item->path,
++		NULL);
++}
++
++static FolderItem *_vfolder_create_folder(Folder *folder, FolderItem *parent,
++	const gchar *name)
++{
++	FolderItem *item;
++	gchar *path;
++
++	cm_return_val_if_fail(folder != NULL, NULL);
++	cm_return_val_if_fail(parent != NULL, NULL);
++	cm_return_val_if_fail(name != NULL, NULL);
++
++	if (folder_find_child_item_by_name(parent, name))
++		return NULL;
++
++	if (parent->path)
++		path = g_strconcat(parent->path, "/", name, NULL);
++	else
++		path = (gchar *) name;
++
++	item = folder_item_new(folder, name, path);
++
++	if (path != name)
++		g_free(path);
++
++	if (item)
++		folder_item_append(parent, item);
++
++	return item;
++}
++
++static gint _vfolder_rename_folder(Folder *folder, FolderItem *item, const gchar *name)
++{
++	FolderItem *parent;
++	gchar *path;
++
++	cm_return_val_if_fail(item != NULL, -1);
++	cm_return_val_if_fail(name != NULL, -1);
++
++	parent = folder_item_parent(item);
++	if (!parent)
++		return -1;
++
++	if (folder_find_child_item_by_name(parent, name))
++		return -1;
++
++	if (parent->path)
++		path = g_strconcat(parent->path, "/", name, NULL);
++	else
++		path = g_strdup(name);
++
++	g_free(item->path);
++	item->path = path;
++
++	g_free(item->name);
++	item->name = g_strdup(name);
++
++	return 0;
++}
++
++static gint _vfolder_remove_folder(Folder *folder, FolderItem *item)
++{
++	cm_return_val_if_fail(item != NULL, -1);
++
++	folder_item_remove(item);
++	return 0;
++}
++
++static gint _vfolder_get_num_list(Folder *folder, FolderItem *item,
++	GSList **list, gboolean *old_uids_valid)
++{
++	dbg("get_num_list\n");
++	VFolderItem *vitem = (VFolderItem *) item;
++	gint i;
++
++	cm_return_val_if_fail(item != NULL, -1);
++	cm_return_val_if_fail(list != NULL, -1);
++	cm_return_val_if_fail(old_uids_valid != NULL, -1);
++
++	*old_uids_valid = FALSE;
++
++	if (!vitem->has_content && build_content(vitem, NULL, NULL) < 0)
++		return -1;
++
++	for (i = 1; i <= vitem->vmi->len; ++i)
++		*list = g_slist_prepend(*list, GINT_TO_POINTER(i));
++
++	return vitem->vmi->len;
++}
++
++static gboolean _vfolder_scan_required(Folder *folder, FolderItem *item)
++{
++	return TRUE;
++}
++
++
++/* Message  */
++
++static MsgInfo *_vfolder_get_msginfo(Folder *folder, FolderItem *item, gint num)
++{
++	VFolderItem *vitem = (VFolderItem *) item;
++	MsgInfo *mi;
++
++	cm_return_val_if_fail(item != NULL, NULL);
++	cm_return_val_if_fail(vitem->vmi != NULL, NULL);
++	cm_return_val_if_fail(num > 0, NULL);
++	cm_return_val_if_fail(num <= vitem->vmi->len, NULL);
++
++	mi = GET_MSGINFO(vitem, num);
++	if (mi)
++		return procmsg_msginfo_new_ref(mi);
++	else
++		return NULL;
++}
++
++static GSList *_vfolder_get_msginfos(Folder *folder, FolderItem *item, GSList *msgnum_list)
++{
++	VFolderItem *vitem = (VFolderItem *) item;
++	MsgInfoList *ret = NULL;
++	MsgInfoList *wnt;
++
++	cm_return_val_if_fail(item != NULL, NULL);
++	cm_return_val_if_fail(msgnum_list != NULL, NULL);
++	cm_return_val_if_fail(vitem->vmi != NULL, NULL);
++
++	for (wnt = msgnum_list; wnt != NULL; wnt = wnt->next)
++	{
++		gint num = GPOINTER_TO_INT(wnt->data);
++
++		if (num > 0 && num <= vitem->vmi->len)
++		{
++			MsgInfo *mi = GET_MSGINFO(vitem, num);
++			if (mi)
++				ret = g_slist_prepend(ret, procmsg_msginfo_new_ref(mi));
++		}
++	}
++
++	return ret;
++}
++
++static gchar *_vfolder_fetch_msg(Folder *folder, FolderItem *item, gint num)
++{
++	VFolderItem *vitem = (VFolderItem *) item;
++	struct vmi *vmi;
++
++	cm_return_val_if_fail(item != NULL, NULL);
++	cm_return_val_if_fail(vitem->vmi != NULL, NULL);
++	cm_return_val_if_fail(num > 0, NULL);
++	cm_return_val_if_fail(num <= vitem->vmi->len, NULL);
++
++	vmi = GET_VMI(vitem, num);
++	if (vmi->msginfo)
++		return folder_item_fetch_msg(vmi->src_folder, vmi->src_msgnum);
++	else
++		return NULL;
++}
++
++static gint _vfolder_add_msg(Folder *folder, FolderItem *dest, const gchar *file,
++	MsgFlags *flags)
++{
++	return -1;
++}
++
++static gint _vfolder_copy_msg(Folder *folder, FolderItem *dest, MsgInfo *msginfo)
++{
++	return -1;
++}
++
++static void remove_msgs_perfolder(MsgInfoList *msglist, gpointer _data);
++static gint _vfolder_remove_msg(Folder *folder, FolderItem *item, gint num)
++{
++	dbg("remove_msg(%d)\n",num);
++	VFolderItem *vitem = (VFolderItem *) item;
++	struct vmi *vmi;
++	gint r = 0;
++	gpointer data[2] = { item, &r };
++	MsgInfoList msglist;
++
++	cm_return_val_if_fail(item != NULL, -1);
++	cm_return_val_if_fail(vitem->vmi != NULL, -1);
++	cm_return_val_if_fail(num > 0, -1);
++	cm_return_val_if_fail(num <= vitem->vmi->len, -1);
++
++	vmi = GET_VMI(vitem, num);
++	if (!vmi->msginfo)
++		return -1;
++
++	msglist.data = vmi->msginfo;
++	msglist.next = NULL;
++
++	vfolder_workon_msginfo_perfolder(&msglist, FALSE,
++		remove_msgs_perfolder, &data);
++
++	return r;
++}
++
++/* used in plugin_gtk.c */
++void _free_msglist_data(gpointer data)
++{
++	MsgInfo *mi = data;
++	procmsg_msginfo_free(&mi);
++}
++
++static void remove_msgs_perfolder(MsgInfoList *msglist, gpointer _data)
++{
++	dbg("remove_msgs_perfolder\n");
++	gpointer *data = _data;
++	VFolderItem *vitem = data[0];
++	gint *r = data[1];
++	FolderItem *src_folder = NULL;
++	MsgInfoList *src_msglist = NULL;
++	GSList *cur;
++
++	if (*r != 0)
++		return;
++
++	for (cur = msglist; !!cur; cur = cur->next)
++	{
++		MsgInfo *src_msginfo = NULL;
++		struct vmi *vmi;
++
++		vmi = GET_VMI(vitem, ((MsgInfo *) cur->data)->msgnum);
++		if (!vmi->msginfo)
++			continue;
++
++		if (!src_folder)
++			src_folder = vmi->src_folder;
++
++		vfolder_get_src_msginfo(vmi->msginfo, &src_msginfo);
++		cm_return_if_fail(src_msginfo != NULL);
++
++		/* if the file was moved, let's relay that to the src msginfo */
++		if (MSG_IS_MOVE(vmi->msginfo->flags)
++			&& MSG_IS_MOVE_DONE(vmi->msginfo->flags))
++			src_msginfo->flags.tmp_flags = vmi->msginfo->flags.tmp_flags;
++
++		src_msglist = g_slist_prepend(src_msglist, src_msginfo);
++
++		/* free memory & "mark" deleted */
++		free_vmi_internals(vmi);
++		vmi->msginfo = NULL;
++		vmi->src_folder = NULL;
++		vmi->src_msgnum = 0;
++	}
++
++	if (vitem->item.opened)
++	{
++		vitem->update_on_close = 1;
++		vitem->ignore_folder_update = g_slist_prepend(vitem->ignore_folder_update,
++			src_folder);
++	}
++
++	*r = folder_item_remove_msgs(src_folder, src_msglist);
++
++	g_slist_free_full(src_msglist, _free_msglist_data);
++}
++
++static gint _vfolder_remove_msgs(Folder *folder, FolderItem *item,
++	MsgInfoList *msglist, GHashTable *relation)
++{
++	dbg("remove_msgs\n");
++	gint r = 0;
++	gpointer data[2] = { item, &r };
++
++	cm_return_val_if_fail(item != NULL, -1);
++	cm_return_val_if_fail(msglist != NULL, -1);
++
++	folder_item_update_freeze();
++
++	vfolder_workon_msginfo_perfolder(msglist, FALSE,
++		remove_msgs_perfolder, &data);
++
++	folder_item_update_thaw();
++
++	return r;
++}
++
++static gint _vfolder_remove_all_msg(Folder *folder, FolderItem *item)
++{
++	return -1;
++}
++
++static void _vfolder_copy_private_data(Folder *folder, FolderItem *_src, FolderItem *_dst)
++{
++	VFolderItem *src = (VFolderItem *) _src;
++	VFolderItem *dst = (VFolderItem *) _dst;
++
++	cm_return_if_fail(_src != NULL);
++	cm_return_if_fail(_src->folder != NULL);
++	cm_return_if_fail(_src->folder->klass == &vfolder_class);
++	cm_return_if_fail(_dst != NULL);
++	cm_return_if_fail(_dst->folder != NULL);
++	cm_return_if_fail(_dst->folder->klass == &vfolder_class);
++
++	dst->is_autorefresh = src->is_autorefresh;
++
++	if (src->search && src->search->len > 0)
++	{
++		gint i;
++
++		dst->search = g_array_new(FALSE, FALSE, sizeof(struct search));
++		g_array_set_clear_func(dst->search,
++			(GDestroyNotify) free_search_internals);
++
++		for (i = 0; i < src->search->len; ++i)
++		{
++			struct search *src_search = &g_array_index(src->search,
++				struct search, i);
++			struct search dst_search;
++
++			dst_search.folder_id = g_strdup(src_search->folder_id);
++			dst_search.recursive = src_search->recursive;
++			dst_search.cond = g_strdup(src_search->cond);
++			dst_search.as = NULL;
++			dst_search.folder = src_search->folder;
++
++			g_array_append_val(dst->search, dst_search);
++		}
++
++		vfolder_item_prefs_save(dst,
++			dst->is_autorefresh,
++			dst->search->len,
++			(VFolderSearch *) dst->search->data);
++	}
++}
++
++static void _vfolder_commit_tags(FolderItem *item, MsgInfo *msginfo,
++	GSList *tags_set, GSList *tags_unset)
++{
++	MsgInfo *src_msginfo;
++	GSList *cur;
++
++	cm_return_if_fail(item != NULL);
++	cm_return_if_fail(msginfo != NULL);
++	cm_return_if_fail(tags_set != NULL || tags_unset != NULL);
++
++	if (vfolder_get_src_msginfo(msginfo, &src_msginfo) < 0)
++		return;
++
++	for (cur = tags_set; !!cur; cur = cur->next)
++		procmsg_msginfo_update_tags(src_msginfo, TRUE, GPOINTER_TO_INT(cur->data));
++	for (cur = tags_unset; !!cur; cur = cur->next)
++		procmsg_msginfo_update_tags(src_msginfo, FALSE, GPOINTER_TO_INT(cur->data));
++	procmsg_msginfo_free(&src_msginfo);
++}
++
++static void _vfolder_item_opened(FolderItem *item)
++{
++	if (folder_item_parent(item))
++	{
++		vfolder_gtk_set_visible("/Menus/SummaryViewPopup/FindInSrcFolder", TRUE);
++		vfolder_gtk_set_sensitive("/Menu/View/Goto/FindInSrcFolder", TRUE);
++	}
++}
++
++static void _vfolder_item_closed(FolderItem *item)
++{
++	VFolderItem *vitem = (VFolderItem *) item;
++
++	vfolder_gtk_set_visible("/Menus/SummaryViewPopup/FindInSrcFolder", FALSE);
++	vfolder_gtk_set_sensitive("/Menu/View/Goto/FindInSrcFolder", FALSE);
++
++	cm_return_if_fail(vitem != NULL);
++
++	if (vitem->update_on_close)
++	{
++		clear_content(vitem);
++		if (vitem->is_autorefresh)
++			build_content(vitem, NULL, NULL);
++		else
++			trigger_item_update(vitem);
++	}
++}
++
++
++/* Misc */
++
++gboolean vfolder_is_item_autorefresh(VFolderItem *vitem)
++{
++	cm_return_val_if_fail(vitem != NULL, FALSE);
++	return vitem->is_autorefresh;
++}
++
++static void free_search_internals(struct search *search)
++{
++	cm_return_if_fail(search != NULL);
++	g_free(search->folder_id);
++	g_free(search->cond);
++	if (search->as)
++		advsearch_free(search->as);
++}
++
++static void free_vmi_internals(struct vmi *vmi)
++{
++	cm_return_if_fail(vmi != NULL);
++	procmsg_msginfo_free(&vmi->msginfo);
++}
++
++static void clear_content(VFolderItem *vitem)
++{
++	dbg("clear_content\n");
++	if (vitem->vmi)
++		g_array_remove_range(vitem->vmi, 0, vitem->vmi->len);
++	else
++	{
++		vitem->vmi = g_array_new(FALSE, FALSE, sizeof(struct vmi));
++		g_array_set_clear_func(vitem->vmi, (GDestroyNotify) free_vmi_internals);
++	}
++
++	if (vitem->ht)
++		g_hash_table_remove_all(vitem->ht);
++	else
++		vitem->ht = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
++
++	vitem->has_content = 0;
++	vitem->update_on_close = 0;
++	if (vitem->ignore_folder_update)
++	{
++		g_slist_free(vitem->ignore_folder_update);
++		vitem->ignore_folder_update = NULL;
++	}
++
++	/* else after an autorefresh (from on_folder_item_update) the summaryview
++	 * would keep an old list with wrong msgnums... */
++	{
++		FolderItem *item = (FolderItem *) vitem;
++
++		if (item->cache)
++			msgcache_destroy(item->cache);
++		item->cache = msgcache_new();
++		item->cache_dirty = TRUE;
++		item->mark_dirty = TRUE;
++		item->tags_dirty = TRUE;
++	}
++}
++
++/* from plugin_gtk.c */
++gchar *vfolder_gtk_get_current_msgid(void);
++void vfolder_gtk_refresh_summary(FolderItem *item, gint msgnum);
++static void refresh_content(VFolderItem *vitem, gboolean manual)
++{
++	gchar *msgid = NULL;
++	gint msgnum = 0;
++
++	if (vitem->item.opened)
++		msgid = vfolder_gtk_get_current_msgid();
++
++	clear_content(vitem);
++	if (manual || vitem->is_autorefresh || vitem->item.opened)
++		build_content(vitem, msgid, &msgnum);
++	else
++		trigger_item_update(vitem);
++
++	if (vitem->item.opened)
++		vfolder_gtk_refresh_summary((FolderItem *) vitem, msgnum);
++}
++
++void vfolder_refresh_content(VFolderItem *vitem)
++{
++	cm_return_if_fail(vitem != NULL);
++	refresh_content(vitem, TRUE);
++}
++
++void vfolder_load_config(VFolderItem *vitem, gboolean force)
++{
++	PrefFile *pfile;
++	gchar *file;
++	gchar *id;
++	gchar *block;
++	gchar buf[BUFFSIZE];
++	gint r;
++
++	if (!vitem->search)
++	{
++		vitem->search = g_array_new(FALSE, FALSE, sizeof(struct search));
++		g_array_set_clear_func(vitem->search,
++			(GDestroyNotify) free_search_internals);
++	}
++	else if (force)
++		g_array_remove_range(vitem->search, 0, vitem->search->len);
++	else
++		return;
++
++	clear_content(vitem);
++	vitem->is_autorefresh = 0;
++
++	id = folder_item_get_identifier((FolderItem *) vitem);
++	if (!id)
++	{
++		g_warning("Failed to read configuration from file");
++		return;
++	}
++	block = g_strdup_printf("VFolder:%s", id);
++	g_free(id);
++
++	file = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S, FOLDERITEM_RC, NULL);
++	pfile = prefs_read_open(file);
++	g_free(file);
++	if (!pfile)
++	{
++		g_warning("Failed to read configuration from file");
++		return;
++	}
++
++	r = prefs_set_block_label(pfile, block);
++	g_free(block);
++	if (r < 0)
++		return;
++
++	while (fgets(buf, sizeof(buf), pfile->fp) != NULL)
++	{
++		struct search search;
++		gchar *s = buf;
++		gint esc = 0;
++
++		if (*s == '[')
++			break;
++
++		if (*s == '!')
++		{
++			if (!strcmp(s + 1, "autorefresh\n"))
++				vitem->is_autorefresh = 1;
++			else
++				g_warning("VFolder: unknown option: %s", s + 1);
++
++			continue;
++		}
++
++		search.recursive = *s == '+';
++		if (*s == '+')
++			++s;
++
++		for ( ; *s != ' '; ++s)
++		{
++			if (*s == '\\')
++			{
++				++esc;
++				++s;
++			}
++			else if (*s == '\0')
++			{
++				g_warning("VFolder: Invalid configuration");
++				esc = -1;
++				break;
++			}
++
++			if (esc > 0)
++				s[-esc] = *s;
++		}
++		if (esc < 0)
++			break;
++		s -= esc;
++		*s = '\0';
++		search.folder_id = g_strdup(buf + ((search.recursive) ? 1 : 0));
++		*strchr(s + esc + 1, '\n') = '\0';
++		search.cond = g_strdup(s + esc + 1);
++		search.as = NULL;
++		search.folder = folder_find_item_from_identifier(search.folder_id);
++		g_array_append_val(vitem->search, search);
++	}
++
++	prefs_file_close(pfile);
++}
++
++struct tmp
++{
++	MsgInfo *msginfo;
++	gchar *key;
++};
++
++static gint cmp_tmp(gconstpointer a, gconstpointer b)
++{
++	const struct tmp *t1 = a;
++	const struct tmp *t2 = b;
++
++	return t1->msginfo->date_t - t2->msginfo->date_t;
++}
++
++static gint build_content(VFolderItem *vitem, const gchar *msgid, gint *msgnum)
++{
++	dbg("build_content\n");
++	GArray *arr;
++	guint i;
++	guint nb = 0;
++
++	cm_return_val_if_fail(vitem != NULL, -1);
++	cm_return_val_if_fail(!msgid || msgnum, -1);
++
++	if (vitem->is_building)
++		return -1;
++	dbg("building...\n");
++	vitem->is_building = 1;
++
++	if (!vitem->search)
++		vfolder_load_config(vitem, FALSE);
++
++	clear_content(vitem);
++
++	if (vitem->search->len == 0)
++	{
++		dbg("building done:%d\n",vitem->vmi->len);
++		vitem->is_building = 0;
++		vitem->has_content = 1;
++		trigger_item_update(vitem);
++		return 0;
++	}
++
++	arr = g_array_new(FALSE, FALSE, sizeof(struct tmp));
++
++	for (i = 0; i < vitem->search->len; ++i)
++	{
++		struct search *search = &g_array_index(vitem->search, struct search, i);
++		MsgInfoList *msgs = NULL;
++		MsgInfoList *cur;
++
++		if (!search->folder)
++		{
++			search->folder = folder_find_item_from_identifier(search->folder_id);
++			if (!search->folder)
++				goto fail;
++		}
++
++		if (!search->as)
++		{
++			search->as = advsearch_new();
++			advsearch_set(search->as, ADVANCED_SEARCH_EXTENDED, search->cond);
++		}
++
++		if (!advsearch_search_msgs_in_folders(search->as,
++				&msgs, search->folder, search->recursive))
++			goto fail;
++
++		for (cur = msgs; cur != NULL; cur = cur->next)
++		{
++			MsgInfo *mi = (MsgInfo *) cur->data;
++			struct tmp tmp;
++			gchar *id, *s;
++
++			id = folder_item_get_identifier(mi->folder);
++			s = g_strdup_printf("%d%s", mi->msgnum, id);
++			g_free(id);
++
++			if (i > 0 && g_hash_table_contains(vitem->ht, s))
++			{
++				g_free(s);
++				continue;
++			}
++
++			tmp.msginfo = mi;
++			tmp.key = s;
++			g_array_append_val(arr, tmp);
++			g_hash_table_insert(vitem->ht, s, GINT_TO_POINTER(0));
++		}
++		g_slist_free(msgs);
++	}
++
++	g_array_sort(arr, cmp_tmp);
++	for (i = 0; i < arr->len; ++i)
++	{
++		struct tmp *tmp = &g_array_index(arr, struct tmp, i);
++		struct vmi vmi;
++
++		vmi.msginfo = procmsg_msginfo_copy(tmp->msginfo);
++		vmi.msginfo->tags = g_slist_copy(tmp->msginfo->tags);
++		vmi.src_folder = tmp->msginfo->folder;
++		vmi.src_msgnum = tmp->msginfo->msgnum;
++		vmi.msginfo->folder = (FolderItem *) vitem;
++		vmi.msginfo->msgnum = ++nb;
++
++		g_array_append_val(vitem->vmi, vmi);
++		g_hash_table_insert(vitem->ht, g_strdup(tmp->key), GINT_TO_POINTER(nb));
++
++		if (msgid && !strcmp(msgid, vmi.msginfo->msgid))
++		{
++			msgid = NULL;
++			*msgnum = nb;
++		}
++	}
++	g_array_free(arr, TRUE);
++
++	dbg("building done:%d\n",vitem->vmi->len);
++	vitem->is_building = 0;
++	vitem->has_content = 1;
++	trigger_item_update(vitem);
++	return nb;
++
++fail:
++	g_array_free(arr, TRUE);
++	g_hash_table_remove_all(vitem->ht);
++	dbg("building failed:%d\n",vitem->vmi->len);
++	vitem->is_building = 0;
++	return -1;
++}
++
++static void trigger_item_update(VFolderItem *vitem)
++{
++	dbg("trigger_item_update\n");
++	FolderItem *item = (FolderItem *) vitem;
++	FolderItemUpdateData source;
++	gint i;
++
++	cm_return_if_fail(vitem != NULL);
++
++	item->new_msgs = 0;
++	item->unread_msgs = 0;
++	item->total_msgs = 0;
++	item->unreadmarked_msgs = 0;
++	item->marked_msgs = 0;
++	item->replied_msgs = 0;
++	item->forwarded_msgs = 0;
++	item->locked_msgs = 0;
++	item->ignored_msgs = 0;
++	item->watched_msgs = 0;
++
++	if (vitem->vmi && vitem->vmi->len > 0)
++	{
++		item->total_msgs = vitem->vmi->len;
++
++		for (i = 1; i <= vitem->vmi->len; ++i)
++		{
++			MsgInfo *mi = GET_MSGINFO(vitem, i);
++			if (!mi)
++				continue;
++
++			if (MSG_IS_NEW(mi->flags))
++				++item->new_msgs;
++			if (MSG_IS_UNREAD(mi->flags))
++				++item->unread_msgs;
++			if (MSG_IS_UNREAD(mi->flags) && procmsg_msg_has_marked_parent(mi))
++				++item->unreadmarked_msgs;
++			if (MSG_IS_MARKED(mi->flags))
++				++item->marked_msgs;
++			if (MSG_IS_REPLIED(mi->flags))
++				++item->replied_msgs;
++			if (MSG_IS_FORWARDED(mi->flags))
++				++item->forwarded_msgs;
++			if (MSG_IS_LOCKED(mi->flags))
++				++item->locked_msgs;
++			if (MSG_IS_IGNORE_THREAD(mi->flags))
++				++item->ignored_msgs;
++			if (MSG_IS_WATCH_THREAD(mi->flags))
++				++item->watched_msgs;
++		}
++	}
++
++	source.item = (FolderItem *) vitem;
++	source.update_flags = F_ITEM_UPDATE_MSGCNT | F_ITEM_UPDATE_CONTENT;
++	source.msg = NULL;
++	hooks_invoke(FOLDER_ITEM_UPDATE_HOOKLIST, &source);
++}
++
++/* for vfolder_item_prefs.c */
++void _vfolder_item_get_searches(VFolderItem *vitem, gint *len, VFolderSearch **searches)
++{
++	cm_return_if_fail(vitem != NULL);
++	cm_return_if_fail(len != NULL);
++	cm_return_if_fail(searches != NULL);
++
++	if (!vitem->search)
++		*len = 0;
++	else
++	{
++		*len = vitem->search->len;
++		*searches = (VFolderSearch *) vitem->search->data;
++	}
++}
++
++gint vfolder_get_src_folder_msgnum(MsgInfo *msginfo,
++	FolderItem **src_item, guint *src_msgnum)
++{
++	VFolderItem *vitem;
++	struct vmi *vmi;
++
++	cm_return_val_if_fail(msginfo != NULL, FALSE);
++	cm_return_val_if_fail(msginfo->folder != NULL, FALSE);
++	cm_return_val_if_fail(msginfo->folder->folder != NULL, FALSE);
++
++	if (msginfo->folder->folder->klass != &vfolder_class)
++		return VFOLDER_ERR_NOT_VIRTUAL;
++
++	vitem = (VFolderItem *) msginfo->folder;
++
++	cm_return_val_if_fail(vitem->vmi != NULL, FALSE);
++	cm_return_val_if_fail(msginfo->msgnum > 0, FALSE);
++	cm_return_val_if_fail(msginfo->msgnum <= vitem->vmi->len, FALSE);
++
++	vmi = GET_VMI(vitem, msginfo->msgnum);
++	if (!vmi->msginfo)
++		return VFOLDER_ERR_DELETED;
++	if (src_item)
++		*src_item = vmi->src_folder;
++	if (src_msgnum)
++		*src_msgnum = vmi->src_msgnum;
++	return 0;
++}
++
++gint vfolder_get_src_msginfo(MsgInfo *msginfo, MsgInfo **src_msginfo)
++{
++	FolderItem *item;
++	gint num;
++	gboolean r;
++
++	r = vfolder_get_src_folder_msgnum(msginfo, &item, &num);
++	if (r == 0 && src_msginfo)
++		*src_msginfo = folder_item_get_msginfo(item, num);
++	return r;
++}
++
++void vfolder_workon_msginfo_perfolder(MsgInfoList *_msglist, gboolean free_msglist,
++	vfolder_worker_fn worker, gpointer data)
++{
++	MsgInfoList *msglist;
++
++	if (free_msglist)
++		msglist = _msglist;
++	else
++		msglist = g_slist_copy(_msglist);
++
++	for ( ; !!msglist; )
++	{
++		FolderItem *cur_item = NULL;
++		GSList *msglist_last = NULL;
++		GSList *list = NULL;
++		GSList *list_last = NULL;
++		GSList *cur;
++
++		for (cur = msglist; !!cur; )
++		{
++			MsgInfo *mi = (MsgInfo *) cur->data;
++			FolderItem *item = mi->folder;
++
++			if (vfolder_get_src_folder_msgnum(mi,
++					&item, NULL) == VFOLDER_ERR_DELETED)
++			{
++				cur = cur->next;
++				cur->next = NULL;
++				if (cur == msglist)
++					msglist = NULL;
++				g_slist_free(cur);
++				continue;
++			}
++
++			if (!cur_item)
++				cur_item = item;
++
++			if (item == cur_item)
++			{
++				if (msglist_last)
++					msglist_last->next = cur;
++				msglist_last = cur;
++			}
++			else
++			{
++				if (!list)
++					list = cur;
++				if (list_last)
++					list_last->next = cur;
++				list_last = cur;
++			}
++
++			cur = cur->next;
++		}
++		if (msglist_last)
++			msglist_last->next = NULL;
++		if (list_last)
++			list_last->next = NULL;
++
++		if (msglist)
++		{
++			worker(msglist, data);
++			g_slist_free(msglist);
++		}
++		msglist = list;
++	}
++}
+diff --git a/src/plugins/vfolder/vfolder.h b/src/plugins/vfolder/vfolder.h
+new file mode 100644
+index 000000000..05d5d1571
+--- /dev/null
++++ b/src/plugins/vfolder/vfolder.h
+@@ -0,0 +1,59 @@
++/* vfolder -- Claws Mail plugin to add virtual folders
++ * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ *
++ */
++
++#ifndef __VFOLDER_FOLDER_H__
++#define __VFOLDER_FOLDER_H__
++
++
++#include <glib.h>
++
++#include "folder.h"
++
++typedef struct _VFolder VFolder;
++typedef struct _VFolderItem VFolderItem;
++
++typedef struct _VFolderSearch VFolderSearch;
++struct _VFolderSearch
++{
++	gchar *folder_id;
++	gboolean recursive;
++	gchar *cond;
++
++	gpointer *reserved[2];
++};
++
++typedef void (*vfolder_worker_fn) (MsgInfoList *msglist, gpointer data);
++
++
++FolderClass *vfolder_get_class (void);
++
++gboolean vfolder_is_item_autorefresh(VFolderItem *vitem);
++
++void vfolder_load_config(VFolderItem *vitem, gboolean force);
++void vfolder_refresh_content(VFolderItem *vitem);
++
++#define VFOLDER_ERR_NOT_VIRTUAL     -1
++#define VFOLDER_ERR_DELETED         -2
++gint vfolder_get_src_folder_msgnum(MsgInfo *msginfo,
++	FolderItem **src_item, guint *src_msgnum);
++gint vfolder_get_src_msginfo(MsgInfo *msginfo, MsgInfo **src_msginfo);
++
++void vfolder_workon_msginfo_perfolder(MsgInfoList *msglist, gboolean free_msglist,
++	vfolder_worker_fn worker, gpointer data);
++
++#endif /* __VFOLDER_FOLDER_H__ */
+diff --git a/src/plugins/vfolder/vfolder_item_prefs.c b/src/plugins/vfolder/vfolder_item_prefs.c
+new file mode 100644
+index 000000000..c32a9e336
+--- /dev/null
++++ b/src/plugins/vfolder/vfolder_item_prefs.c
+@@ -0,0 +1,1101 @@
++/* vfolder -- Claws Mail plugin to add virtual folders
++ * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ *
++ */
++
++#ifdef HAVE_CONFIG_H
++#  include "config.h"
++#  include "claws-features.h"
++#endif
++
++#include <glib.h>
++#include <glib/gi18n.h>
++
++#include "gtk/menu.h"
++#include "common/defs.h"
++#include "common/prefs.h"
++#include "prefs_common.h"
++#include "prefs_gtk.h"
++#include "prefs_folder_item.h"
++#include "prefs_matcher.h"
++#include "matcher_parser.h"
++#include "alertpanel.h"
++#include "foldersel.h"
++
++#include "plugin.h"
++#include "vfolder_item_prefs.h"
++
++
++struct _VFolderItemPrefsPage
++{
++	PrefsPage page;
++
++	VFolderItem *vitem;
++
++};
++
++static void prefs_cond_define(gpointer action, gpointer data);
++static void prefs_register_cb(gpointer action, gpointer data);
++static void prefs_substitute_cb(gpointer action, gpointer data);
++static void prefs_delete_cb(gpointer action, gpointer data);
++static void prefs_delete_all_cb(gpointer action, gpointer data);
++static void prefs_duplicate_cb(gpointer action, gpointer data);
++static void prefs_clear_cb(gpointer action, gpointer data);
++static void prefs_page_up(gpointer action, gpointer data);
++static void prefs_page_down(gpointer action, gpointer data);
++static void prefs_top(gpointer action, gpointer data);
++static void prefs_up(gpointer action, gpointer data);
++static void prefs_down(gpointer action, gpointer data);
++static void prefs_bottom(gpointer action, gpointer data);
++
++enum
++{
++	PREFS_COL_FOLDER,
++	PREFS_COL_RECURSIVE,
++	PREFS_COL_COND,
++	NB_PREFS_COL
++};
++
++static GtkActionGroup *prefs_popup_action = NULL;
++static GtkWidget *prefs_popup_menu = NULL;
++
++static GtkActionEntry prefs_popup_entries[] =
++{
++	{ "PrefsVfolderPopup",              NULL, "PrefsVfolderPopup" },
++	{ "PrefsVfolderPopup/Delete",       NULL, N_("_Delete"),
++		NULL, NULL, G_CALLBACK(prefs_delete_cb) },
++	{ "PrefsVfolderPopup/DeleteAll",    NULL, N_("Delete _all"),
++		NULL, NULL, G_CALLBACK(prefs_delete_all_cb) },
++	{ "PrefsVfolderPopup/Duplicate",    NULL, N_("D_uplicate"),
++		NULL, NULL, G_CALLBACK(prefs_duplicate_cb) },
++#ifdef GENERIC_UMPC
++	{ "PrefsVfolderPopup/---",          NULL, "---", NULL, NULL, NULL },
++	{ "PrefsVfolderPopup/PageUp",       NULL, N_("Move one page up"),
++		NULL, NULL, G_CALLBACK(prefs_page_up) },
++	{ "PrefsVfolderPopup/PageDown",     NULL, N_("Move one page down"),
++		NULL, NULL, G_CALLBACK(prefs_page_down) },
++#endif
++};
++
++static GtkWidget *cond_entry;
++static GtkWidget *folder_entry;
++static GtkWidget *recursive_btn;
++static GtkWidget *cond_list_view;
++static GtkWidget *autorefresh_btn;
++
++static void prefs_select_row(GtkTreeView *list_view, GtkTreePath *path)
++{
++	GtkTreeModel *model = gtk_tree_view_get_model(list_view);
++
++	if (path && model) {
++		GtkTreeSelection *selection;
++		GtkTreeIter iter;
++		gchar *folder, *cond;
++		gboolean recursive;
++
++		if (gtk_tree_path_get_depth(path) == 1
++			&& gtk_tree_path_get_indices(path)[0] == 0)
++			return;
++
++		/* select row */
++		selection = gtk_tree_view_get_selection(list_view);
++		gtk_tree_selection_select_path(selection, path);
++
++		gtk_tree_model_get_iter(model, &iter, path);
++		gtk_tree_model_get(model, &iter,
++			PREFS_COL_FOLDER,       &folder,
++			PREFS_COL_RECURSIVE,    &recursive,
++			PREFS_COL_COND,         &cond,
++			-1);
++
++		gtk_entry_set_text(GTK_ENTRY(folder_entry), folder);
++		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(recursive_btn), recursive);
++		gtk_entry_set_text(GTK_ENTRY(cond_entry), cond);
++
++		g_free(folder);
++		g_free(cond);
++	}
++}
++
++static gint prefs_list_btn_pressed(GtkWidget *widget, GdkEventButton *event,
++	GtkTreeView *list_view)
++{
++	if (event) {
++		/* left- or right-button click */
++		if (event->button == 1 || event->button == 3) {
++			GtkTreePath *path = NULL;
++
++			if (gtk_tree_view_get_path_at_pos( list_view, event->x, event->y,
++					&path, NULL, NULL, NULL)) {
++				prefs_select_row(list_view, path);
++			}
++			if (path)
++				gtk_tree_path_free(path);
++		}
++
++		/* right-button click */
++		if (event->button == 3) {
++			GtkTreeModel *model = gtk_tree_view_get_model(list_view);
++			GtkTreeIter iter;
++			gboolean non_empty;
++			gint row;
++
++			if (!prefs_popup_menu) {
++				prefs_popup_action = cm_menu_create_action_group(
++					"PrefsVfolderPopup",
++					prefs_popup_entries,
++					G_N_ELEMENTS(prefs_popup_entries),
++					(gpointer) list_view);
++				MENUITEM_ADDUI("/Menus",
++					"PrefsVfolderPopup",
++					"PrefsVfolderPopup",
++					GTK_UI_MANAGER_MENU);
++				MENUITEM_ADDUI("/Menus/PrefsVfolderPopup",
++					"Delete",
++					"PrefsVfolderPopup/Delete",
++					GTK_UI_MANAGER_MENUITEM);
++				MENUITEM_ADDUI("/Menus/PrefsVfolderPopup",
++					"DeleteAll",
++					"PrefsVfolderPopup/DeleteAll",
++					GTK_UI_MANAGER_MENUITEM);
++				MENUITEM_ADDUI("/Menus/PrefsVfolderPopup",
++					"Duplicate",
++					"PrefsVfolderPopup/Duplicate",
++					GTK_UI_MANAGER_MENUITEM);
++#ifdef GENERIC_UMPC
++				MENUITEM_ADDUI("/Menus/PrefsVfolderPopup",
++					"Separator1",
++					"PrefsVfolderPopup/---",
++					GTK_UI_MANAGER_SEPARATOR);
++				MENUITEM_ADDUI("/Menus/PrefsVfolderPopup",
++					"PageUp",
++					"PrefsVfolderPopup/PageUp",
++					GTK_UI_MANAGER_MENUITEM);
++				MENUITEM_ADDUI("/Menus/PrefsVfolderPopup",
++					"PageDown",
++					"PrefsVfolderPopup/PageDown",
++					GTK_UI_MANAGER_MENUITEM);
++#endif
++				prefs_popup_menu = gtk_menu_item_get_submenu(GTK_MENU_ITEM(
++						gtk_ui_manager_get_widget(
++							gtkut_ui_manager(),
++							"/Menus/PrefsVfolderPopup"))
++					);
++			}
++
++			/* grey out some popup menu items if there is no selected row */
++			row = gtkut_list_view_get_selected_row(GTK_WIDGET(list_view));
++			cm_menu_set_sensitive("PrefsVfolderPopup/Delete", (row > 0));
++			cm_menu_set_sensitive("PrefsVfolderPopup/Duplicate", (row > 0));
++
++			/* grey out seom popup menu items if there is no row
++			   (not counting the (New) one at row 0) */
++			non_empty = gtk_tree_model_get_iter_first(model, &iter);
++			if (non_empty)
++				non_empty = gtk_tree_model_iter_next(model, &iter);
++			cm_menu_set_sensitive("PrefsVfolderPopup/DeleteAll", non_empty);
++
++			gtk_menu_popup(GTK_MENU(prefs_popup_menu),
++				NULL, NULL, NULL, NULL, event->button, event->time);
++		}
++	}
++	return FALSE;
++}
++
++static gboolean prefs_list_popup_menu(GtkWidget *widget, gpointer data)
++{
++	GtkTreeView *list_view = (GtkTreeView *)data;
++	GdkEventButton event;
++
++	event.button = 3;
++	event.time = gtk_get_current_event_time();
++
++	prefs_list_btn_pressed(NULL, &event, list_view);
++
++	return TRUE;
++}
++
++static void prefs_create_list_view_columns(GtkWidget *list_view)
++{
++	GtkTreeViewColumn *column;
++	GtkCellRenderer *renderer;
++
++	renderer = gtk_cell_renderer_text_new();
++	column = gtk_tree_view_column_new_with_attributes
++		(_("Folder"),
++		 renderer,
++		 "text", PREFS_COL_FOLDER,
++		 NULL);
++	gtk_tree_view_append_column(GTK_TREE_VIEW(list_view), column);
++	gtk_tree_view_column_set_resizable(column, TRUE);
++
++	renderer = gtk_cell_renderer_toggle_new();
++	g_object_set(renderer,
++		"radio", FALSE,
++		"activatable", FALSE,
++		NULL);
++	column = gtk_tree_view_column_new_with_attributes
++		(_("Recursive"),
++		 renderer,
++		 "active", PREFS_COL_RECURSIVE,
++		 NULL);
++	gtk_tree_view_column_set_alignment (column, 0.5);
++	gtk_tree_view_append_column(GTK_TREE_VIEW(list_view), column);
++
++	renderer = gtk_cell_renderer_text_new();
++	column = gtk_tree_view_column_new_with_attributes
++		(_("Condition"),
++		 renderer,
++		 "text", PREFS_COL_COND,
++		 NULL);
++	gtk_tree_view_append_column(GTK_TREE_VIEW(list_view), column);
++	gtk_tree_view_column_set_resizable(column, TRUE);
++}
++
++static void prefs_row_selected(GtkTreeSelection *selection,
++	GtkTreeView *list_view)
++{
++	GtkTreePath *path;
++	GtkTreeIter iter;
++	GtkTreeModel *model;
++
++	if (!gtk_tree_selection_get_selected(selection, &model, &iter))
++		return;
++
++	path = gtk_tree_model_get_path(model, &iter);
++	prefs_select_row(list_view, path);
++	gtk_tree_path_free(path);
++}
++
++static GtkWidget *prefs_list_view_create(void)
++{
++	GtkTreeView *list_view;
++	GtkTreeSelection *selector;
++
++	list_view = GTK_TREE_VIEW(gtk_tree_view_new_with_model(
++			GTK_TREE_MODEL(gtk_list_store_new(NB_PREFS_COL,
++					G_TYPE_STRING,
++					G_TYPE_BOOLEAN,
++					G_TYPE_STRING,
++					-1))));
++#ifdef GENERIC_UMPC
++	g_object_set(list_view, "allow-checkbox-mode", FALSE, NULL);
++#endif
++
++	g_signal_connect(G_OBJECT(list_view), "popup-menu",
++		G_CALLBACK(prefs_list_popup_menu), list_view);
++	g_signal_connect(G_OBJECT(list_view), "button-press-event",
++		G_CALLBACK(prefs_list_btn_pressed), list_view);
++
++	gtk_tree_view_set_rules_hint(list_view, prefs_common.use_stripes_everywhere);
++	gtk_tree_view_set_reorderable(list_view, TRUE);
++
++	selector = gtk_tree_view_get_selection(list_view);
++	gtk_tree_selection_set_mode(selector, GTK_SELECTION_BROWSE);
++	g_signal_connect(G_OBJECT(selector), "changed",
++		G_CALLBACK(prefs_row_selected), list_view);
++
++	/* create the columns */
++	prefs_create_list_view_columns(GTK_WIDGET(list_view));
++
++	return GTK_WIDGET(list_view);
++}
++
++static void prefs_select_folder_cb(GtkWidget *widget, gpointer data)
++{
++	FolderItem *item;
++	gchar *id;
++
++	item = foldersel_folder_sel(NULL, FOLDER_SEL_COPY, NULL, FALSE);
++	if (item && item->path) {
++		id = folder_item_get_identifier(item);
++		if (id) {
++			gtk_entry_set_text(GTK_ENTRY(data), id);
++			g_free(id);
++		}
++	}
++}
++
++static void prefs_clear_list_store(void)
++{
++	GtkListStore *list_store = GTK_LIST_STORE(gtk_tree_view_get_model(
++			GTK_TREE_VIEW(cond_list_view)));
++	GtkTreeIter iter;
++
++	gtk_list_store_clear(list_store);
++
++	/* add the place holder (New) at row 0 */
++	gtk_list_store_append(list_store, &iter);
++	gtk_list_store_set(list_store, &iter,
++		PREFS_COL_FOLDER, _("(New)"),
++		PREFS_COL_RECURSIVE, FALSE,
++		PREFS_COL_COND, _("(New)"),
++		-1);
++}
++
++/* from vfolder.c */
++void _vfolder_item_get_searches(VFolderItem *vitem, gint *len, VFolderSearch **searches);
++static void prefs_fill_list_store(VFolderItem *vitem)
++{
++	GtkListStore *list_store = GTK_LIST_STORE(gtk_tree_view_get_model(
++			GTK_TREE_VIEW(cond_list_view)));
++	GtkTreeIter iter;
++	VFolderSearch *searches;
++	gint len;
++	gint i;
++
++	_vfolder_item_get_searches(vitem, &len, &searches);
++
++	for (i = 0; i < len; ++i)
++	{
++		VFolderSearch *search = &searches[i];
++
++		gtk_list_store_append(list_store, &iter);
++		gtk_list_store_set(list_store, &iter,
++			PREFS_COL_FOLDER, search->folder_id,
++			PREFS_COL_RECURSIVE, search->recursive,
++			PREFS_COL_COND, search->cond,
++			-1);
++	}
++}
++
++static void prefs_page_create_widget(PrefsPage *page, GtkWindow *window, gpointer data)
++{
++	VFolderItemPrefsPage *vpage = (VFolderItemPrefsPage *) page;
++	VFolderItem *vitem = (VFolderItem *) data;
++	GtkWidget *vbox1;
++	GtkWidget *w;
++
++	vpage->vitem = vitem;
++
++	vbox1 = gtk_vbox_new (FALSE, VSPACING);
++	gtk_widget_show (vbox1);
++	gtk_container_set_border_width(GTK_CONTAINER (vbox1), VBOX_BORDER);
++	page->widget = vbox1;
++
++	if (!folder_item_parent((FolderItem *) vitem))
++	{
++		w = gtk_label_new(g_strconcat("<i>",
++				_("There are no Content preferences for top-level folder."),
++				"</i>", NULL));
++		gtk_widget_show(w);
++		gtk_label_set_use_markup(GTK_LABEL(w), TRUE);
++		gtk_misc_set_alignment(GTK_MISC(w), 0.5, 0.01);
++		gtk_box_pack_start (GTK_BOX(vbox1), w, FALSE, TRUE, 0);
++
++		return;
++	}
++
++	vfolder_load_config(vitem, FALSE);
++
++	GtkWidget *vbox2;
++	GtkWidget *table;
++	GtkWidget *folder_label;
++	GtkWidget *folder_btn;
++	GtkWidget *cond_label;
++	GtkWidget *cond_btn;
++	GtkWidget *reg_hbox;
++	GtkWidget *arrow;
++	GtkWidget *btn_hbox;
++	GtkWidget *reg_btn;
++	GtkWidget *subst_btn;
++	GtkWidget *del_btn;
++	GtkWidget *clear_btn;
++	GtkWidget *cond_hbox;
++	GtkWidget *cond_scrolledwin;
++	GtkWidget *btn_vbox;
++	GtkWidget *top_btn;
++	GtkWidget *page_up_btn;
++	GtkWidget *up_btn;
++	GtkWidget *down_btn;
++	GtkWidget *page_down_btn;
++	GtkWidget *bottom_btn;
++
++	vbox2 = gtk_vbox_new (FALSE, 4);
++	gtk_widget_show (vbox2);
++	gtk_box_pack_start (GTK_BOX (vbox1), vbox2, FALSE, TRUE, 0);
++	gtk_container_set_border_width (GTK_CONTAINER (vbox2), 8);
++
++	table = gtk_table_new(4, 3, FALSE);
++	gtk_table_set_row_spacings (GTK_TABLE (table), VSPACING_NARROW_2);
++	gtk_table_set_col_spacings (GTK_TABLE (table), 4);
++	gtk_widget_show(table);
++	gtk_box_pack_start (GTK_BOX (vbox2), table, TRUE, TRUE, 0);
++
++	folder_label = gtk_label_new (_("Folder"));
++	gtk_widget_show (folder_label);
++	gtk_misc_set_alignment (GTK_MISC (folder_label), 1, 0.5);
++	gtk_table_attach (GTK_TABLE (table), folder_label, 0, 1, 2, 3,
++		(GtkAttachOptions) (GTK_FILL),
++		(GtkAttachOptions) (0), 0, 0);
++
++	folder_entry = gtk_entry_new ();
++	gtk_widget_show (folder_entry);
++	gtk_table_attach (GTK_TABLE (table), folder_entry, 1, 2, 2, 3,
++		GTK_EXPAND | GTK_SHRINK | GTK_FILL,
++		GTK_EXPAND | GTK_SHRINK | GTK_FILL, 0, 0);
++
++	folder_btn = gtkut_get_browse_file_btn(_("Browse"));
++	gtk_widget_show (folder_btn);
++	gtk_table_attach (GTK_TABLE (table), folder_btn, 2, 3, 2, 3,
++		(GtkAttachOptions) (GTK_FILL),
++		(GtkAttachOptions) (0), 2, 2);
++	g_signal_connect
++		(G_OBJECT (folder_btn), "clicked",
++		 G_CALLBACK (prefs_select_folder_cb),
++		 folder_entry);
++
++	recursive_btn = gtk_check_button_new_with_label (_("Recursive"));
++	gtk_widget_show (recursive_btn);
++	gtk_table_attach (GTK_TABLE (table), recursive_btn, 1, 3, 3, 4,
++		(GtkAttachOptions) (GTK_FILL),
++		(GtkAttachOptions) (0), 0, 0);
++
++	cond_label = gtk_label_new (_("Condition"));
++	gtk_widget_show (cond_label);
++	gtk_misc_set_alignment (GTK_MISC (cond_label), 1, 0.5);
++	gtk_table_attach (GTK_TABLE (table), cond_label, 0, 1, 4, 5,
++		(GtkAttachOptions) (GTK_FILL),
++		(GtkAttachOptions) (0), 0, 0);
++
++	cond_entry = gtk_entry_new ();
++	gtk_widget_show (cond_entry);
++	gtk_table_attach (GTK_TABLE (table), cond_entry, 1, 2, 4, 5,
++		(GtkAttachOptions) (GTK_FILL|GTK_EXPAND),
++		(GtkAttachOptions) (0), 0, 0);
++
++	cond_btn =  gtk_button_new_with_mnemonic (_(" Def_ine... "));
++	gtk_widget_show (cond_btn);
++	gtk_table_attach (GTK_TABLE (table), cond_btn, 2, 3, 4, 5,
++		(GtkAttachOptions) (GTK_FILL),
++		(GtkAttachOptions) (0), 2, 2);
++	g_signal_connect(G_OBJECT (cond_btn), "clicked",
++		G_CALLBACK(prefs_cond_define),
++		NULL);
++
++
++	/* register / substitute / delete */
++	reg_hbox = gtk_hbox_new (FALSE, 4);
++	gtk_widget_show (reg_hbox);
++	gtk_box_pack_start (GTK_BOX (vbox2), reg_hbox, FALSE, FALSE, 0);
++
++	arrow = gtk_arrow_new (GTK_ARROW_DOWN, GTK_SHADOW_OUT);
++	gtk_widget_show (arrow);
++	gtk_box_pack_start (GTK_BOX (reg_hbox), arrow, FALSE, FALSE, 0);
++	gtk_widget_set_size_request (arrow, -1, 16);
++
++	btn_hbox = gtk_hbox_new (TRUE, 4);
++	gtk_widget_show (btn_hbox);
++	gtk_box_pack_start (GTK_BOX (reg_hbox), btn_hbox, FALSE, FALSE, 0);
++
++	reg_btn = gtk_button_new_from_stock (GTK_STOCK_ADD);
++	gtk_widget_show (reg_btn);
++	gtk_box_pack_start (GTK_BOX (btn_hbox), reg_btn, FALSE, TRUE, 0);
++	g_signal_connect(G_OBJECT (reg_btn), "clicked",
++		G_CALLBACK(prefs_register_cb), NULL);
++	CLAWS_SET_TIP(reg_btn,
++		_("Append the new search above to the list"));
++
++	subst_btn = gtkut_get_replace_btn (_("_Replace"));
++	gtk_widget_show (subst_btn);
++	gtk_box_pack_start (GTK_BOX (btn_hbox), subst_btn, FALSE, TRUE, 0);
++	g_signal_connect(G_OBJECT (subst_btn), "clicked",
++		G_CALLBACK(prefs_substitute_cb),
++		NULL);
++	CLAWS_SET_TIP(subst_btn,
++		_("Replace the selected search in list with the search above"));
++
++	del_btn = gtk_button_new_with_mnemonic (_("D_elete"));
++	gtk_button_set_image(GTK_BUTTON(del_btn),
++		gtk_image_new_from_stock(GTK_STOCK_REMOVE,GTK_ICON_SIZE_BUTTON));
++	gtk_box_pack_start (GTK_BOX (btn_hbox), del_btn, FALSE, TRUE, 0);
++	g_signal_connect(G_OBJECT (del_btn), "clicked",
++		G_CALLBACK(prefs_delete_cb), NULL);
++	CLAWS_SET_TIP(del_btn,
++		_("Delete the selected search from the list"));
++
++	clear_btn = gtk_button_new_with_mnemonic (_("C_lear"));
++	gtk_button_set_image(GTK_BUTTON(clear_btn),
++		gtk_image_new_from_stock(GTK_STOCK_CLEAR,GTK_ICON_SIZE_BUTTON));
++	gtk_widget_show (clear_btn);
++	gtk_box_pack_start (GTK_BOX (btn_hbox), clear_btn, FALSE, TRUE, 0);
++	g_signal_connect(G_OBJECT (clear_btn), "clicked",
++		G_CALLBACK(prefs_clear_cb), NULL);
++	CLAWS_SET_TIP(clear_btn,
++		_("Clear all the input fields in the dialog"));
++
++	cond_hbox = gtk_hbox_new (FALSE, 8);
++	gtk_widget_show (cond_hbox);
++	gtk_box_pack_start (GTK_BOX (vbox2), cond_hbox, TRUE, TRUE, 0);
++
++	cond_scrolledwin = gtk_scrolled_window_new (NULL, NULL);
++	gtk_widget_show (cond_scrolledwin);
++	gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(cond_scrolledwin),
++		GTK_SHADOW_ETCHED_IN);
++	gtk_widget_set_size_request (cond_scrolledwin, -1, 150);
++	gtk_box_pack_start (GTK_BOX (cond_hbox), cond_scrolledwin,
++		TRUE, TRUE, 0);
++	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (cond_scrolledwin),
++		GTK_POLICY_AUTOMATIC,
++		GTK_POLICY_AUTOMATIC);
++	gtk_container_set_border_width(GTK_CONTAINER (cond_scrolledwin), 4);
++
++	cond_list_view = prefs_list_view_create();
++	gtk_widget_show (cond_list_view);
++	gtk_container_add (GTK_CONTAINER (cond_scrolledwin), cond_list_view);
++	prefs_clear_list_store();
++	prefs_fill_list_store(vitem);
++
++	btn_vbox = gtk_vbox_new (FALSE, 8);
++	gtk_widget_show (btn_vbox);
++	gtk_box_pack_start (GTK_BOX (cond_hbox), btn_vbox, FALSE, FALSE, 0);
++
++	top_btn = gtk_button_new_from_stock (GTK_STOCK_GOTO_TOP);
++	gtk_widget_show (top_btn);
++	gtk_box_pack_start (GTK_BOX (btn_vbox), top_btn, FALSE, FALSE, 0);
++	g_signal_connect(G_OBJECT (top_btn), "clicked",
++		G_CALLBACK(prefs_top), NULL);
++	CLAWS_SET_TIP(top_btn,
++		_("Move the selected search to the top"));
++
++#ifndef GENERIC_UMPC
++	page_up_btn = gtk_button_new_with_mnemonic (_("Page u_p"));
++	gtk_button_set_image(GTK_BUTTON(page_up_btn),
++		gtk_image_new_from_stock(GTK_STOCK_GO_UP,GTK_ICON_SIZE_BUTTON));
++	gtk_widget_show (page_up_btn);
++	gtk_box_pack_start (GTK_BOX (btn_vbox), page_up_btn, FALSE, FALSE, 0);
++	g_signal_connect(G_OBJECT (page_up_btn), "clicked",
++		G_CALLBACK(prefs_page_up), NULL);
++	CLAWS_SET_TIP(page_up_btn,
++		_("Move the selected search one page up"));
++#endif
++
++	up_btn = gtk_button_new_from_stock (GTK_STOCK_GO_UP);
++	gtk_widget_show (up_btn);
++	gtk_box_pack_start (GTK_BOX (btn_vbox), up_btn, FALSE, FALSE, 0);
++	g_signal_connect(G_OBJECT (up_btn), "clicked",
++		G_CALLBACK(prefs_up), NULL);
++	CLAWS_SET_TIP(up_btn,
++		_("Move the selected search up"));
++
++	down_btn = gtk_button_new_from_stock (GTK_STOCK_GO_DOWN);
++	gtk_widget_show (down_btn);
++	gtk_box_pack_start (GTK_BOX (btn_vbox), down_btn, FALSE, FALSE, 0);
++	g_signal_connect(G_OBJECT (down_btn), "clicked",
++		G_CALLBACK(prefs_down), NULL);
++	CLAWS_SET_TIP(down_btn,
++		_("Move the selected search down"));
++
++#ifndef GENERIC_UMPC
++	page_down_btn = gtk_button_new_with_mnemonic (_("Page dow_n"));
++	gtk_button_set_image(GTK_BUTTON(page_down_btn),
++		gtk_image_new_from_stock(GTK_STOCK_GO_DOWN,GTK_ICON_SIZE_BUTTON));
++	gtk_widget_show (page_down_btn);
++	gtk_box_pack_start (GTK_BOX (btn_vbox), page_down_btn, FALSE, FALSE, 0);
++	g_signal_connect(G_OBJECT (page_down_btn), "clicked",
++		G_CALLBACK(prefs_page_down), NULL);
++	CLAWS_SET_TIP(page_down_btn,
++		_("Move the selected search one page down"));
++#endif
++
++	bottom_btn = gtk_button_new_from_stock (GTK_STOCK_GOTO_BOTTOM);
++	gtk_widget_show (bottom_btn);
++	gtk_box_pack_start (GTK_BOX (btn_vbox), bottom_btn, FALSE, FALSE, 0);
++	g_signal_connect(G_OBJECT (bottom_btn), "clicked",
++		G_CALLBACK(prefs_bottom), NULL);
++	CLAWS_SET_TIP(bottom_btn,
++		_("Move the selected search to the bottom"));
++
++
++	autorefresh_btn = gtk_check_button_new_with_label (_("Autorefresh on changes"));
++	gtk_widget_show (autorefresh_btn);
++	gtk_box_pack_end (GTK_BOX (vbox2), autorefresh_btn, FALSE, FALSE, 4);
++	CLAWS_SET_TIP(autorefresh_btn,
++		_("Automatically re-run searches when changes on source folders are detected"));
++	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (autorefresh_btn),
++		vfolder_is_item_autorefresh(vitem));
++}
++
++static void prefs_condition_define_done(MatcherList *matchers)
++{
++	gchar *str;
++
++	if (matchers == NULL)
++		return;
++
++	str = matcherlist_to_string(matchers);
++
++	if (str != NULL) {
++		gtk_entry_set_text(GTK_ENTRY(cond_entry), str);
++		g_free(str);
++	}
++}
++
++static void prefs_cond_define(gpointer action, gpointer data)
++{
++	gchar *cond_str;
++	MatcherList *matchers = NULL;
++
++	cond_str = gtk_editable_get_chars(GTK_EDITABLE(cond_entry), 0, -1);
++
++	if (*cond_str != '\0') {
++		matchers = matcher_parser_get_cond(cond_str, NULL);
++		if (matchers == NULL)
++			alertpanel_error(_("Condition string is not valid."));
++	}
++
++	g_free(cond_str);
++
++	prefs_matcher_open(matchers, prefs_condition_define_done);
++
++	if (matchers != NULL)
++		matcherlist_free(matchers);
++}
++
++static gint prefs_list_view_insert_search(gint row)
++{
++	GtkListStore *list_store = GTK_LIST_STORE(gtk_tree_view_get_model(
++			GTK_TREE_VIEW(cond_list_view)));
++	GtkTreeIter iter;
++	GtkTreeIter sibling;
++	const gchar *folder;
++	gboolean recursive;
++	const gchar *cond;
++
++	folder = gtk_entry_get_text(GTK_ENTRY(folder_entry));
++	recursive = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(recursive_btn));
++	cond = gtk_entry_get_text(GTK_ENTRY(cond_entry));
++
++	/* validate values */
++	{
++		FolderItem *item;
++
++		item = folder_find_item_from_identifier(folder);
++		if (!item)
++		{
++			alertpanel_error(_("Invalid folder"));
++			return -1;
++		}
++		else if (item->folder->klass == vfolder_get_class())
++		{
++			alertpanel_error(_("Cannot use virtual folder as source."));
++			return -1;
++		}
++
++		if (!matcher_parser_get_cond((gchar *) cond, NULL))
++		{
++			alertpanel_error(_("Condition string is not valid."));
++			return -1;
++		}
++	}
++
++	/* check if valid row at all */
++	if (row >= 0) {
++		if (!gtk_tree_model_iter_nth_child(GTK_TREE_MODEL(list_store),
++				&iter, NULL, row))
++			row = -1;
++	} else if (row < -1) {
++		if (!gtk_tree_model_iter_nth_child(GTK_TREE_MODEL(list_store),
++				&sibling, NULL, -row-2))
++			row = -1;
++	}
++
++	if (row == -1 ) {
++		/* append new */
++		gtk_list_store_append(list_store, &iter);
++		gtk_list_store_set(list_store, &iter,
++			PREFS_COL_FOLDER, folder,
++			PREFS_COL_RECURSIVE, recursive,
++			PREFS_COL_COND, cond,
++			-1);
++		return gtk_tree_model_iter_n_children(GTK_TREE_MODEL(list_store), NULL) - 1;
++	} else if (row < -1) {
++		/* duplicate */
++		gtk_list_store_insert_after(list_store, &iter, &sibling);
++		gtk_list_store_set(list_store, &iter,
++			PREFS_COL_FOLDER, folder,
++			PREFS_COL_RECURSIVE, recursive,
++			PREFS_COL_COND, cond,
++			-1);
++		return gtk_tree_model_iter_n_children(GTK_TREE_MODEL(list_store), NULL) - 1;
++	} else {
++		/* change existing */
++		gtk_list_store_set(list_store, &iter,
++			PREFS_COL_FOLDER, folder,
++			PREFS_COL_RECURSIVE, recursive,
++			PREFS_COL_COND, cond,
++			-1);
++		return row;
++	}
++}
++
++static void prefs_register_cb(gpointer action, gpointer data)
++{
++	prefs_list_view_insert_search(-1);
++}
++
++static void prefs_substitute_cb(gpointer action, gpointer data)
++{
++	gint row = gtkut_list_view_get_selected_row(cond_list_view);
++	prefs_list_view_insert_search(row);
++}
++
++static void prefs_delete_cb(gpointer action, gpointer data)
++{
++	gint row = gtkut_list_view_get_selected_row(cond_list_view);
++	GtkListStore *list_store = GTK_LIST_STORE(gtk_tree_view_get_model(
++			GTK_TREE_VIEW(cond_list_view)));
++	GtkTreeIter iter;
++
++	if (row <= 0)
++		return;
++
++	if (alertpanel(_("Delete search"),
++			_("Do you really want to delete this search?"),
++			GTK_STOCK_CANCEL, "+"GTK_STOCK_DELETE, NULL) == G_ALERTDEFAULT)
++		return;
++
++	if (!gtk_tree_model_iter_nth_child(GTK_TREE_MODEL(list_store), &iter, NULL, row))
++		return;
++
++	gtk_list_store_remove(list_store, &iter);
++}
++
++static void prefs_delete_all_cb(gpointer action, gpointer data)
++{
++	if (alertpanel(_("Delete all searches"),
++			_("Do you really want to delete all the searches?"),
++			GTK_STOCK_CANCEL, "+"GTK_STOCK_DELETE, NULL) == G_ALERTDEFAULT)
++		return;
++
++	prefs_clear_list_store();
++}
++
++static void prefs_duplicate_cb(gpointer action, gpointer data)
++{
++	gint row = gtkut_list_view_get_selected_row(cond_list_view);
++	prefs_list_view_insert_search(-row-2);
++}
++
++static void prefs_clear_cb(gpointer action, gpointer data)
++{
++	gtk_entry_set_text(GTK_ENTRY(folder_entry), "");
++	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(recursive_btn), FALSE);
++	gtk_entry_set_text(GTK_ENTRY(cond_entry), "");
++}
++
++static void prefs_page_up(gpointer action, gpointer data)
++{
++	gint row, target_row;
++	GtkTreeIter selected, target;
++	GtkTreeModel *model;
++	GtkTreePath *path;
++	GdkRectangle cell_rect, view_rect;
++
++	model = gtk_tree_view_get_model(GTK_TREE_VIEW(cond_list_view));
++	row = gtkut_list_view_get_selected_row(cond_list_view);
++	if (row <= 1)
++		return;
++
++	if (!gtk_tree_model_iter_nth_child(model, &selected, NULL, row))
++		return;
++
++	/* compute number of rows per page (approximation) */
++	path = gtk_tree_model_get_path(model, &selected);
++	gtk_tree_view_get_cell_area(GTK_TREE_VIEW(cond_list_view), path, NULL, &cell_rect);
++	gtk_tree_view_get_visible_rect(GTK_TREE_VIEW(cond_list_view), &view_rect);
++	gtk_tree_path_free(path);
++	target_row = row - (view_rect.height/cell_rect.height);
++	if (target_row < 1)
++		target_row = 1;
++
++	if (!gtk_tree_model_iter_nth_child(model, &target, NULL, target_row))
++		return;
++	gtk_list_store_move_before(GTK_LIST_STORE(model), &selected, &target);
++	gtkut_list_view_select_row(cond_list_view, target_row);
++}
++
++static void prefs_page_down(gpointer action, gpointer data)
++{
++	gint row, target_row, n_rows;
++	GtkTreeIter selected, target;
++	GtkTreeModel *model;
++	GtkTreePath *path;
++	GdkRectangle cell_rect, view_rect;
++
++	model = gtk_tree_view_get_model(GTK_TREE_VIEW(cond_list_view));
++	n_rows = gtk_tree_model_iter_n_children(model, NULL);
++	row = gtkut_list_view_get_selected_row(cond_list_view);
++	if (row < 1 || row >= n_rows -1)
++		return;
++
++	if (!gtk_tree_model_iter_nth_child(model, &selected, NULL, row))
++		return;
++
++	/* compute number of rows per page (approximation) */
++	path = gtk_tree_model_get_path(model, &selected);
++	gtk_tree_view_get_cell_area(GTK_TREE_VIEW(cond_list_view), path, NULL, &cell_rect);
++	gtk_tree_view_get_visible_rect(GTK_TREE_VIEW(cond_list_view), &view_rect);
++	gtk_tree_path_free(path);
++	target_row = row + (view_rect.height/cell_rect.height);
++	if (target_row > n_rows-1)
++		target_row = n_rows-1;
++
++	if (!gtk_tree_model_iter_nth_child(model, &target, NULL, target_row))
++		return;
++	gtk_list_store_move_after(GTK_LIST_STORE(model), &selected, &target);
++	gtkut_list_view_select_row(cond_list_view, target_row);
++}
++
++static void prefs_top(gpointer action, gpointer data)
++{
++	gint row;
++	GtkTreeIter top, sel;
++	GtkTreeModel *model;
++
++	row = gtkut_list_view_get_selected_row(cond_list_view);
++	if (row <= 1)
++		return;
++
++	model = gtk_tree_view_get_model(GTK_TREE_VIEW(cond_list_view));
++
++	if (!gtk_tree_model_iter_nth_child(model, &top, NULL, 0)
++		||  !gtk_tree_model_iter_nth_child(model, &sel, NULL, row))
++		return;
++
++	gtk_list_store_move_after(GTK_LIST_STORE(model), &sel, &top);
++	gtkut_list_view_select_row(cond_list_view, 1);
++}
++
++static void prefs_up(gpointer action, gpointer data)
++{
++	gint row;
++	GtkTreeIter top, sel;
++	GtkTreeModel *model;
++
++	row = gtkut_list_view_get_selected_row(cond_list_view);
++	if (row <= 1) 
++		return;
++
++	model = gtk_tree_view_get_model(GTK_TREE_VIEW(cond_list_view));
++
++	if (!gtk_tree_model_iter_nth_child(model, &top, NULL, row - 1)
++		||  !gtk_tree_model_iter_nth_child(model, &sel, NULL, row))
++		return;
++
++	gtk_list_store_swap(GTK_LIST_STORE(model), &top, &sel);
++	gtkut_list_view_select_row(cond_list_view, row - 1);
++}
++
++static void prefs_down(gpointer action, gpointer data)
++{
++	gint row, n_rows;
++	GtkTreeIter top, sel;
++	GtkTreeModel *model;
++
++	model = gtk_tree_view_get_model(GTK_TREE_VIEW(cond_list_view));
++	n_rows = gtk_tree_model_iter_n_children(model, NULL);
++	row = gtkut_list_view_get_selected_row(cond_list_view);
++	if (row < 1 || row >= n_rows - 1)
++		return;
++
++	if (!gtk_tree_model_iter_nth_child(model, &top, NULL, row)
++		||  !gtk_tree_model_iter_nth_child(model, &sel, NULL, row + 1))
++		return;
++
++	gtk_list_store_swap(GTK_LIST_STORE(model), &top, &sel);
++	gtkut_list_view_select_row(cond_list_view, row + 1);
++}
++
++static void prefs_bottom(gpointer action, gpointer data)
++{
++	gint row, n_rows;
++	GtkTreeIter top, sel;
++	GtkTreeModel *model;
++
++	model = gtk_tree_view_get_model(GTK_TREE_VIEW(cond_list_view));
++	n_rows = gtk_tree_model_iter_n_children(model, NULL);
++	row = gtkut_list_view_get_selected_row(cond_list_view);
++	if (row < 1 || row >= n_rows - 1)
++		return;
++
++	if (!gtk_tree_model_iter_nth_child(model, &top, NULL, row)
++		||  !gtk_tree_model_iter_nth_child(model, &sel, NULL, n_rows - 1))
++		return;
++
++	gtk_list_store_move_after(GTK_LIST_STORE(model), &top, &sel);
++	gtkut_list_view_select_row(cond_list_view, n_rows - 1);
++}
++
++
++static void prefs_page_destroy_widget(PrefsPage *page)
++{
++	/* void */
++}
++
++gboolean vfolder_item_prefs_save(VFolderItem *vitem, gboolean autorefresh,
++	gint len, VFolderSearch *searches)
++{
++	gchar *id;
++	gchar *block;
++	PrefFile *pfile;
++	gchar *file;
++	gint r;
++
++	if (!folder_item_parent((FolderItem *) vitem))
++		return FALSE;
++
++	id = folder_item_get_identifier((FolderItem *) vitem);
++	if (!id)
++		return FALSE;
++	block = g_strdup_printf("VFolder:%s", id);
++	g_free(id);
++
++	file = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S, FOLDERITEM_RC, NULL);
++	pfile = prefs_write_open(file);
++	g_free(file);
++	if (!pfile)
++	{
++		g_warning("Failed to write VFolderItem configuration to file");
++		return FALSE;
++	}
++
++	r = prefs_set_block_label(pfile, block);
++	g_free(block);
++	if (r < 0)
++		return FALSE;
++
++	if (autorefresh && fputs("!autorefresh\n", pfile->fp) == EOF)
++		goto fail;
++
++	for (r = 0; r < len; ++r)
++	{
++		VFolderSearch *search = &searches[r];
++		gchar *s;
++
++		if (search->recursive && fputc('+', pfile->fp) == EOF)
++			goto fail;
++
++		for (s = search->folder_id; s && *s != '\0'; ++s)
++		{
++			if ((*s == ' ' || *s == '\\') && fputc('\\', pfile->fp) == EOF)
++				goto fail;
++			if (fputc(*s, pfile->fp) == EOF)
++				goto fail;
++		}
++
++		if (fputc(' ', pfile->fp) == EOF)
++			goto fail;
++
++		if (fputs(search->cond, pfile->fp) == EOF)
++			goto fail;
++
++		if (fputc('\n', pfile->fp) == EOF)
++			goto fail;
++
++		continue;
++
++fail:
++		g_warning("Failed to write VFolderItem configuration to file");
++		prefs_file_close_revert(pfile);
++		return FALSE;
++	}
++
++	if (prefs_file_close(pfile) < 0)
++	{
++		g_warning("Failed to write VFolderItem configuration to file");
++		return FALSE;
++	}
++
++	return TRUE;
++}
++
++static void prefs_page_save(PrefsPage *page)
++{
++	VFolderItemPrefsPage *vpage = (VFolderItemPrefsPage *) page;
++	VFolderItem *vitem = vpage->vitem;
++	GtkTreeModel *model = gtk_tree_view_get_model(GTK_TREE_VIEW(cond_list_view));
++	GtkTreeIter iter;
++	gint len = gtk_tree_model_iter_n_children(model, NULL) - 1 /* "New" placeholder*/;
++	gint i = 0;
++	VFolderSearch searches[len];
++
++	gtk_tree_model_get_iter_first(model, &iter);
++	while (gtk_tree_model_iter_next(model, &iter))
++	{
++		VFolderSearch *search = &searches[i++];
++
++		gtk_tree_model_get(model, &iter,
++			PREFS_COL_FOLDER,       &search->folder_id,
++			PREFS_COL_RECURSIVE,    &search->recursive,
++			PREFS_COL_COND,         &search->cond,
++			-1);
++	}
++
++	if (vfolder_item_prefs_save(vitem,
++			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(autorefresh_btn)),
++			len, searches))
++	{
++		vfolder_load_config(vitem, TRUE);
++		vfolder_refresh_content(vitem);
++	}
++
++	for (i = 0; i < len; ++i)
++	{
++		VFolderSearch *search = &searches[i];
++		g_free(search->folder_id);
++		g_free(search->cond);
++	}
++}
++
++#undef _set_pref
++#undef set_pref
++
++static VFolderItemPrefsPage vfolder_item_prefs_page;
++
++void vfolder_item_prefs_register(void)
++{
++	static gchar *pfi_path[2];
++
++	pfi_path[0] = _("Content");
++	pfi_path[1] = NULL;
++
++	vfolder_item_prefs_page.page.path = pfi_path;
++	vfolder_item_prefs_page.page.create_widget = prefs_page_create_widget;
++	vfolder_item_prefs_page.page.destroy_widget = prefs_page_destroy_widget;
++	vfolder_item_prefs_page.page.save_page = prefs_page_save;
++
++	prefs_folder_item_register_page((PrefsPage *) &vfolder_item_prefs_page,
++		vfolder_get_class());
++}
++
++void vfolder_item_prefs_unregister(void)
++{
++	prefs_folder_item_register_page((PrefsPage *) &vfolder_item_prefs_page,
++		vfolder_get_class());
++}
++
++/* for plugin_gtk.c */
++void _vfolder_search_create(VFolderItem *vitem, GtkWindow *window,
++	GtkContainer *container)
++{
++	prefs_page_create_widget((PrefsPage *) &vfolder_item_prefs_page, window, vitem);
++	gtk_container_add(container, vfolder_item_prefs_page.page.widget);
++}
++void _vfolder_search_save(void)
++{
++	prefs_page_save((PrefsPage *) &vfolder_item_prefs_page);
++}
+diff --git a/src/plugins/vfolder/vfolder_item_prefs.h b/src/plugins/vfolder/vfolder_item_prefs.h
+new file mode 100644
+index 000000000..df56f60b4
+--- /dev/null
++++ b/src/plugins/vfolder/vfolder_item_prefs.h
+@@ -0,0 +1,33 @@
++/* vfolder -- Claws Mail plugin to add virtual folders
++ * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ *
++ */
++
++#ifndef __VFOLDER_ITEM_PREFS_H__
++#define __VFOLDER_ITEM_PREFS_H__
++
++#include <glib.h>
++
++#include "vfolder.h"
++
++typedef struct _VFolderItemPrefsPage VFolderItemPrefsPage;
++
++void vfolder_item_prefs_register(void);
++void vfolder_item_prefs_unregister(void);
++gboolean vfolder_item_prefs_save(VFolderItem *vitem, gboolean autorefresh,
++	gint len, VFolderSearch *searches);
++
++#endif /* __VFOLDER_ITEM_PREFS_H__ */
+diff --git a/src/plugins/vfolder/vfolder_prefs.c b/src/plugins/vfolder/vfolder_prefs.c
+new file mode 100644
+index 000000000..5c2bb0a3e
+--- /dev/null
++++ b/src/plugins/vfolder/vfolder_prefs.c
+@@ -0,0 +1,223 @@
++/* vfolder -- Claws Mail plugin to add virtual folders
++ * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ *
++ */
++
++#ifdef HAVE_CONFIG_H
++#  include "config.h"
++#  include "claws-features.h"
++#endif
++
++#include <glib.h>
++#include <glib/gi18n.h>
++
++#include "gtk/menu.h"
++#include "common/defs.h"
++#include "common/prefs.h"
++#include "prefs_common.h"
++#include "prefs_gtk.h"
++#include "alertpanel.h"
++#include "foldersel.h"
++
++#include "plugin.h"
++#include "plugin_gtk.h"
++#include "vfolder_prefs.h"
++
++
++struct _VFolderPrefsPage
++{
++	PrefsPage page;
++};
++
++static GtkWidget *trash_btn;
++static GtkWidget *trash_hide_btn;
++static GtkWidget *reply_btn;
++static GtkWidget *reply_hide_btn;
++static GtkWidget *search_btn;
++static GtkWidget *folder_entry;
++
++static void prefs_select_folder_cb(GtkWidget *widget, gpointer data)
++{
++	FolderItem *item;
++
++	item = foldersel_folder_sel(NULL, FOLDER_SEL_COPY, NULL, FALSE);
++	if (item && item->path)
++	{
++		gchar *id = folder_item_get_identifier(item);
++
++		if (id)
++		{
++			if (item->folder->klass != vfolder_get_class())
++				alertpanel_error(_("'%s' is not a virtual folder."), id);
++			else
++				gtk_entry_set_text(GTK_ENTRY(data), id);
++			g_free(id);
++		}
++	}
++}
++
++static void prefs_page_create_widget(PrefsPage *page, GtkWindow *window, gpointer data)
++{
++	VFolderConfig *vconfig = vfolder_get_config();
++
++	GtkWidget *vbox1;
++	GtkWidget *vbox2;
++	GtkWidget *box;
++	GtkWidget *w;
++
++	vbox1 = gtk_vbox_new (FALSE, VSPACING);
++	gtk_widget_show (vbox1);
++	gtk_container_set_border_width(GTK_CONTAINER (vbox1), VBOX_BORDER);
++
++	vbox2 = gtkut_get_options_frame (vbox1, NULL, _("Additional menu items"));
++
++	w = gtk_label_new (_("Move (thread) to trash: "
++			"Perform as if from each message's source folder"));
++	gtk_widget_show (w);
++	gtk_misc_set_alignment (GTK_MISC (w), 0.0, 0.5);
++	gtk_box_pack_start (GTK_BOX (vbox2), w, FALSE, TRUE, 0);
++
++	PACK_CHECK_BUTTON (vbox2, trash_btn,
++		_("Add 'Move (thread) to trash [VFolder]' menu items"));
++	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(trash_btn), vconfig->add_trash);
++
++	box = gtk_hbox_new (FALSE, 0);
++	gtk_widget_show (box);
++	gtk_box_pack_start (GTK_BOX (vbox2), box, FALSE, TRUE, 0);
++
++	w = gtk_label_new ("     ");
++	gtk_widget_show (w);
++	gtk_box_pack_start (GTK_BOX (box), w, FALSE, TRUE, 0);
++
++	PACK_CHECK_BUTTON (box, trash_hide_btn,
++		_("...and hide original menu items"));
++	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(trash_hide_btn),
++		vconfig->hide_trash_org);
++	SET_TOGGLE_SENSITIVITY (trash_btn, trash_hide_btn);
++
++	w = gtk_label_new ("");
++	gtk_widget_show (w);
++	gtk_box_pack_start (GTK_BOX (vbox2), w, FALSE, TRUE, 0);
++
++	w = gtk_label_new (_("Reply: "
++			"Use folder properties from each message's source folder "
++			"(instead of virtual folder's)"));
++	gtk_widget_show (w);
++	gtk_misc_set_alignment (GTK_MISC (w), 0.0, 0.5);
++	gtk_box_pack_start (GTK_BOX (vbox2), w, FALSE, TRUE, 0);
++
++	PACK_CHECK_BUTTON (vbox2, reply_btn,
++		_("Add 'Reply [VFolder]' menu item"));
++	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(reply_btn),
++		vconfig->add_reply);
++
++	box = gtk_hbox_new (FALSE, 0);
++	gtk_widget_show (box);
++	gtk_box_pack_start (GTK_BOX (vbox2), box, FALSE, TRUE, 0);
++
++	w = gtk_label_new ("     ");
++	gtk_widget_show (w);
++	gtk_box_pack_start (GTK_BOX (box), w, FALSE, TRUE, 0);
++
++	PACK_CHECK_BUTTON (box, reply_hide_btn,
++		_("...and hide original menu item"));
++	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(reply_hide_btn),
++		vconfig->hide_reply_org);
++	SET_TOGGLE_SENSITIVITY (reply_btn, reply_hide_btn);
++
++
++	vbox2 = gtkut_get_options_frame (vbox1, NULL, _("Search results"));
++
++	PACK_CHECK_BUTTON (vbox2, search_btn,
++		_("Enable 'search results' feature"));
++	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(search_btn),
++		vconfig->enable_search);
++
++	box = gtk_hbox_new (FALSE, 2);
++	gtk_widget_show (box);
++	gtk_box_pack_start (GTK_BOX (vbox2), box, FALSE, TRUE, 0);
++	SET_TOGGLE_SENSITIVITY(search_btn, box);
++
++	w = gtk_label_new (_("Virtual folder to use:"));
++	gtk_widget_show (w);
++	gtk_misc_set_alignment (GTK_MISC (w), 1, 0.5);
++	gtk_box_pack_start (GTK_BOX (box), w, FALSE, TRUE, 0);
++
++	folder_entry = gtk_entry_new ();
++	gtk_widget_show (folder_entry);
++	gtk_box_pack_start (GTK_BOX (box), folder_entry, TRUE, TRUE, 0);
++	gtk_entry_set_text(GTK_ENTRY(folder_entry), vconfig->id_search_folder);
++
++	w = gtkut_get_browse_file_btn(_("Browse"));
++	gtk_widget_show (w);
++	gtk_box_pack_start (GTK_BOX (box), w, FALSE, TRUE, 0);
++	g_signal_connect (G_OBJECT (w), "clicked",
++		G_CALLBACK (prefs_select_folder_cb),
++		folder_entry);
++
++	page->widget = vbox1;
++}
++
++static void prefs_page_destroy_widget(PrefsPage *page)
++{
++	/* void */
++}
++
++static void prefs_page_save(PrefsPage *page)
++{
++	VFolderConfig *vconfig = vfolder_get_config();
++
++	vconfig->add_trash = gtk_toggle_button_get_active(
++		GTK_TOGGLE_BUTTON(trash_btn));
++	vconfig->hide_trash_org = gtk_toggle_button_get_active(
++		GTK_TOGGLE_BUTTON(trash_hide_btn));
++	vconfig->add_reply = gtk_toggle_button_get_active(
++		GTK_TOGGLE_BUTTON(reply_btn));
++	vconfig->hide_reply_org = gtk_toggle_button_get_active(
++		GTK_TOGGLE_BUTTON(reply_hide_btn));
++	vconfig->enable_search = gtk_toggle_button_get_active(
++		GTK_TOGGLE_BUTTON(search_btn));
++	g_free(vconfig->id_search_folder);
++	vconfig->id_search_folder = g_strdup(
++		gtk_entry_get_text(GTK_ENTRY(folder_entry)));
++
++	if (vfolder_save_config())
++		vfolder_gtk_set_menus(FALSE);
++}
++
++
++static VFolderPrefsPage vfolder_prefs_page;
++
++void vfolder_prefs_register(void)
++{
++	static gchar *pfi_path[3];
++
++	pfi_path[0] = _("Plugins");
++	pfi_path[1] = _("VFolder");
++	pfi_path[2] = NULL;
++
++	vfolder_prefs_page.page.path = pfi_path;
++	vfolder_prefs_page.page.create_widget = prefs_page_create_widget;
++	vfolder_prefs_page.page.destroy_widget = prefs_page_destroy_widget;
++	vfolder_prefs_page.page.save_page = prefs_page_save;
++
++	prefs_gtk_register_page((PrefsPage *) &vfolder_prefs_page);
++}
++
++void vfolder_prefs_unregister(void)
++{
++	prefs_gtk_unregister_page((PrefsPage *) &vfolder_prefs_page);
++}
+diff --git a/src/plugins/vfolder/vfolder_prefs.h b/src/plugins/vfolder/vfolder_prefs.h
+new file mode 100644
+index 000000000..eb87f63f6
+--- /dev/null
++++ b/src/plugins/vfolder/vfolder_prefs.h
+@@ -0,0 +1,29 @@
++/* vfolder -- Claws Mail plugin to add virtual folders
++ * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ *
++ */
++
++#ifndef __VFOLDER_PREFS_H__
++#define __VFOLDER_PREFS_H__
++
++#include <glib.h>
++
++typedef struct _VFolderPrefsPage VFolderPrefsPage;
++
++void vfolder_prefs_register(void);
++void vfolder_prefs_unregister(void);
++
++#endif /* __VFOLDER_PREFS_H__ */
+-- 
+2.11.0
+

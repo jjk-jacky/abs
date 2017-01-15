@@ -1,0 +1,29 @@
+From a8494e1ba024841a1b49e2b8c974ea5118e34e17 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Sat, 14 Jan 2017 18:16:09 +0100
+Subject: [PATCH 4/7] summaryview: Minor fix
+
+Update current folder name only if the renamed folder is the current one
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ src/summaryview.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/summaryview.c b/src/summaryview.c
+index ff511add1..9d88202a0 100644
+--- a/src/summaryview.c
++++ b/src/summaryview.c
+@@ -8082,7 +8082,8 @@ static gboolean summary_update_folder_item_hook(gpointer source, gpointer data)
+ 	cm_return_val_if_fail(hookdata->item != NULL, FALSE);
+ 	cm_return_val_if_fail(summaryview != NULL, FALSE);
+ 
+-	if (hookdata->update_flags & F_ITEM_UPDATE_NAME) {
++	if (hookdata->item == summaryview->folder_item
++	        && hookdata->update_flags & F_ITEM_UPDATE_NAME) {
+ 		gchar *name = folder_item_get_name(hookdata->item);
+ 		gtk_label_set_text(GTK_LABEL(summaryview->statlabel_folder), name);
+ 		g_free(name);
+-- 
+2.11.0
+
