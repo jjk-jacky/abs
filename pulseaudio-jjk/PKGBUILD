@@ -8,17 +8,17 @@ _pkgbase=pulseaudio
 pkgbase=$_pkgbase-jjk
 pkgname=(pulseaudio-jjk libpulse-jjk)
 pkgdesc="A featureful, general-purpose sound server"
-pkgver=9.0
+pkgver=10.0
 pkgrel=1
 arch=(i686 x86_64)
 url="http://www.freedesktop.org/wiki/Software/PulseAudio"
 license=(GPL LGPL)
 makedepends=(libasyncns libcap attr libxtst libsm libsndfile libtool rtkit
              gdbm dbus avahi gconf intltool
-             openssl orc json-c gtk3)
+             openssl orc gtk3)
 options=(!emptydirs)
 source=(http://freedesktop.org/software/$_pkgbase/releases/$_pkgbase-$pkgver.tar.xz)
-sha256sums=('c3d3d66b827f18fbe903fe3df647013f09fc1e2191c035be1ee2d82a9e404686')
+sha256sums=('a3186824de9f0d2095ded5d0d0db0405dc73133983c2fbb37291547e37462f57')
 
 build() {
   cd $_pkgbase-$pkgver
@@ -110,7 +110,7 @@ package_pulseaudio-jjk() {
 
 package_libpulse-jjk() {
   pkgdesc="$pkgdesc (client library)"
-  depends=(dbus libasyncns libcap libxtst libsm libsndfile json-c)
+  depends=(dbus libasyncns libcap libxtst libsm libsndfile)
   backup=(etc/pulse/client.conf)
   replaces=(libpulse)
   provides=("libpulse=$pkgver-$pkgrel")
