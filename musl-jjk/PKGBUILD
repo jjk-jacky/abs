@@ -4,26 +4,19 @@
 
 _pkgname=musl
 pkgname=$_pkgname-jjk
-pkgver=1.1.15
+pkgver=1.1.16
 pkgrel=1
 pkgdesc='Lightweight implementation of C standard library'
 arch=('i686' 'x86_64')
-url='http://www.musl-libc.org/'
+url='https://www.musl-libc.org/'
 license=('MIT')
 options=('staticlibs' '!buildflags')
 provides=($_pkgname)
 conflicts=($_pkgname)
-source=(http://www.musl-libc.org/releases/musl-$pkgver.tar.gz{,.asc}
-        0001-getdtablesize-Fix-returning-hard-instead-of-soft-rli.patch)
+source=(https://www.musl-libc.org/releases/musl-$pkgver.tar.gz{,.asc})
 validpgpkeys=('836489290BB6B70F99FFDA0556BCDB593020450F')
-sha1sums=('027c3ae2182fa53c2b554ca98a28dc5cfca4b2c3'
-          'SKIP'
-          '6c5dc85a36bc35939b9d0e4dc66a447f29658263')
-
-prepare() {
-    cd $_pkgname-$pkgver
-    patch -p1 -i ../0001-getdtablesize-Fix-returning-hard-instead-of-soft-rli.patch
-}
+sha1sums=('5c2204b31b1ee08a01d4d3e34c6e46f6256bdac8'
+          'SKIP')
 
 build() {
   cd $_pkgname-$pkgver
