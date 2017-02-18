@@ -15,10 +15,8 @@ makedepends=('xmlto' 'docbook-xsl')
 provides=("$_pkgname")
 conflicts=("$_pkgname")
 license=('GPL')
-source=(ftp://ftp.alsa-project.org/pub/utils/$_pkgname-${pkgver}.tar.bz2
-        90alsa)
-sha256sums=('127217a54eea0f9a49700a2f239a2d4f5384aa094d68df04a8eb80132eb6167c'
-            'df0170be687bd474e0677ab97b94b86879fd1a86e5a714fa8b46b3af785f2496')
+source=(ftp://ftp.alsa-project.org/pub/utils/$_pkgname-${pkgver}.tar.bz2)
+sha256sums=('127217a54eea0f9a49700a2f239a2d4f5384aa094d68df04a8eb80132eb6167c')
 
 build() {
   cd "${_pkgname}-${pkgver}"
@@ -31,7 +29,6 @@ build() {
 package() {
   cd "${_pkgname}-${pkgver}"
   make DESTDIR="${pkgdir}" install
-  install -D -m755 ../90alsa "${pkgdir}"/etc/pm/sleep.d/90alsa
 
   # remove udev rules (only udev/rules.d under lib)
   rm -rf "$pkgdir"/lib
