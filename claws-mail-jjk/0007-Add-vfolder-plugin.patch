@@ -1,7 +1,7 @@
-From 6b916517b828c96e49f856f79e857848573cf6b1 Mon Sep 17 00:00:00 2001
+From 59a199e7b7cad4071eb9f6f1b8150421d1f44dc9 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sat, 14 Jan 2017 18:32:38 +0100
-Subject: [PATCH 7/7] Add vfolder plugin
+Subject: [PATCH 7/8] Add vfolder plugin
 
 This adds support for "Virtual folders" aka folders that show search
 results. Unlike elsewhere in Claws, such folders can include messages
@@ -28,6 +28,10 @@ Lastly, a 'search results' feature is provided, which is really just a
 quick way to edit the "Content" properties of a given virtual folder and
 go there. So it does feel somewhat like a "classic" search feature.
 
+--
+
+v2: Fix minimum requirement of glib being 2.20
+v3: Fix possible segfault; Fix memory leaks
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
  configure.ac                             |   15 +
@@ -37,13 +41,13 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  src/plugins/vfolder/plugin.h             |   52 ++
  src/plugins/vfolder/plugin_gtk.c         |  879 +++++++++++++++++++
  src/plugins/vfolder/plugin_gtk.h         |   31 +
- src/plugins/vfolder/vfolder.c            | 1370 ++++++++++++++++++++++++++++++
+ src/plugins/vfolder/vfolder.c            | 1408 ++++++++++++++++++++++++++++++
  src/plugins/vfolder/vfolder.h            |   59 ++
- src/plugins/vfolder/vfolder_item_prefs.c | 1101 ++++++++++++++++++++++++
+ src/plugins/vfolder/vfolder_item_prefs.c | 1101 +++++++++++++++++++++++
  src/plugins/vfolder/vfolder_item_prefs.h |   33 +
  src/plugins/vfolder/vfolder_prefs.c      |  223 +++++
  src/plugins/vfolder/vfolder_prefs.h      |   29 +
- 13 files changed, 3989 insertions(+), 1 deletion(-)
+ 13 files changed, 4027 insertions(+), 1 deletion(-)
  create mode 100644 src/plugins/vfolder/Makefile.am
  create mode 100644 src/plugins/vfolder/plugin.c
  create mode 100644 src/plugins/vfolder/plugin.h
@@ -1303,10 +1307,10 @@ index 000000000..260f67ed9
 +#endif /* __VFOLDER_PLUGIN_GTK_H__ */
 diff --git a/src/plugins/vfolder/vfolder.c b/src/plugins/vfolder/vfolder.c
 new file mode 100644
-index 000000000..460db231c
+index 000000000..66e80ea5f
 --- /dev/null
 +++ b/src/plugins/vfolder/vfolder.c
-@@ -0,0 +1,1370 @@
+@@ -0,0 +1,1408 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -1400,6 +1404,7 @@ index 000000000..460db231c
 +	guint update_on_close   :1;
 +};
 +
++static void _g_array_clear(GArray *arr, guint size, GDestroyNotify free_fn);
 +static void free_search_internals(struct search *search);
 +static void free_vmi_internals(struct vmi *vmi);
 +static void clear_content(VFolderItem *vitem);
@@ -1748,9 +1753,21 @@ index 000000000..460db231c
 +	cm_return_if_fail(vitem != NULL);
 +
 +	if (vitem->search)
++	{
++#if !GLIB_CHECK_VERSION(2, 32, 0)
++		_g_array_clear(vitem->search, sizeof(struct search),
++			(GDestroyNotify) free_search_internals);
++#endif
 +		g_array_free(vitem->search, TRUE);
++	}
 +	if (vitem->vmi)
++	{
++#if !GLIB_CHECK_VERSION(2, 32, 0)
++		_g_array_clear(vitem->vmi, sizeof(struct vmi),
++			(GDestroyNotify) free_vmi_internals);
++#endif
 +		g_array_free(vitem->vmi, TRUE);
++	}
 +	if (vitem->ht)
 +		g_hash_table_destroy(vitem->ht);
 +
@@ -2103,8 +2120,10 @@ index 000000000..460db231c
 +		gint i;
 +
 +		dst->search = g_array_new(FALSE, FALSE, sizeof(struct search));
++#if GLIB_CHECK_VERSION(2, 32, 0)
 +		g_array_set_clear_func(dst->search,
 +			(GDestroyNotify) free_search_internals);
++#endif
 +
 +		for (i = 0; i < src->search->len; ++i)
 +		{
@@ -2200,15 +2219,29 @@ index 000000000..460db231c
 +	procmsg_msginfo_free(&vmi->msginfo);
 +}
 +
++static void _g_array_clear(GArray *arr, guint size, GDestroyNotify free_fn)
++{
++#if !GLIB_CHECK_VERSION(2, 32, 0)
++	gint i;
++
++	for (i = 0; i < arr->len; ++i)
++		free_fn(arr->data + (size * i));
++#endif
++	g_array_remove_range(arr, 0, arr->len);
++}
++
 +static void clear_content(VFolderItem *vitem)
 +{
 +	dbg("clear_content\n");
 +	if (vitem->vmi)
-+		g_array_remove_range(vitem->vmi, 0, vitem->vmi->len);
++		_g_array_clear(vitem->vmi, sizeof(struct vmi),
++			(GDestroyNotify) free_vmi_internals);
 +	else
 +	{
 +		vitem->vmi = g_array_new(FALSE, FALSE, sizeof(struct vmi));
++#if GLIB_CHECK_VERSION(2, 32, 0)
 +		g_array_set_clear_func(vitem->vmi, (GDestroyNotify) free_vmi_internals);
++#endif
 +	}
 +
 +	if (vitem->ht)
@@ -2251,7 +2284,10 @@ index 000000000..460db231c
 +
 +	clear_content(vitem);
 +	if (manual || vitem->is_autorefresh || vitem->item.opened)
++	{
 +		build_content(vitem, msgid, &msgnum);
++		g_free(msgid);
++	}
 +	else
 +		trigger_item_update(vitem);
 +
@@ -2277,11 +2313,14 @@ index 000000000..460db231c
 +	if (!vitem->search)
 +	{
 +		vitem->search = g_array_new(FALSE, FALSE, sizeof(struct search));
++#if GLIB_CHECK_VERSION(2, 32, 0)
 +		g_array_set_clear_func(vitem->search,
 +			(GDestroyNotify) free_search_internals);
++#endif
 +	}
 +	else if (force)
-+		g_array_remove_range(vitem->search, 0, vitem->search->len);
++		_g_array_clear(vitem->search, sizeof(struct search),
++			(GDestroyNotify) free_search_internals);
 +	else
 +		return;
 +
@@ -2444,9 +2483,10 @@ index 000000000..460db231c
 +			s = g_strdup_printf("%d%s", mi->msgnum, id);
 +			g_free(id);
 +
-+			if (i > 0 && g_hash_table_contains(vitem->ht, s))
++			if (i > 0 && g_hash_table_lookup_extended(vitem->ht, s, NULL, NULL))
 +			{
 +				g_free(s);
++				procmsg_msginfo_free(&mi);
 +				continue;
 +			}
 +
@@ -2471,10 +2511,12 @@ index 000000000..460db231c
 +		vmi.msginfo->folder = (FolderItem *) vitem;
 +		vmi.msginfo->msgnum = ++nb;
 +
++		procmsg_msginfo_free(&tmp->msginfo);
++
 +		g_array_append_val(vitem->vmi, vmi);
 +		g_hash_table_insert(vitem->ht, g_strdup(tmp->key), GINT_TO_POINTER(nb));
 +
-+		if (msgid && !strcmp(msgid, vmi.msginfo->msgid))
++		if (msgid && vmi.msginfo->msgid && !strcmp(msgid, vmi.msginfo->msgid))
 +		{
 +			msgid = NULL;
 +			*msgnum = nb;
@@ -4153,5 +4195,5 @@ index 000000000..eb87f63f6
 +
 +#endif /* __VFOLDER_PREFS_H__ */
 -- 
-2.11.0
+2.11.1
 

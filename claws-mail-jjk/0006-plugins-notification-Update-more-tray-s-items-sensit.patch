@@ -1,7 +1,7 @@
 From 42409fda665293dadf442df4d186c7f38ba83a05 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sat, 14 Jan 2017 18:20:33 +0100
-Subject: [PATCH 6/7] plugins/notification: Update more tray's items
+Subject: [PATCH 6/8] plugins/notification: Update more tray's items
  sensitivity
 
 Only the "Get Mail" menu item of the tray's popup was disabled when
@@ -26,5 +26,5 @@ index 720183722..fff19e72d 100644
    updating_menu = FALSE;
  
 -- 
-2.11.0
+2.11.1
 

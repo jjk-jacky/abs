@@ -1,7 +1,7 @@
 From 6b53f7b003f429b0c3958c07304529e9a6a78ead Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sat, 14 Jan 2017 18:17:01 +0100
-Subject: [PATCH 5/7] prefs_filtering: Add missing shadow on the list
+Subject: [PATCH 5/8] prefs_filtering: Add missing shadow on the list
 
 Looks better. Also more consistent, since such shadow is used on about
 every other window (conditions, actions...)
@@ -25,5 +25,5 @@ index ea2d195a1..3a57c24a9 100644
  	gtk_box_pack_start (GTK_BOX (cond_hbox), cond_scrolledwin,
  			    TRUE, TRUE, 0);
 -- 
-2.11.0
+2.11.1
 
