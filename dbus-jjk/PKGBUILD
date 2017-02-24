@@ -5,7 +5,7 @@
 
 pkgbase=dbus
 pkgname=('dbus-jjk' 'libdbus-jjk')
-pkgver=1.10.14
+pkgver=1.10.16
 pkgrel=1
 pkgdesc="Freedesktop.org message bus system"
 url="http://www.freedesktop.org/Software/dbus"
@@ -13,7 +13,7 @@ arch=(i686 x86_64)
 license=('GPL' 'custom')
 makedepends=('libx11' 'xmlto' 'docbook-xsl')
 source=(https://dbus.freedesktop.org/releases/dbus/dbus-$pkgver.tar.gz{,.asc})
-md5sums=('3f7b013ce8f641cd4c897acda0ef3467'
+md5sums=('7f06c43736874c1ff50ae20392955511'
          'SKIP')
 validpgpkeys=('DA98F25C0871C49A59EAFF2C4DE8FF2A63C7CC90'
               '3C8672A0F49637FE064AC30F52A43A1E4B77B059') # Simon McVittie <simon.mcvittie@collabora.co.uk>
