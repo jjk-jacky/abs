@@ -46,10 +46,9 @@ ac_add_options --disable-parental-controls
 ac_add_options --disable-webrtc
 #ac_add_options --disable-logging
 ac_add_options --disable-necko-wifi
-ac_add_options --disable-websms-backend
 ac_add_options --disable-webspeech
 ac_add_options --disable-eme
 ac_add_options --disable-gamepad
-#ac_add_options --disable-printing
+ac_add_options --disable-printing
 
 # vim:set ft=sh:
