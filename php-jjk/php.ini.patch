@@ -1,6 +1,6 @@
---- php.ini-production.orig	2016-07-20 15:11:36.000000000 +0200
-+++ php.ini-production	2016-07-21 16:23:01.554840912 +0200
-@@ -719,7 +719,7 @@
+--- php.ini-production.orig	2017-03-14 14:17:49.000000000 +0100
++++ php.ini-production	2017-03-19 17:55:21.098104899 +0100
+@@ -733,7 +733,7 @@
  
  ; Directory in which the loadable extensions (modules) reside.
  ; http://php.net/extension-dir
@@ -9,7 +9,7 @@
  ; On windows:
  ; extension_dir = "ext"
  
-@@ -857,47 +857,43 @@
+@@ -883,47 +883,43 @@
  ; If you only provide the name of the extension, PHP will look for it in its
  ; default extension directory.
  ;
