@@ -4,8 +4,8 @@
 
 _pkgname=xf86-video-ati
 pkgname=$_pkgname-jjk
-pkgver=7.8.0
-pkgrel=2
+pkgver=7.9.0
+pkgrel=1
 pkgdesc="X.org ati video driver"
 arch=('i686' 'x86_64')
 url="https://xorg.freedesktop.org/"
@@ -17,7 +17,7 @@ conflicts=('xorg-server<1.19.0' 'X-ABI-VIDEODRV_VERSION<23' 'X-ABI-VIDEODRV_VERS
 provides=($_pkgname)
 source=($url/releases/individual/driver/$_pkgname-$pkgver.tar.bz2{,.sig}
         failure-to-set-drm-master-is-not-fatal.patch)
-md5sums=('f34d04a755e761e03b459155fa3ddcbb'
+md5sums=('bf3dfdae23879bdc0c8a7b955572ad90'
          'SKIP'
          '868acab0b4a71dfb1cab8f99d0e4c209')
 validpgpkeys=('B09FAF35BE914521980951145A81AF8E6ADBB200') # Michel Daenzer <michel@daenzer.net>
