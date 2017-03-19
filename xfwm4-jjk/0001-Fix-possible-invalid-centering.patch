@@ -1,4 +1,4 @@
-From 669c4ccc737861f52ef21fabc0b67f06e633d476 Mon Sep 17 00:00:00 2001
+From 3f7482a392102286721db890deed61ef4082b6aa Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Sat, 18 May 2013 14:10:01 +0200
 Subject: [PATCH] Fix possible invalid centering
@@ -25,30 +25,22 @@ be.
 
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
- src/placement.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ src/placement.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/src/placement.c b/src/placement.c
-index 7b0ca22..5e1b6c4 100644
+index e9a32c72..664f84ce 100644
 --- a/src/placement.c
 +++ b/src/placement.c
-@@ -496,14 +496,14 @@ clientKeepVisible (Client * c, gint n_monitors, GdkRectangle *monitor_rect)
-         diff_y = abs (c->size->y - ((c->screen_info->height - c->size->height) / 2));
- 
-         monitor_nbr = 0;
--        centered = ((diff_x < 25) && (diff_y < 25));
-+        centered = ((diff_x < 5) && (diff_y < 5));
- 
-         while ((!centered) && (monitor_nbr < n_monitors))
-         {
-             gdk_screen_get_monitor_geometry (screen_info->gscr, monitor_nbr, &rect);
-             diff_x = abs (c->size->x - ((rect.width - c->size->width) / 2));
-             diff_y = abs (c->size->y - ((rect.height - c->size->height) / 2));
+@@ -495,7 +495,7 @@ clientKeepVisible (Client * c, gint n_monitors, GdkRectangle *monitor_rect)
+             /* Check if the window is centered on the whole screen */
+             diff_x = ABS(c->size->x - ((c->screen_info->width - c->size->width) / 2));
+             diff_y = ABS(c->size->y - ((c->screen_info->height - c->size->height) / 2));
 -            centered = ((diff_x < 25) && (diff_y < 25));
 +            centered = ((diff_x < 5) && (diff_y < 5));
-             monitor_nbr++;
          }
      }
+     if (centered)
 -- 
-2.3.3
+2.12.0
 
