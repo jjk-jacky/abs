@@ -1,7 +1,7 @@
-From 59a199e7b7cad4071eb9f6f1b8150421d1f44dc9 Mon Sep 17 00:00:00 2001
+From 8f1841b716a08853e6704cf072b4fa757b91ef10 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sat, 14 Jan 2017 18:32:38 +0100
-Subject: [PATCH 7/8] Add vfolder plugin
+Subject: [PATCH 4/4] Add vfolder plugin
 
 This adds support for "Virtual folders" aka folders that show search
 results. Unlike elsewhere in Claws, such folders can include messages
@@ -32,6 +32,7 @@ go there. So it does feel somewhat like a "classic" search feature.
 
 v2: Fix minimum requirement of glib being 2.20
 v3: Fix possible segfault; Fix memory leaks
+v4: Rebase on 3.15.0
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
  configure.ac                             |   15 +
@@ -61,10 +62,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  create mode 100644 src/plugins/vfolder/vfolder_prefs.h
 
 diff --git a/configure.ac b/configure.ac
-index 9e031c81f..38240591f 100644
+index ecdd2850d..9b3e75e1d 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1068,6 +1068,10 @@ AC_ARG_ENABLE(vcalendar-plugin,
+@@ -1094,6 +1094,10 @@ AC_ARG_ENABLE(vcalendar-plugin,
  		[  --disable-vcalendar-plugin      Do not build vcalendar plugin],
  		[enable_vcalendar_plugin=$enableval], [enable_vcalendar_plugin=auto])
  
@@ -75,7 +76,7 @@ index 9e031c81f..38240591f 100644
  dnl disabled by default
  AC_ARG_ENABLE(demo-plugin,
  		[  --enable-demo-plugin		Build demo plugin],
-@@ -1849,6 +1853,15 @@ else
+@@ -1959,6 +1963,15 @@ else
  	AC_MSG_RESULT(no)
  fi
  
@@ -91,7 +92,7 @@ index 9e031c81f..38240591f 100644
  dnl And finally the automake conditionals.
  
  AM_CONDITIONAL(BUILD_ACPI_NOTIFIER_PLUGIN,	test x"$enable_acpi_notifier_plugin" != xno)
-@@ -1881,6 +1894,7 @@ AM_CONDITIONAL(BUILD_SPAMASSASSIN_PLUGIN,	test x"$enable_spamassassin_plugin" !=
+@@ -1992,6 +2005,7 @@ AM_CONDITIONAL(BUILD_SPAMASSASSIN_PLUGIN,	test x"$enable_spamassassin_plugin" !=
  AM_CONDITIONAL(BUILD_SPAM_REPORT_PLUGIN,	test x"$enable_spam_report_plugin" != xno)
  AM_CONDITIONAL(BUILD_TNEF_PARSE_PLUGIN,		test x"$enable_tnef_parse_plugin" != xno)
  AM_CONDITIONAL(BUILD_VCALENDAR_PLUGIN,		test x"$enable_vcalendar_plugin" != xno)
@@ -99,19 +100,19 @@ index 9e031c81f..38240591f 100644
  
  
  dnl ****************************
-@@ -1937,6 +1951,7 @@ src/plugins/vcalendar/libical/libical/icalversion.h
- src/plugins/vcalendar/libical/libical/Makefile
- src/plugins/vcalendar/libical/design-data/Makefile
- src/plugins/vcalendar/libical/scripts/Makefile
+@@ -2044,6 +2058,7 @@ src/plugins/spamassassin/Makefile
+ src/plugins/spam_report/Makefile
+ src/plugins/tnef_parse/Makefile
+ src/plugins/vcalendar/Makefile
 +src/plugins/vfolder/Makefile
  doc/Makefile
  doc/man/Makefile
  tools/Makefile
 diff --git a/src/plugins/Makefile.am b/src/plugins/Makefile.am
-index 6acc1fb36..e42d066e8 100644
+index 28abfdb67..c800d43ca 100644
 --- a/src/plugins/Makefile.am
 +++ b/src/plugins/Makefile.am
-@@ -32,4 +32,5 @@ SUBDIRS = \
+@@ -33,4 +33,5 @@ SUBDIRS = \
  	spamassassin \
  	spam_report \
  	tnef_parse \
@@ -385,7 +386,7 @@ index 000000000..9ef20708d
 +#endif /* __VFOLDER_PLUGIN_H__ */
 diff --git a/src/plugins/vfolder/plugin_gtk.c b/src/plugins/vfolder/plugin_gtk.c
 new file mode 100644
-index 000000000..7c28d2581
+index 000000000..e7fc5bbf0
 --- /dev/null
 +++ b/src/plugins/vfolder/plugin_gtk.c
 @@ -0,0 +1,879 @@
@@ -783,7 +784,7 @@ index 000000000..7c28d2581
 +	{
 +		summary_show(sv, item);
 +		if (new_msgnum > 0)
-+			summary_select_by_msgnum(sv, new_msgnum);
++			summary_select_by_msgnum(sv, new_msgnum, TRUE);
 +	}
 +	id_refresh_summary = 0;
 +	new_msgnum = 0;
@@ -974,7 +975,7 @@ index 000000000..7c28d2581
 +	if (!from_folder || from_folder->folder->klass != vfolder_get_class())
 +		return;
 +
-+	to_folder = foldersel_folder_sel(NULL, FOLDER_SEL_MOVE, NULL, TRUE);
++	to_folder = foldersel_folder_sel(NULL, FOLDER_SEL_MOVE, NULL, TRUE, NULL);
 +	if (!to_folder)
 +		return;
 +
@@ -1117,7 +1118,7 @@ index 000000000..7c28d2581
 +		return;
 +
 +	folderview_select(sv->mainwin->folderview, item);
-+	summary_select_by_msgnum(sv, num);
++	summary_select_by_msgnum(sv, num, TRUE);
 +}
 +
 +/* from vfolder.c */
@@ -2786,7 +2787,7 @@ index 000000000..05d5d1571
 +#endif /* __VFOLDER_FOLDER_H__ */
 diff --git a/src/plugins/vfolder/vfolder_item_prefs.c b/src/plugins/vfolder/vfolder_item_prefs.c
 new file mode 100644
-index 000000000..c32a9e336
+index 000000000..a90792590
 --- /dev/null
 +++ b/src/plugins/vfolder/vfolder_item_prefs.c
 @@ -0,0 +1,1101 @@
@@ -3111,7 +3112,7 @@ index 000000000..c32a9e336
 +	FolderItem *item;
 +	gchar *id;
 +
-+	item = foldersel_folder_sel(NULL, FOLDER_SEL_COPY, NULL, FALSE);
++	item = foldersel_folder_sel(NULL, FOLDER_SEL_COPY, NULL, FALSE, NULL);
 +	if (item && item->path) {
 +		id = folder_item_get_identifier(item);
 +		if (id) {
@@ -3932,7 +3933,7 @@ index 000000000..df56f60b4
 +#endif /* __VFOLDER_ITEM_PREFS_H__ */
 diff --git a/src/plugins/vfolder/vfolder_prefs.c b/src/plugins/vfolder/vfolder_prefs.c
 new file mode 100644
-index 000000000..5c2bb0a3e
+index 000000000..a4bf1ebc3
 --- /dev/null
 +++ b/src/plugins/vfolder/vfolder_prefs.c
 @@ -0,0 +1,223 @@
@@ -3991,7 +3992,7 @@ index 000000000..5c2bb0a3e
 +{
 +	FolderItem *item;
 +
-+	item = foldersel_folder_sel(NULL, FOLDER_SEL_COPY, NULL, FALSE);
++	item = foldersel_folder_sel(NULL, FOLDER_SEL_COPY, NULL, FALSE, NULL);
 +	if (item && item->path)
 +	{
 +		gchar *id = folder_item_get_identifier(item);
@@ -4195,5 +4196,5 @@ index 000000000..eb87f63f6
 +
 +#endif /* __VFOLDER_PREFS_H__ */
 -- 
-2.11.1
+2.12.0
 

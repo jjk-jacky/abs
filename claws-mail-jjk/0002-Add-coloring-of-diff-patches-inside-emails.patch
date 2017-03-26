@@ -1,7 +1,7 @@
-From 7496f268f8688eed161243064afa2b91c8ff3d30 Mon Sep 17 00:00:00 2001
+From 4f7ff9a9de44b43be68c671bcfd93b03e38998ff Mon Sep 17 00:00:00 2001
 From: Jakub Kicinski <kubakici@wp.pl>
 Date: Wed, 11 Dec 2013 18:12:05 +0100
-Subject: [PATCH 2/8] Add coloring of diff patches inside emails.
+Subject: [PATCH 2/4] Add coloring of diff patches inside emails.
 
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
@@ -10,7 +10,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  2 files changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/src/textview.c b/src/textview.c
-index c23c68606..1e7ade8b4 100644
+index 72f0efc90..3b08793d9 100644
 --- a/src/textview.c
 +++ b/src/textview.c
 @@ -1074,6 +1074,7 @@ static void textview_write_body(TextView *textview, MimeInfo *mimeinfo)
@@ -21,7 +21,7 @@ index c23c68606..1e7ade8b4 100644
  
  	procmime_decode_content(mimeinfo);
  
-@@ -1619,7 +1620,7 @@ static void textview_write_line(TextView *textview, const gchar *str,
+@@ -1620,7 +1621,7 @@ static void textview_write_line(TextView *textview, const gchar *str,
  	}
  
  	if (prefs_common.enable_color) {
@@ -30,7 +30,7 @@ index c23c68606..1e7ade8b4 100644
  			if (strncmp(buf, "+++ ", 4) == 0)
  				fg_color = "diff-add-file";
  			else if (buf[0] == '+')
-@@ -1631,11 +1632,19 @@ static void textview_write_line(TextView *textview, const gchar *str,
+@@ -1632,11 +1633,19 @@ static void textview_write_line(TextView *textview, const gchar *str,
  			else if (strncmp(buf, "@@ ", 3) == 0 &&
  				 strstr(&buf[3], " @@"))
  				fg_color = "diff-hunk";
@@ -63,5 +63,5 @@ index 51b7643b4..5864a1dfe 100644
  	GSList *uri_list;
  	gint body_pos;
 -- 
-2.11.1
+2.12.0
 

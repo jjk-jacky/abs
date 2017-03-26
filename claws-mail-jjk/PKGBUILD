@@ -3,8 +3,8 @@
 
 _pkgname=claws-mail
 pkgname=$_pkgname-jjk
-pkgver=3.14.1
-pkgrel=4
+pkgver=3.15.0
+pkgrel=1
 pkgdesc="A GTK+ based e-mail client."
 arch=('i686' 'x86_64')
 license=('GPL3')
@@ -24,39 +24,24 @@ replaces=('sylpheed-claws' 'claws-mail-extra-plugins')
 conflicts=("$_pkgname" 'claws-mail-extra-plugins')
 provides=("$_pkgname" 'claws')
 source=(http://www.claws-mail.org/download.php?file=releases/claws-mail-$pkgver.tar.xz{,.asc}
-        claws.git-afe0203a640d39817f068e0fb9b5f2cb631cf677.patch
         0001-Fix-diff-format-detection.patch
         0002-Add-coloring-of-diff-patches-inside-emails.patch
         0003-Always-sort-by-date-ASC-within-a-thread-when-by-thre.patch
-        0004-summaryview-Minor-fix.patch
-        0005-prefs_filtering-Add-missing-shadow-on-the-list.patch
-        0006-plugins-notification-Update-more-tray-s-items-sensit.patch
-        0007-Add-vfolder-plugin.patch
-        0008-Fix-memory-leak.patch)
-sha256sums=('b79a1dc04f0b3d1f693e84d7fa7282f140fb5280179281445a8b954ce423c335'
+        0004-Add-vfolder-plugin.patch)
+sha256sums=('4e4d2d0d43f8ae3d4623408612f5979e9a697ccbc12038b80dd27802e868dc2e'
             'SKIP'
-            '49ecbb30849a519c27f12d1c8bc2d290d8c2d857438639b1f6f071fb5e788291'
-            '29c6eef066aa46b6f62b06b776e41d66e4b423db47f5c2b79505ba8629878821'
-            'ee516b4483009ce7e8fa91a8f950fc62c5299bbdce58701e10cd3ce03f018092'
-            'a133e951c29005b555f5b672c5edee5015d3c72a253c36467bfd74c2b9dadd04'
-            '7d526cb072eb9bd52bd50809f738450de82e42e1170177aecaf93ec5f90bfbf0'
-            'b7bad39eebf7245981aa45a53ad8f40a91e7fddbe44ee18d0648b3720b68ee60'
-            'a7732321ece46382e9fde24afd6bb6746f7149287e90d55e93251c9d8cef9ca4'
-            '6a935cc6c3a2e882613f7d211bb088f2089102b224818b2fbc00bdb4d81ca7d2'
-            '8ea355695f62dc4ed6c4825fcd56ce223522721a1f52a10a2d2f803fe156c606')
+            'd6a2a329be22a30052df4451b4ce76d275902409522c1a98c6c88eac4c9bae80'
+            'b67e481d4c7665ef2cde176c6fdd5f4c7e0822b860bd3ba12c4918f549a6818c'
+            '65dd62f1c2947236084e0e528c805b17011edc5d1e99eead3cebec0d269b5429'
+            '4dc1b46127f0a863de21a81304ae6e7d59275aa90492dbb253f97d6c18579471')
 validpgpkeys=('8B3B297A03468356692F8D592CD716D654D6BBD4') # Paul <paul@claws-mail.org>
 
 prepare() {
   cd "${_pkgname}-${pkgver}"
-  patch -p1 -i ../claws.git-afe0203a640d39817f068e0fb9b5f2cb631cf677.patch
   patch -p1 -i ../0001-Fix-diff-format-detection.patch
   patch -p1 -i ../0002-Add-coloring-of-diff-patches-inside-emails.patch
   patch -p1 -i ../0003-Always-sort-by-date-ASC-within-a-thread-when-by-thre.patch
-  patch -p1 -i ../0004-summaryview-Minor-fix.patch
-  patch -p1 -i ../0005-prefs_filtering-Add-missing-shadow-on-the-list.patch
-  patch -p1 -i ../0006-plugins-notification-Update-more-tray-s-items-sensit.patch
-  patch -p1 -i ../0007-Add-vfolder-plugin.patch
-  patch -p1 -i ../0008-Fix-memory-leak.patch
+  patch -p1 -i ../0004-Add-vfolder-plugin.patch
 
   NOCONFIGURE=1 ./autogen.sh
 }
