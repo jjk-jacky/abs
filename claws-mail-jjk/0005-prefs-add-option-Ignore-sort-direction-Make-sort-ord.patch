@@ -1,0 +1,453 @@
+From 92934b3fddf38bc3cae71587bb92abd91c9f2cb1 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Tue, 28 Mar 2017 19:59:57 +0200
+Subject: [PATCH 5/5] prefs: add option "Ignore sort direction / Make sort
+ order aware"
+
+When enabled, we get the old/classic claws behavior, where first means
+last, next means previous & previous means last if sorted descending.
+
+When disabled, things make sense. :)
+
+It affects default selection when opening folder, go to previous/next
+{,unread,marked,etc} message and next_on_delete behavior.
+
+Also make all actions on folder opening sort order aware, as in only
+first/last mail in list were, not first unread/marked/etc mail
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ src/prefs_common.c    |   3 +
+ src/prefs_common.h    |   2 +
+ src/prefs_summaries.c |  15 +++++
+ src/summaryview.c     | 149 ++++++++++++++++++++++++++++----------------------
+ 4 files changed, 104 insertions(+), 65 deletions(-)
+
+diff --git a/src/prefs_common.c b/src/prefs_common.c
+index d8d719684..2a42d62ef 100644
+--- a/src/prefs_common.c
++++ b/src/prefs_common.c
+@@ -803,6 +803,9 @@ static PrefParam param[] = {
+ #endif
+ 	/* {"emulate_emacs", "FALSE", &prefs_common.emulate_emacs, P_BOOL,
+ 	 NULL, NULL, NULL}, */
++	{"ignore_sort_direction", "FALSE",
++	 &prefs_common.ignore_sort_direction,
++	 P_BOOL, NULL, NULL, NULL},
+ 	{"open_selected_message_on_folder_open", "FALSE",
+ 	 &prefs_common.open_selected_on_folder_open,
+ 	 P_BOOL, NULL, NULL, NULL},
+diff --git a/src/prefs_common.h b/src/prefs_common.h
+index 2085aaddf..2825aa4fe 100644
+--- a/src/prefs_common.h
++++ b/src/prefs_common.h
+@@ -364,6 +364,8 @@ struct _PrefsCommon
+ 	gint statusbar_update_step;
+ 	gboolean emulate_emacs;
+ 
++	gboolean ignore_sort_direction;
++
+ 	gboolean open_selected_on_folder_open;
+ 	gboolean open_selected_on_search_results;
+ 	gboolean open_selected_on_prevnext;
+diff --git a/src/prefs_summaries.c b/src/prefs_summaries.c
+index ed345c2cc..d0dc4f10b 100644
+--- a/src/prefs_summaries.c
++++ b/src/prefs_summaries.c
+@@ -64,6 +64,7 @@ typedef struct _SummariesPage
+ 	GtkWidget *entry_datefmt;
+ 
+ 	GtkWidget *checkbtn_reopen_last_folder;
++	GtkWidget *checkbtn_ignore_sort_direction;
+ 	GtkWidget *checkbtn_always_show_msg;
+ 	GtkWidget *checkbtn_show_on_folder_open;
+ 	GtkWidget *checkbtn_show_on_search_results;
+@@ -336,6 +337,7 @@ static void prefs_summaries_create_widget(PrefsPage *_page, GtkWindow *window,
+ 	GtkWidget *hbox_dispitem;
+ 	GtkWidget *button_dispitem;
+ 	GtkWidget *checkbtn_reopen_last_folder;
++	GtkWidget *checkbtn_ignore_sort_direction;
+ 	GtkWidget *checkbtn_always_show_msg;
+ 	GtkWidget *checkbtn_show_on_folder_open;
+ 	GtkWidget *checkbtn_show_on_search_results;
+@@ -477,6 +479,13 @@ static void prefs_summaries_create_widget(PrefsPage *_page, GtkWindow *window,
+ 			  G_CALLBACK (prefs_summary_open_open),
+ 			  NULL);
+ 
++	PACK_CHECK_BUTTON
++		(vbox2, checkbtn_ignore_sort_direction,
++		 _("Ignore sort direction / Make sort order aware"));
++	gtk_widget_set_tooltip_text (checkbtn_ignore_sort_direction,
++		_("When enabled, certain features (default selection when entering folder, go to previous/next features, etc) "
++			"will work in reverse when sorted descending: first becomes last, go next becomes go previous, etc"));
++
+ 	/* Next Unread Message Dialog */
+ 	hbox1 = gtk_hbox_new (FALSE, 10);
+ 	gtk_widget_show (hbox1);
+@@ -622,6 +631,7 @@ static void prefs_summaries_create_widget(PrefsPage *_page, GtkWindow *window,
+ 	prefs_summaries->checkbtn_threadsubj = checkbtn_threadsubj;
+ 	prefs_summaries->entry_datefmt = entry_datefmt;
+ 	prefs_summaries->checkbtn_reopen_last_folder = checkbtn_reopen_last_folder;
++	prefs_summaries->checkbtn_ignore_sort_direction = checkbtn_ignore_sort_direction;
+ 
+ 	prefs_summaries->checkbtn_always_show_msg = checkbtn_always_show_msg;
+ 	prefs_summaries->checkbtn_show_on_folder_open = checkbtn_show_on_folder_open;
+@@ -664,6 +674,8 @@ static void prefs_summaries_create_widget(PrefsPage *_page, GtkWindow *window,
+ 			prefs_common.date_format?prefs_common.date_format:"");	
+ 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(checkbtn_reopen_last_folder),
+ 			prefs_common.goto_last_folder_on_startup);
++	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(checkbtn_ignore_sort_direction),
++			prefs_common.ignore_sort_direction);
+ 
+ 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(checkbtn_always_show_msg),
+ 			prefs_common.always_show_msg);
+@@ -723,6 +735,9 @@ static void prefs_summaries_save(PrefsPage *_page)
+ 	prefs_common.goto_last_folder_on_startup = gtk_toggle_button_get_active(
+ 		GTK_TOGGLE_BUTTON(page->checkbtn_reopen_last_folder));
+ 
++	prefs_common.ignore_sort_direction = gtk_toggle_button_get_active(
++		GTK_TOGGLE_BUTTON(page->checkbtn_ignore_sort_direction));
++
+ 	prefs_common.always_show_msg = gtk_toggle_button_get_active(
+ 		GTK_TOGGLE_BUTTON(page->checkbtn_always_show_msg));
+ 	prefs_common.open_selected_on_folder_open = gtk_toggle_button_get_active(
+diff --git a/src/summaryview.c b/src/summaryview.c
+index 99b7e4a5d..4ca400d04 100644
+--- a/src/summaryview.c
++++ b/src/summaryview.c
+@@ -1476,7 +1476,8 @@ gboolean summary_show(SummaryView *summaryview, FolderItem *item)
+ 				if (node == NULL && GTK_CMCLIST(ctree)->row_list != NULL)
+ 					node = gtk_cmctree_node_nth
+ 						(ctree,
+-						 item->sort_type == SORT_DESCENDING
++						 prefs_common.ignore_sort_direction
++						 && item->sort_type == SORT_DESCENDING
+ 						 ? 0 : GTK_CMCLIST(ctree)->rows - 1);
+ 				summary_unlock(summaryview);
+ 
+@@ -1494,7 +1495,8 @@ gboolean summary_show(SummaryView *summaryview, FolderItem *item)
+ 			if (GTK_CMCLIST(ctree)->row_list != NULL)
+ 				node = gtk_cmctree_node_nth
+ 					(ctree,
+-					 item->sort_type == SORT_DESCENDING
++					 prefs_common.ignore_sort_direction
++					 && item->sort_type == SORT_DESCENDING
+ 					 ? 0 : GTK_CMCLIST(ctree)->rows - 1);
+ 			summary_select_node(summaryview, node, OPEN_SELECTED_ON_SEARCH_RESULTS);
+ 		}
+@@ -1518,16 +1520,31 @@ gboolean summary_show(SummaryView *summaryview, FolderItem *item)
+ 			
+ 			switch(act) {
+ 			case ACTION_MARKED:
+-				node = summary_find_next_flagged_msg(summaryview, NULL,
+-					     MSG_MARKED, FALSE);
++				if (prefs_common.ignore_sort_direction
++					&& item->sort_type == SORT_DESCENDING)
++					node = summary_find_prev_flagged_msg
++						(summaryview, NULL, MSG_MARKED, FALSE);
++				else
++					node = summary_find_next_flagged_msg
++						(summaryview, NULL, MSG_MARKED, FALSE);
+ 				break;
+ 			case ACTION_NEW:
+-				node = summary_find_next_flagged_msg(summaryview, NULL,
+-					     MSG_NEW, FALSE);
++				if (prefs_common.ignore_sort_direction &&
++					item->sort_type == SORT_DESCENDING)
++					node = summary_find_prev_flagged_msg
++						(summaryview, NULL, MSG_NEW, FALSE);
++				else
++					node = summary_find_next_flagged_msg
++						(summaryview, NULL, MSG_NEW, FALSE);
+ 				break;
+ 			case ACTION_UNREAD:
+-				node = summary_find_next_flagged_msg(summaryview, NULL,
+-					     MSG_UNREAD, FALSE);
++				if (prefs_common.ignore_sort_direction
++					&& item->sort_type == SORT_DESCENDING)
++					node = summary_find_prev_flagged_msg
++						(summaryview, NULL, MSG_UNREAD, FALSE);
++				else
++					node = summary_find_next_flagged_msg
++						(summaryview, NULL, MSG_UNREAD, FALSE);
+ 				break;
+ 			case ACTION_LAST_OPENED:
+ 				if (summaryview->folder_item) {
+@@ -1539,7 +1556,8 @@ gboolean summary_show(SummaryView *summaryview, FolderItem *item)
+ 				if (GTK_CMCLIST(ctree)->row_list != NULL) {
+ 					node = gtk_cmctree_node_nth
+ 						(ctree,
+-						 item->sort_type == SORT_DESCENDING
++						 prefs_common.ignore_sort_direction
++						 && item->sort_type == SORT_DESCENDING
+ 						 ? 0 : GTK_CMCLIST(ctree)->rows - 1);
+ 				}
+ 				break;
+@@ -1547,8 +1565,9 @@ gboolean summary_show(SummaryView *summaryview, FolderItem *item)
+ 				if (GTK_CMCLIST(ctree)->row_list != NULL) {
+ 					node = gtk_cmctree_node_nth
+ 						(ctree,
+-						 item->sort_type == SORT_ASCENDING
+-						 ? 0 : GTK_CMCLIST(ctree)->rows - 1);
++						 prefs_common.ignore_sort_direction
++						 && item->sort_type == SORT_DESCENDING
++						 ? GTK_CMCLIST(ctree)->rows - 1 : 0);
+ 				}
+ 				break;
+ 			case ACTION_NOTHING:
+@@ -1828,10 +1847,10 @@ void summary_select_prev(SummaryView *summaryview)
+ 	GtkCMCTreeNode *node = summaryview->selected;
+ 	GtkCMCTree *ctree = GTK_CMCTREE(summaryview->ctree);
+ 
+-	if (summaryview->sort_type == SORT_ASCENDING)
+-		node = gtkut_ctree_node_prev(ctree, node);
+-	else
++	if (prefs_common.ignore_sort_direction && summaryview->sort_type == SORT_DESCENDING)
+ 		node = gtkut_ctree_node_next(ctree, node);
++	else
++		node = gtkut_ctree_node_prev(ctree, node);
+ 
+ 	if (node && node != summaryview->selected)
+ 		summary_select_node(summaryview, node, OPEN_SELECTED_ON_PREVNEXT);
+@@ -1842,10 +1861,10 @@ void summary_select_next(SummaryView *summaryview)
+ 	GtkCMCTreeNode *node = summaryview->selected;
+ 	GtkCMCTree *ctree = GTK_CMCTREE(summaryview->ctree);
+ 
+-	if (summaryview->sort_type == SORT_ASCENDING)
+-		node = gtkut_ctree_node_next(ctree, node);
+-	else
++	if (prefs_common.ignore_sort_direction && summaryview->sort_type == SORT_DESCENDING)
+ 		node = gtkut_ctree_node_prev(ctree, node);
++	else
++		node = gtkut_ctree_node_next(ctree, node);
+ 
+ 	if (node && node != summaryview->selected)
+ 		summary_select_node(summaryview, node, OPEN_SELECTED_ON_PREVNEXT);
+@@ -1855,11 +1874,11 @@ void summary_select_prev_unread(SummaryView *summaryview)
+ {
+ 	GtkCMCTreeNode *node;
+ 
+-	if (summaryview->sort_type == SORT_ASCENDING)
+-		node = summary_find_prev_flagged_msg
++	if (prefs_common.ignore_sort_direction && summaryview->sort_type == SORT_DESCENDING)
++		node = summary_find_next_flagged_msg
+ 			(summaryview, summaryview->selected, MSG_UNREAD, TRUE);
+ 	else
+-		node = summary_find_next_flagged_msg
++		node = summary_find_prev_flagged_msg
+ 			(summaryview, summaryview->selected, MSG_UNREAD, TRUE);
+ 
+ 	if (!node || node == summaryview->selected) {
+@@ -1883,11 +1902,11 @@ void summary_select_prev_unread(SummaryView *summaryview)
+  					_("Internal error: unexpected value for prefs_common.next_unread_msg_dialog\n"));
+  		}
+ 		if (val != G_ALERTALTERNATE) return;
+-		if (summaryview->sort_type == SORT_ASCENDING)
+-			node = summary_find_prev_flagged_msg(summaryview, NULL,
++		if (prefs_common.ignore_sort_direction && summaryview->sort_type == SORT_DESCENDING)
++			node = summary_find_next_flagged_msg(summaryview, NULL,
+ 							     MSG_UNREAD, FALSE);
+ 		else
+-			node = summary_find_next_flagged_msg(summaryview, NULL,
++			node = summary_find_prev_flagged_msg(summaryview, NULL,
+ 							     MSG_UNREAD, FALSE);
+ 	}
+ 
+@@ -1901,11 +1920,11 @@ void summary_select_next_unread(SummaryView *summaryview)
+ {
+ 	GtkCMCTreeNode *node = summaryview->selected;
+ 
+-	if (summaryview->sort_type == SORT_ASCENDING)
+-		node = summary_find_next_flagged_msg
++	if (prefs_common.ignore_sort_direction && summaryview->sort_type == SORT_DESCENDING)
++		node = summary_find_prev_flagged_msg
+ 			(summaryview, node, MSG_UNREAD, TRUE);
+ 	else
+-		node = summary_find_prev_flagged_msg
++		node = summary_find_next_flagged_msg
+ 			(summaryview, node, MSG_UNREAD, TRUE);
+ 	
+ 	if (node)
+@@ -1940,11 +1959,11 @@ void summary_select_prev_new(SummaryView *summaryview)
+ {
+ 	GtkCMCTreeNode *node;
+ 
+-	if (summaryview->sort_type == SORT_ASCENDING)
+-		node = summary_find_prev_flagged_msg
++	if (prefs_common.ignore_sort_direction && summaryview->sort_type == SORT_DESCENDING)
++		node = summary_find_next_flagged_msg
+ 			(summaryview, summaryview->selected, MSG_NEW, TRUE);
+ 	else
+-		node = summary_find_next_flagged_msg
++		node = summary_find_prev_flagged_msg
+ 			(summaryview, summaryview->selected, MSG_NEW, TRUE);
+ 
+ 	if (!node || node == summaryview->selected) {
+@@ -1968,11 +1987,11 @@ void summary_select_prev_new(SummaryView *summaryview)
+  					_("Internal error: unexpected value for prefs_common.next_unread_msg_dialog\n"));
+  		}
+ 		if (val != G_ALERTALTERNATE) return;
+-		if (summaryview->sort_type == SORT_ASCENDING)
+-			node = summary_find_prev_flagged_msg(summaryview, NULL,
++		if (prefs_common.ignore_sort_direction && summaryview->sort_type == SORT_DESCENDING)
++			node = summary_find_next_flagged_msg(summaryview, NULL,
+ 						     	     MSG_NEW, FALSE);
+ 		else
+-			node = summary_find_next_flagged_msg(summaryview, NULL,
++			node = summary_find_prev_flagged_msg(summaryview, NULL,
+ 							     MSG_NEW, FALSE);
+ 	}
+ 
+@@ -1986,11 +2005,11 @@ void summary_select_next_new(SummaryView *summaryview)
+ {
+ 	GtkCMCTreeNode *node = summaryview->selected;
+ 
+-	if (summaryview->sort_type == SORT_ASCENDING)
+-		node = summary_find_next_flagged_msg
++	if (prefs_common.ignore_sort_direction && summaryview->sort_type == SORT_DESCENDING)
++		node = summary_find_prev_flagged_msg
+ 			(summaryview, node, MSG_NEW, TRUE);
+ 	else
+-		node = summary_find_prev_flagged_msg
++		node = summary_find_next_flagged_msg
+ 			(summaryview, node, MSG_NEW, TRUE);
+ 	
+ 	if (node)
+@@ -2024,11 +2043,11 @@ void summary_select_prev_marked(SummaryView *summaryview)
+ {
+ 	GtkCMCTreeNode *node;
+ 
+-	if (summaryview->sort_type == SORT_ASCENDING)
+-		node = summary_find_prev_flagged_msg
++	if (prefs_common.ignore_sort_direction && summaryview->sort_type == SORT_DESCENDING)
++		node = summary_find_next_flagged_msg
+ 			(summaryview, summaryview->selected, MSG_MARKED, TRUE);
+ 	else
+-		node = summary_find_next_flagged_msg
++		node = summary_find_prev_flagged_msg
+ 			(summaryview, summaryview->selected, MSG_MARKED, TRUE);
+ 
+ 	if (!node) {
+@@ -2053,11 +2072,11 @@ void summary_select_next_marked(SummaryView *summaryview)
+ {
+ 	GtkCMCTreeNode *node = summaryview->selected;
+ 
+-	if (summaryview->sort_type == SORT_ASCENDING)
+-		node = summary_find_next_flagged_msg
++	if (prefs_common.ignore_sort_direction && summaryview->sort_type == SORT_DESCENDING)
++		node = summary_find_prev_flagged_msg
+ 			(summaryview, node, MSG_MARKED, TRUE);
+ 	else
+-		node = summary_find_prev_flagged_msg
++		node = summary_find_next_flagged_msg
+ 			(summaryview, node, MSG_MARKED, TRUE);
+ 	
+ 	if (node)
+@@ -2091,11 +2110,11 @@ void summary_select_prev_labeled(SummaryView *summaryview)
+ {
+ 	GtkCMCTreeNode *node;
+ 
+-	if (summaryview->sort_type == SORT_ASCENDING)
+-		node = summary_find_prev_flagged_msg
++	if (prefs_common.ignore_sort_direction && summaryview->sort_type == SORT_DESCENDING)
++		node = summary_find_next_flagged_msg
+ 			(summaryview, summaryview->selected, MSG_CLABEL_FLAG_MASK, TRUE);
+ 	else
+-		node = summary_find_next_flagged_msg
++		node = summary_find_prev_flagged_msg
+ 			(summaryview, summaryview->selected, MSG_CLABEL_FLAG_MASK, TRUE);
+ 
+ 	if (!node) {
+@@ -2120,11 +2139,11 @@ void summary_select_next_labeled(SummaryView *summaryview)
+ {
+ 	GtkCMCTreeNode *node;
+ 
+-	if (summaryview->sort_type == SORT_ASCENDING)
+-		node = summary_find_next_flagged_msg
++	if (prefs_common.ignore_sort_direction && summaryview->sort_type == SORT_DESCENDING)
++		node = summary_find_prev_flagged_msg
+ 			(summaryview, summaryview->selected, MSG_CLABEL_FLAG_MASK, TRUE);
+ 	else
+-		node = summary_find_prev_flagged_msg
++		node = summary_find_next_flagged_msg
+ 			(summaryview, summaryview->selected, MSG_CLABEL_FLAG_MASK, TRUE);
+ 
+ 	if (!node) {
+@@ -2135,11 +2154,11 @@ void summary_select_next_labeled(SummaryView *summaryview)
+ 				   "Search from the beginning?"),
+ 				 GTK_STOCK_NO, "+"GTK_STOCK_YES, NULL);
+ 		if (val != G_ALERTALTERNATE) return;
+-		if (summaryview->sort_type == SORT_ASCENDING)
+-			node = summary_find_next_flagged_msg(summaryview, NULL,
++		if (prefs_common.ignore_sort_direction && summaryview->sort_type == SORT_DESCENDING)
++			node = summary_find_prev_flagged_msg(summaryview, NULL,
+ 						    	     MSG_CLABEL_FLAG_MASK, TRUE);
+ 		else
+-			node = summary_find_prev_flagged_msg(summaryview, NULL,
++			node = summary_find_next_flagged_msg(summaryview, NULL,
+ 						    	     MSG_CLABEL_FLAG_MASK, TRUE);
+ 	}
+ 
+@@ -4435,14 +4454,14 @@ void summary_delete(SummaryView *summaryview)
+ 	folder_item_set_batch(summaryview->folder_item, FALSE);
+ 	END_LONG_OPERATION(summaryview);
+ 
+-	if (summaryview->sort_type == SORT_ASCENDING) {
+-		node = summary_find_next_msg(summaryview, sel_last, TRUE);
++	if (prefs_common.ignore_sort_direction && summaryview->sort_type == SORT_DESCENDING) {
++		node = summary_find_prev_msg(summaryview, sel_last, TRUE);
+ 		if (!node || prefs_common.next_on_delete == FALSE)
+-			node = summary_find_prev_msg(summaryview, sel_last,TRUE);
++			node = summary_find_next_msg(summaryview, sel_last,TRUE);
+ 	} else {
+-		node = summary_find_prev_msg(summaryview, sel_last,TRUE);
++		node = summary_find_next_msg(summaryview, sel_last,TRUE);
+ 		if (!node || prefs_common.next_on_delete == FALSE)
+-			node = summary_find_next_msg(summaryview, sel_last,TRUE);
++			node = summary_find_prev_msg(summaryview, sel_last,TRUE);
+ 	}
+ 	summary_select_node(summaryview, node, OPEN_SELECTED_ON_DELETEMOVE);
+ 	
+@@ -4592,14 +4611,14 @@ void summary_move_selected_to(SummaryView *summaryview, FolderItem *to_folder)
+ 		summary_execute(summaryview);
+ 	} else {
+ 		GtkCMCTreeNode *node = NULL;
+-		if (summaryview->sort_type == SORT_ASCENDING) {
+-			node = summary_find_next_msg(summaryview, sel_last,TRUE);
+-			if (!node || prefs_common.next_on_delete == FALSE)
+-				node = summary_find_prev_msg(summaryview, sel_last,TRUE);
+-		} else {
++		if (prefs_common.ignore_sort_direction && summaryview->sort_type == SORT_DESCENDING) {
+ 			node = summary_find_prev_msg(summaryview, sel_last,TRUE);
+ 			if (!node || prefs_common.next_on_delete == FALSE)
+ 				node = summary_find_next_msg(summaryview, sel_last,TRUE);
++		} else {
++			node = summary_find_next_msg(summaryview, sel_last,TRUE);
++			if (!node || prefs_common.next_on_delete == FALSE)
++				node = summary_find_prev_msg(summaryview, sel_last,TRUE);
+ 		}
+ 		summary_select_node(summaryview, node, OPEN_SELECTED_ON_DELETEMOVE);
+ 		summary_status_show(summaryview);
+@@ -4972,14 +4991,14 @@ gboolean summary_execute(SummaryView *summaryview)
+ 		if (!new_selected &&
+ 		    gtkut_ctree_node_is_selected(ctree, node)) {
+ 			summary_unselect_all(summaryview);
+-			if (summaryview->sort_type == SORT_ASCENDING) {
+-				new_selected = summary_find_next_msg(summaryview, node,TRUE);
+-				if (!new_selected || prefs_common.next_on_delete == FALSE)
+-					new_selected = summary_find_prev_msg(summaryview, node,TRUE);
+-			} else {
++			if (prefs_common.ignore_sort_direction && summaryview->sort_type == SORT_DESCENDING) {
+ 				new_selected = summary_find_prev_msg(summaryview, node,TRUE);
+ 				if (!new_selected || prefs_common.next_on_delete == FALSE)
+ 					new_selected = summary_find_next_msg(summaryview, node,TRUE);
++			} else {
++				new_selected = summary_find_next_msg(summaryview, node,TRUE);
++				if (!new_selected || prefs_common.next_on_delete == FALSE)
++					new_selected = summary_find_prev_msg(summaryview, node,TRUE);
+ 			}
+ 		}
+ 
+-- 
+2.12.1
+

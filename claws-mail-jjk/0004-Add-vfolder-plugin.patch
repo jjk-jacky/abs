@@ -1,7 +1,7 @@
 From 8f1841b716a08853e6704cf072b4fa757b91ef10 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sat, 14 Jan 2017 18:32:38 +0100
-Subject: [PATCH 4/4] Add vfolder plugin
+Subject: [PATCH 4/5] Add vfolder plugin
 
 This adds support for "Virtual folders" aka folders that show search
 results. Unlike elsewhere in Claws, such folders can include messages
@@ -4196,5 +4196,5 @@ index 000000000..eb87f63f6
 +
 +#endif /* __VFOLDER_PREFS_H__ */
 -- 
-2.12.0
+2.12.1
 

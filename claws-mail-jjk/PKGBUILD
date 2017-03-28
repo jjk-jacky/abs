@@ -4,7 +4,7 @@
 _pkgname=claws-mail
 pkgname=$_pkgname-jjk
 pkgver=3.15.0
-pkgrel=1
+pkgrel=2
 pkgdesc="A GTK+ based e-mail client."
 arch=('i686' 'x86_64')
 license=('GPL3')
@@ -27,13 +27,15 @@ source=(http://www.claws-mail.org/download.php?file=releases/claws-mail-$pkgver.
         0001-Fix-diff-format-detection.patch
         0002-Add-coloring-of-diff-patches-inside-emails.patch
         0003-Always-sort-by-date-ASC-within-a-thread-when-by-thre.patch
-        0004-Add-vfolder-plugin.patch)
+        0004-Add-vfolder-plugin.patch
+        0005-prefs-add-option-Ignore-sort-direction-Make-sort-ord.patch)
 sha256sums=('4e4d2d0d43f8ae3d4623408612f5979e9a697ccbc12038b80dd27802e868dc2e'
             'SKIP'
-            'd6a2a329be22a30052df4451b4ce76d275902409522c1a98c6c88eac4c9bae80'
-            'b67e481d4c7665ef2cde176c6fdd5f4c7e0822b860bd3ba12c4918f549a6818c'
-            '65dd62f1c2947236084e0e528c805b17011edc5d1e99eead3cebec0d269b5429'
-            '4dc1b46127f0a863de21a81304ae6e7d59275aa90492dbb253f97d6c18579471')
+            '9934dd6e323836fa8381312d9f9784c6d047fa78de39b8ad2ea130e3aa415d0e'
+            '47a38b38fd5b79c0473ad942faa143c0cf6d5dd22e084e262510456ea6eb4603'
+            '059d0773b7174c23c17ddebf910da8e66dda9d38a73ff6d29b90df2d5038245f'
+            '08036f3b6fc5cec2f539701e838dda347c75720beb0be79766f5913926d91052'
+            '9dfd84369736194f77976b915a84e9ae1317d628796065b9fe853859ffa32412')
 validpgpkeys=('8B3B297A03468356692F8D592CD716D654D6BBD4') # Paul <paul@claws-mail.org>
 
 prepare() {
@@ -42,6 +44,7 @@ prepare() {
   patch -p1 -i ../0002-Add-coloring-of-diff-patches-inside-emails.patch
   patch -p1 -i ../0003-Always-sort-by-date-ASC-within-a-thread-when-by-thre.patch
   patch -p1 -i ../0004-Add-vfolder-plugin.patch
+  patch -p1 -i ../0005-prefs-add-option-Ignore-sort-direction-Make-sort-ord.patch
 
   NOCONFIGURE=1 ./autogen.sh
 }

@@ -1,7 +1,7 @@
 From 4f7ff9a9de44b43be68c671bcfd93b03e38998ff Mon Sep 17 00:00:00 2001
 From: Jakub Kicinski <kubakici@wp.pl>
 Date: Wed, 11 Dec 2013 18:12:05 +0100
-Subject: [PATCH 2/4] Add coloring of diff patches inside emails.
+Subject: [PATCH 2/5] Add coloring of diff patches inside emails.
 
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
@@ -63,5 +63,5 @@ index 51b7643b4..5864a1dfe 100644
  	GSList *uri_list;
  	gint body_pos;
 -- 
-2.12.0
+2.12.1
 
