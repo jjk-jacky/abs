@@ -37,6 +37,7 @@ package_dbus-jjk(){
   provides=('dbus' 'dbus-core')
   conflicts=('dbus' 'dbus-core')
   replaces=('dbus' 'dbus-core')
+  install=dbus.install
 
   cd dbus-$pkgver
 

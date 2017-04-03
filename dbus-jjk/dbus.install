@@ -1,0 +1,6 @@
+post_install() {
+    getent group dbus >/dev/null 2>&1 \
+        || groupadd dbus -g 81 >/dev/null
+    getent passwd dbus >/dev/null 2>&1 \
+        || useradd dbus -u 81 -d / -g dbus -s /usr/bin/nologin >/dev/null
+}
