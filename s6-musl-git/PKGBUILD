@@ -2,7 +2,7 @@
 # Contributor: David Arroyo <droyo@aqwari.us>
 _pkgname=s6
 pkgname=$_pkgname-musl-git
-pkgver=v2.2.2.0.1.g278a
+pkgver=v2.5.0.0
 pkgrel=1
 pkgdesc="skarnet's small supervision suite [static-musl; GIT]"
 arch=('i686' 'x86_64')
@@ -13,7 +13,7 @@ options=('staticlibs')
 source=("git://git.skarnet.org/s6"
          0001-s6-log-Add-p-directive-for-prefix.patch)
 sha256sums=('SKIP'
-            '7de900f26ffd5529c7baa4a6c5695fc27b4c5750e9fe31ca655e236a662fee51')
+            'ec8da225b41aeebd2a905c71d29c486593664f7380c1ec0f77416f7ad5b7ca9a')
 provides=($_pkgname $_pkgname-musl)
 conflicts=($_pkgname $_pkgname-musl)
 

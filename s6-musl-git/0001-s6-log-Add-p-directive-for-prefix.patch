@@ -1,4 +1,4 @@
-From c2a8c9e622e86b5c02b0a28d29a7bb6e74e70e86 Mon Sep 17 00:00:00 2001
+From 181c0ccd5e0ef05901e25e1c743de215ad882664 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 13 Mar 2015 19:48:27 +0100
 Subject: [PATCH] s6-log: Add p directive for prefix
@@ -9,7 +9,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 29 insertions(+), 21 deletions(-)
 
 diff --git a/src/daemontools-extras/s6-log.c b/src/daemontools-extras/s6-log.c
-index 6d323b7..8444c08 100644
+index c57e6d7..a47ed30 100644
 --- a/src/daemontools-extras/s6-log.c
 +++ b/src/daemontools-extras/s6-log.c
 @@ -120,6 +120,7 @@ struct act_s
@@ -20,7 +20,7 @@ index 6d323b7..8444c08 100644
  } ;
  
  typedef struct scriptelem_s scriptelem_t, *scriptelem_t_ref ;
-@@ -739,6 +740,9 @@ static inline void script_firstpass (char const *const *argv, unsigned int *sell
+@@ -733,6 +734,9 @@ static inline void script_firstpass (char const *const *argv, unsigned int *sell
          if ((*argv)[1]) goto fail ;
          gf |= 2 ;
          break ;
@@ -30,7 +30,7 @@ index 6d323b7..8444c08 100644
        case 'e' :
          if (verbosity) strerr_warnw1x("directive e is deprecated, use 2 instead") ;
        case '1' :
-@@ -789,6 +793,7 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
+@@ -783,6 +787,7 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
    char const *processor = 0 ;
    unsigned int sel = 0, act = 0, lidx = 0, flags = 0 ;
    int flagacted = 0 ;
@@ -38,7 +38,7 @@ index 6d323b7..8444c08 100644
    tain_uint(&retrytto, 2) ;
    
    for (; *argv ; argv++)
-@@ -862,34 +867,37 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
+@@ -856,34 +861,37 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
        case 'T' :
          flags |= 2 ;
          break ;
@@ -84,12 +84,12 @@ index 6d323b7..8444c08 100644
          break ;
        }
        default : goto fail ;
-@@ -953,11 +961,11 @@ static void script_run (scriptelem_t const *script, unsigned int scriptlen, char
+@@ -948,11 +956,11 @@ static void script_run (scriptelem_t const *script, unsigned int scriptlen, char
        for (j = 0 ; j < script[i].actlen ; j++)
        {
          act_t const *act = script[i].acts + j ;
--        siovec_t v[4] = { { .s = tstamp, .len = act->flags & 1 ? TIMESTAMP+1 : 0 }, { .s = hstamp, .len = act->flags & 2 ? hlen : 0 }, { .s = (char *)s, .len = len }, { .s = "\n", .len = 1 } } ;
-+        siovec_t v[5] = { { .s = tstamp, .len = act->flags & 1 ? TIMESTAMP+1 : 0 }, { .s = hstamp, .len = act->flags & 2 ? hlen : 0 }, { .s = (char *)act->prefix, .len = act->prefix ? str_len(act->prefix) : 0 }, { .s = (char *)s, .len = len }, { .s = "\n", .len = 1 } } ;
+-        struct iovec v[4] = { { .iov_base = tstamp, .iov_len = act->flags & 1 ? TIMESTAMP+1 : 0 }, { .iov_base = hstamp, .iov_len = act->flags & 2 ? hlen : 0 }, { .iov_base = (char *)s, .iov_len = len }, { .iov_base = "\n", .iov_len = 1 } } ;
++        struct iovec v[5] = { { .iov_base = tstamp, .iov_len = act->flags & 1 ? TIMESTAMP+1 : 0 }, { .iov_base = hstamp, .iov_len = act->flags & 2 ? hlen : 0 }, { .iov_base = (char *)act->prefix, .iov_len = act->prefix ? strlen(act->prefix) : 0 }, { .iov_base = (char *)s, .iov_len = len }, { .iov_base = "\n", .iov_len = 1 } } ;
          switch (act->type)
          {
            case ACTTYPE_FD1 :
@@ -98,16 +98,16 @@ index 6d323b7..8444c08 100644
            case ACTTYPE_NOTHING :
              break ;
  
-@@ -966,38 +974,38 @@ static void script_run (scriptelem_t const *script, unsigned int scriptlen, char
+@@ -961,38 +969,38 @@ static void script_run (scriptelem_t const *script, unsigned int scriptlen, char
              buffer_puts(buffer_2, ": alert: ") ;
              if (act->data.fd2_size && act->data.fd2_size + 3 < len)
              {
--              v[2].len = act->data.fd2_size ;
--              v[3].s = "...\n" ;
--              v[3].len = 4 ;
-+              v[3].len = act->data.fd2_size ;
-+              v[4].s = "...\n" ;
-+              v[4].len = 4 ;
+-              v[2].iov_len = act->data.fd2_size ;
+-              v[3].iov_base = "...\n" ;
+-              v[3].iov_len = 4 ;
++              v[3].iov_len = act->data.fd2_size ;
++              v[4].iov_base = "...\n" ;
++              v[4].iov_len = 4 ;
              }
 -            buffer_putv(buffer_2, v, 4) ;
 +            buffer_putv(buffer_2, v, 5) ;
@@ -117,19 +117,19 @@ index 6d323b7..8444c08 100644
            case ACTTYPE_STATUS :
              if (act->data.status.filelen)
              {
--              unsigned int reallen = siovec_len(v, 4) ;
-+              unsigned int reallen = siovec_len(v, 5) ;
+-              size_t reallen = siovec_len(v, 4) ;
++              size_t reallen = siovec_len(v, 5) ;
                if (reallen > act->data.status.filelen)
 -                siovec_trunc(v, 4, act->data.status.filelen) ;
 +                siovec_trunc(v, 5, act->data.status.filelen) ;
                else
                {
-                 register unsigned int k = act->data.status.filelen - reallen + 1 ;
+                 size_t k = act->data.status.filelen - reallen + 1 ;
                  char pad[k] ;
--                v[3].s = pad ;
--                v[3].len = k ;
-+                v[4].s = pad ;
-+                v[4].len = k ;
+-                v[3].iov_base = pad ;
+-                v[3].iov_len = k ;
++                v[4].iov_base = pad ;
++                v[4].iov_len = k ;
                  while (k--) pad[k] = '\n' ;
 -                if (!openwritevnclose_suffix(act->data.status.file, v, 4, ".new") && verbosity)
 +                if (!openwritevnclose_suffix(act->data.status.file, v, 5, ".new") && verbosity)
@@ -149,5 +149,5 @@ index 6d323b7..8444c08 100644
  
            default :
 -- 
-2.5.0
+2.12.1
 
