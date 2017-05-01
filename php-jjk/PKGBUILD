@@ -5,7 +5,7 @@ pkgbase=php
 pkgname=('php-jjk'
          'php-fpm-jjk')
 pkgver=7.1.4
-pkgrel=1
+pkgrel=2
 arch=('i686' 'x86_64')
 license=('PHP')
 url='http://www.php.net'
