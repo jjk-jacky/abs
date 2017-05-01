@@ -2,12 +2,11 @@
 _pkgname=mailsend
 pkgname=$_pkgname-jjk
 pkgver=1.16
-pkgrel=1
+pkgrel=2
 pkgdesc="Simple program to send mail via SMTP protocol with STARTTLS and Authentication support"
 arch=(i686 x86_64)
 url="http://www.muquit.com/muquit/software/mailsend/mailsend.html"
 license=('GPL2')
-depends=(openssl)
 conflicts=("$_pkgname")
 provides=("$_pkgname")
 source=("http://www.muquit.com/muquit/software/$_pkgname/$_pkgname$pkgver.tar.gz")
@@ -15,7 +14,7 @@ md5sums=('23a96277dc9c2184c37761102c7c792e')
 
 build() {
   cd "$srcdir/$_pkgname$pkgver"
-  ./configure --with-openssl=/usr
+  ./configure --without-openssl
   MAKEFLAGS=-j2 make
 }
 
