@@ -3,7 +3,7 @@
 
 _pkgname=gdk-pixbuf2
 pkgname=$_pkgname-jjk
-pkgver=2.36.5
+pkgver=2.36.6
 pkgrel=1
 pkgdesc="An image loading library"
 arch=('i686' 'x86_64')
@@ -16,7 +16,7 @@ conflicts=($_pkgname)
 install=gdk-pixbuf2.install
 source=(https://download.gnome.org/sources/gdk-pixbuf/${pkgver%.*}/gdk-pixbuf-$pkgver.tar.xz
         gdk-pixbuf-query-loaders.hook)
-sha256sums=('7ace06170291a1f21771552768bace072ecdea9bd4a02f7658939b9a314c40fc'
+sha256sums=('455eb90c09ed1b71f95f3ebfe1c904c206727e0eeb34fc94e5aaf944663a820c'
             '963afcfacde9fd36031d93c8aa4c94a669ab1dbe9ba0d2cf17599b7d358e54c2')
 
 build() {
