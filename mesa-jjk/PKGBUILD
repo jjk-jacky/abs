@@ -4,7 +4,7 @@
 
 pkgbase=mesa-jjk
 pkgname=('ati-dri-jjk' 'mesa-jjk' 'mesa-libgl-jjk')
-pkgver=17.0.5
+pkgver=17.1.0
 pkgrel=1
 arch=('i686' 'x86_64')
 makedepends=('python2' 'libxml2' 'libx11' 'glproto' 'libdrm' 'dri2proto'
@@ -17,7 +17,7 @@ source=(https://mesa.freedesktop.org/archive//mesa-$pkgver.tar.xz{,.sig}
 validpgpkeys=('CEF8DDC8019CA66D4E3094F3600233BA9E54DC61'
               '8703B6700E7EE06D7A39B8D6EDAE37B02CEB490D'
               '946D09B5E4C9845E63075FF1D961C596A7203456')
-sha256sums=('668efa445d2f57a26e5c096b1965a685733a3b57d9c736f9d6460263847f9bfe'
+sha256sums=('cf234a6ed4764673886b6661553b54675776ef0898f774716173cec890ac3b17'
             'SKIP'
             '7fdc119cf53c8ca65396ea73f6d10af641ba41ea1dd2bd44a824726e01c8b3f2')
 
@@ -31,7 +31,7 @@ build() {
     --with-dri-driverdir=/usr/lib/xorg/modules/dri \
     --with-gallium-drivers=r600,swrast \
     --with-dri-drivers=radeon,swrast \
-    --with-egl-platforms=x11,drm \
+    --with-platforms=x11,drm \
     --enable-egl \
     --enable-gbm \
     --enable-shared-glapi \
