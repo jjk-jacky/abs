@@ -3,7 +3,7 @@
 
 _pkgname=wxgtk
 pkgname=$_pkgname-jjk
-pkgver=3.0.3
+pkgver=3.0.3.1
 pkgrel=1
 pkgdesc="GTK+ implementation of wxWidgets API for GUI"
 arch=('i686' 'x86_64')
@@ -15,7 +15,7 @@ conflicts=($_pkgname)
 provides=($_pkgname)
 options=('!emptydirs')
 source=(https://github.com/wxWidgets/wxWidgets/releases/download/v$pkgver/wxWidgets-$pkgver.tar.bz2)
-sha1sums=('3525306c926e208d9b0272aaa9c091b8c7264e5b')
+sha1sums=('ea785822d0f1c3290707bda6da570e596b3ec85a')
 
 build() {
   cd wxWidgets-$pkgver
