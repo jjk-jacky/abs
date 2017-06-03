@@ -1,7 +1,7 @@
-From 8f1841b716a08853e6704cf072b4fa757b91ef10 Mon Sep 17 00:00:00 2001
+From ec520c4edaa7b222c52f54f8dfed4219e51f57fe Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
-Date: Sat, 14 Jan 2017 18:32:38 +0100
-Subject: [PATCH 4/5] Add vfolder plugin
+Date: Sat, 3 Jun 2017 22:17:39 +0200
+Subject: [PATCH v5] Add vfolder plugin
 
 This adds support for "Virtual folders" aka folders that show search
 results. Unlike elsewhere in Claws, such folders can include messages
@@ -33,22 +33,27 @@ go there. So it does feel somewhat like a "classic" search feature.
 v2: Fix minimum requirement of glib being 2.20
 v3: Fix possible segfault; Fix memory leaks
 v4: Rebase on 3.15.0
-Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+v5: - Better description
+    - Add little screen shown on first time with description & offer to
+      create first virtual mailbox/folder
+    - Fix not removing actions on unload
+    - prefs: Ensure folder is valid if search feature enabled
+    - Content: Add extended quicksearch MRU on searches
 ---
  configure.ac                             |   15 +
  src/plugins/Makefile.am                  |    3 +-
  src/plugins/vfolder/Makefile.am          |   37 +
- src/plugins/vfolder/plugin.c             |  158 ++++
- src/plugins/vfolder/plugin.h             |   52 ++
- src/plugins/vfolder/plugin_gtk.c         |  879 +++++++++++++++++++
+ src/plugins/vfolder/plugin.c             |  202 +++++
+ src/plugins/vfolder/plugin.h             |   54 ++
+ src/plugins/vfolder/plugin_gtk.c         | 1074 +++++++++++++++++++++++
  src/plugins/vfolder/plugin_gtk.h         |   31 +
  src/plugins/vfolder/vfolder.c            | 1408 ++++++++++++++++++++++++++++++
  src/plugins/vfolder/vfolder.h            |   59 ++
- src/plugins/vfolder/vfolder_item_prefs.c | 1101 +++++++++++++++++++++++
+ src/plugins/vfolder/vfolder_item_prefs.c | 1158 ++++++++++++++++++++++++
  src/plugins/vfolder/vfolder_item_prefs.h |   33 +
- src/plugins/vfolder/vfolder_prefs.c      |  223 +++++
+ src/plugins/vfolder/vfolder_prefs.c      |  247 ++++++
  src/plugins/vfolder/vfolder_prefs.h      |   29 +
- 13 files changed, 4027 insertions(+), 1 deletion(-)
+ 13 files changed, 4349 insertions(+), 1 deletion(-)
  create mode 100644 src/plugins/vfolder/Makefile.am
  create mode 100644 src/plugins/vfolder/plugin.c
  create mode 100644 src/plugins/vfolder/plugin.h
@@ -62,7 +67,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  create mode 100644 src/plugins/vfolder/vfolder_prefs.h
 
 diff --git a/configure.ac b/configure.ac
-index ecdd2850d..9b3e75e1d 100644
+index 62fabfe6b..bc601a220 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -1094,6 +1094,10 @@ AC_ARG_ENABLE(vcalendar-plugin,
@@ -164,10 +169,10 @@ index 000000000..67f01a8c3
 +	$(GTK_CFLAGS)
 diff --git a/src/plugins/vfolder/plugin.c b/src/plugins/vfolder/plugin.c
 new file mode 100644
-index 000000000..beb90bdd9
+index 000000000..acd3d2af1
 --- /dev/null
 +++ b/src/plugins/vfolder/plugin.c
-@@ -0,0 +1,158 @@
+@@ -0,0 +1,202 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -221,6 +226,9 @@ index 000000000..beb90bdd9
 +	{ "enable_search", "FALSE", &vconfig.enable_search, P_BOOL,
 +		NULL, NULL, NULL },
 +	{ "id_search_folder", "", &vconfig.id_search_folder, P_STRING,
++		NULL, NULL, NULL },
++
++	{ "first_time", "TRUE", &vconfig.first_time, P_BOOL,
 +		NULL, NULL, NULL },
 +
 +	{ NULL, NULL, NULL, P_OTHER, NULL, NULL, NULL }
@@ -298,9 +306,50 @@ index 000000000..beb90bdd9
 +	return PLUGIN_NAME;
 +}
 +
++const gchar *vfolder_desc(void)
++{
++	return _(
++		"This Plugin adds virtual folders."
++		"\n\n"
++		"Virtual folders are folders of a virtual mailbox, that is one "
++		"of type VFolder. You can create as many virtual mailboxes as "
++		"you want (via menu File/Add Mailbox/VFolder), and as many "
++		"(virtual) folders as you want in any of them."
++		"\n\n"
++		"Virtual folders are folders that show search results; But unlike "
++		"elsewhere in Claws, such results can include messages from "
++		"different folders. In fact, they can show combined results of "
++		"multiple searches (useful to do same search in multiple (non "
++		"related, i.e. can't be done simply via recursive search) folders). "
++		"You can even combine (similar or different) searches from "
++		"different mailboxes."
++		"\n\n"
++		"What is done to virtual messages is relayed to the source ones: "
++		"flags, tags, etc (Re)moving such messages will also be done on "
++		"the source ones, obviously."
++		"\n\n"
++		"Searches are set under a folder's properties, new page \"Content\""
++		"\n\n"
++		"Some general options are also available under Preferences/Plugins/VFolder, "
++		"to add some VFolder-version of known features:\n"
++		"- Move to trash: so that it is applied as if from the source "
++		"folder, so messages are moved to their respective correct trashes.\n"
++		"- Reply: so that used folder properties (templates, etc) are of "
++		"the source folders (and not the virtual one)"
++		"\n\n"
++		"A new menu \"Find in source folder\" will also be available from "
++		"virtual folders."
++		"\n\n"
++		"Lastly, a 'search results' feature is provided, which is really "
++		"just a quick way to edit the \"Content\" properties of a given "
++		"virtual folder (set in Preferences) and go there. So it does "
++		"feel somewhat like a more \"traditionnal\" search feature, "
++		"in that all found messages are presented under a single list."
++		);
++}
 +const gchar *plugin_desc(void)
 +{
-+	return _("This Plugin adds virtual folders.");
++	return vfolder_desc();
 +}
 +
 +const gchar *plugin_type(void)
@@ -328,10 +377,10 @@ index 000000000..beb90bdd9
 +}
 diff --git a/src/plugins/vfolder/plugin.h b/src/plugins/vfolder/plugin.h
 new file mode 100644
-index 000000000..9ef20708d
+index 000000000..7f27c2184
 --- /dev/null
 +++ b/src/plugins/vfolder/plugin.h
-@@ -0,0 +1,52 @@
+@@ -0,0 +1,54 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -378,6 +427,8 @@ index 000000000..9ef20708d
 +
 +	gboolean enable_search;
 +	gchar *id_search_folder;
++
++	gboolean first_time;
 +};
 +
 +VFolderConfig *vfolder_get_config(void);
@@ -386,10 +437,10 @@ index 000000000..9ef20708d
 +#endif /* __VFOLDER_PLUGIN_H__ */
 diff --git a/src/plugins/vfolder/plugin_gtk.c b/src/plugins/vfolder/plugin_gtk.c
 new file mode 100644
-index 000000000..e7fc5bbf0
+index 000000000..1aa6b3739
 --- /dev/null
 +++ b/src/plugins/vfolder/plugin_gtk.c
-@@ -0,0 +1,879 @@
+@@ -0,0 +1,1074 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -507,9 +558,180 @@ index 000000000..e7fc5bbf0
 +static guint id_find_in_src_folder_popup = 0;
 +static guint id_search = 0;
 +
++static gboolean key_pressed(GtkWidget *w, GdkEventKey *event, GtkWidget *window);
++
++static GtkWidget *entry_mailbox;
++static GtkWidget *entry_folder;
++
++static void do_first_time(GtkWidget *window)
++{
++	FolderClass *klass;
++	Folder *folder;
++	FolderItem *new_item;
++	const gchar *mailbox, *newfolder;
++	gchar *s;
++
++	mailbox = gtk_entry_get_text(GTK_ENTRY(entry_mailbox));
++
++	klass = folder_get_class_from_string("vfolder");
++	if (folder_find_from_name(mailbox, klass))
++	{
++		alertpanel_error(_("Virtual mailbox '%s' already exists."), mailbox);
++		return;
++	}
++
++	folder = folder_new(klass, mailbox, NULL);
++	folder_add(folder);
++	folderview_set(mainwindow_get_mainwindow()->folderview);
++
++
++	newfolder = gtk_entry_get_text(GTK_ENTRY(entry_folder));
++
++	new_item = folder_create_folder(folder->node->data, newfolder);
++	if (!new_item)
++	{
++		alertpanel_error(_("Can't create the folder '%s'."), newfolder);
++		return;
++	}
++
++	folder_write_list();
++
++
++	gtk_widget_hide(window);
++
++	s = g_strdup_printf(_("You new virtual mailbox '%s' has been created, "
++			"with a new (virtual) folder '%s' !\n\n"
++			"Now to set up the search(es) of the folder, right-click it "
++			"then go into 'Properties' and page 'Content'"),
++		mailbox, newfolder);
++	alertpanel_full(_("Congratulations!"), s,
++		GTK_STOCK_OK, NULL, NULL, FALSE,
++		NULL, ALERT_NOTICE, G_ALERTDEFAULT);
++	g_free(s);
++
++	gtk_widget_destroy(window);
++}
++
++/* from plugin.c */
++const gchar *vfolder_desc(void);
++
++static void first_time(void)
++{
++	GdkGeometry geometry = { .min_width = 500, .min_height = 460 };
++	GtkWidget *window;
++	GtkWidget *box;
++	GtkWidget *scrolledwindow;
++	GtkWidget *table;
++	GtkWidget *btn_ok;
++	GtkWidget *btn_cancel;
++	GtkWidget *w;
++
++	GtkTextBuffer *textbuf;
++	GtkTextIter start_iter, end_iter;
++	const gchar *text = vfolder_desc();
++
++	window = gtkut_window_new(GTK_WINDOW_TOPLEVEL, "VFolder");
++	gtk_window_set_position (GTK_WINDOW (window), GTK_WIN_POS_CENTER);
++	gtk_window_set_resizable(GTK_WINDOW (window), TRUE);
++	gtk_window_set_title (GTK_WINDOW(window), _("Virtual Folders"));
++	gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL, &geometry,
++		GDK_HINT_MIN_SIZE);
++	MANAGE_WINDOW_SIGNALS_CONNECT (window);
++	manage_window_set_transient(GTK_WINDOW(window));
++
++	box = gtk_vbox_new (FALSE, 8);
++	gtk_widget_show (box);
++	gtk_container_set_border_width(GTK_CONTAINER (box), 4);
++	gtk_container_add(GTK_CONTAINER(window), box);
++
++	w = gtk_label_new(_("Howdy stranger! This seems to be your first time "
++			"using VFolder, so here's a quick introduction that might "
++			"be worth reading:"));
++	gtk_widget_show(w);
++	gtk_widget_set_size_request(w, geometry.min_width, -1);
++	gtk_label_set_line_wrap(GTK_LABEL(w), TRUE);
++	gtk_box_pack_start(GTK_BOX(box), w, FALSE, FALSE, 0);
++
++	scrolledwindow = gtk_scrolled_window_new(NULL, NULL);
++	gtk_widget_show(scrolledwindow);
++	gtk_box_pack_start(GTK_BOX(box), scrolledwindow, TRUE, TRUE, 0);
++	gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledwindow),
++		GTK_SHADOW_ETCHED_IN);
++	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW
++		(scrolledwindow), GTK_POLICY_NEVER,
++		GTK_POLICY_ALWAYS);
++
++	w = gtk_text_view_new();
++	gtk_widget_show(w);
++	gtk_container_add(GTK_CONTAINER(scrolledwindow), w);
++	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(w), GTK_WRAP_WORD);
++
++	textbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(w));
++	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(w), FALSE);
++	gtk_text_view_set_editable(GTK_TEXT_VIEW(w), FALSE);
++	gtk_text_buffer_get_start_iter(textbuf, &start_iter);
++	gtk_text_buffer_get_end_iter(textbuf, &end_iter);
++	gtk_text_buffer_delete(textbuf, &start_iter, &end_iter);
++	gtk_text_buffer_insert(textbuf, &start_iter, text, strlen(text));
++
++	w = gtk_label_new(_("And now to save you some clicks, we can create your first "
++			"virtual mailbox & folder in one go, if you'd like:"));
++	gtk_widget_show(w);
++	gtk_widget_set_size_request(w, geometry.min_width, -1);
++	gtk_label_set_line_wrap(GTK_LABEL(w), TRUE);
++	gtk_box_pack_start(GTK_BOX(box), w, FALSE, FALSE, 0);
++
++	table = gtk_table_new(2, 2, FALSE);
++	gtk_widget_show(table);
++	gtk_box_pack_start(GTK_BOX(box), table, FALSE, FALSE, 0);
++	gtk_table_set_row_spacings(GTK_TABLE(table), 4);
++	gtk_table_set_col_spacings(GTK_TABLE(table), 8);
++
++	w = gtk_label_new(_("Name of the mailbox:"));
++	gtk_widget_show(w);
++	gtk_table_attach(GTK_TABLE(table), w, 0, 1, 0, 1,
++		GTK_FILL, 0, 0, 0);
++
++	entry_mailbox = gtk_entry_new();
++	gtk_widget_show(entry_mailbox);
++	gtk_table_attach(GTK_TABLE(table), entry_mailbox, 1, 2, 0, 1,
++		GTK_EXPAND | GTK_FILL, 0, 0, 0);
++	gtk_entry_set_text(GTK_ENTRY(entry_mailbox), "Virtual");
++
++	w = gtk_label_new(_("Name of the folder:"));
++	gtk_widget_show(w);
++	gtk_table_attach(GTK_TABLE(table), w, 0, 1, 1, 2,
++		GTK_FILL, 0, 0, 0);
++
++	entry_folder = gtk_entry_new();
++	gtk_widget_show(entry_folder);
++	gtk_table_attach(GTK_TABLE(table), entry_folder, 1, 2, 1, 2,
++		GTK_EXPAND | GTK_FILL, 0, 0, 0);
++	gtk_entry_set_text(GTK_ENTRY(entry_folder), _("NewFolder"));
++
++	gtkut_stock_button_set_create(&w,
++		&btn_cancel, GTK_STOCK_CLOSE,
++		&btn_ok, GTK_STOCK_APPLY,
++		NULL, NULL);
++	gtk_box_pack_end (GTK_BOX(box), w, FALSE, FALSE, 0);
++	gtk_widget_grab_default (btn_ok);
++	gtk_widget_grab_focus (btn_ok);
++
++	g_signal_connect(G_OBJECT(window), "key_press_event",
++		G_CALLBACK(key_pressed), window);
++	g_signal_connect_swapped(G_OBJECT(btn_cancel), "clicked",
++		G_CALLBACK(gtk_widget_destroy), window);
++	g_signal_connect_swapped(G_OBJECT(btn_ok), "clicked",
++		G_CALLBACK(do_first_time), window);
++
++	gtk_widget_show_all(window);
++	gtk_window_set_modal(GTK_WINDOW(window), TRUE);
++}
++
 +gint vfolder_gtk_init(gchar **error)
 +{
 +	MainWindow *mainwin = mainwindow_get_mainwindow();
++	VFolderConfig *vconfig = vfolder_get_config();
 +
 +	gtk_action_group_add_actions(mainwin->action_group, mainwindow_actions,
 +		G_N_ELEMENTS(mainwindow_actions), (gpointer)mainwin);
@@ -543,7 +765,24 @@ index 000000000..e7fc5bbf0
 +	vfolder_prefs_register();
 +	vfolder_item_prefs_register();
 +
++	if (vconfig->first_time)
++	{
++		first_time ();
++		vconfig->first_time = FALSE;
++		vfolder_save_config();
++	}
++
 +	return 0;
++}
++
++static void _gtk_action_group_remove_actions(GtkActionGroup *group,
++	GtkActionEntry *entries, guint len)
++{
++	guint i;
++
++	for (i = 0; i < len; ++i)
++		gtk_action_group_remove_action(group,
++			gtk_action_group_get_action(group, entries[i].name));
 +}
 +
 +void vfolder_gtk_done(void)
@@ -552,6 +791,9 @@ index 000000000..e7fc5bbf0
 +
 +	if (mainwin == NULL || claws_is_exiting())
 +		return;
++
++	_gtk_action_group_remove_actions(mainwin->action_group, mainwindow_actions,
++		G_N_ELEMENTS(mainwindow_actions));
 +
 +	MENUITEM_REMUI_MANAGER(mainwin->ui_manager,mainwin->action_group,
 +		"File/AddMailbox/VFolder", id_add_mailbox);
@@ -970,12 +1212,16 @@ index 000000000..e7fc5bbf0
 +{
 +	FolderView *fv = (FolderView *) data;
 +	FolderItem *from_folder, *to_folder;
++	gchar *msg;
 +
 +	from_folder = folderview_get_selected_item(fv);
 +	if (!from_folder || from_folder->folder->klass != vfolder_get_class())
 +		return;
 +
-+	to_folder = foldersel_folder_sel(NULL, FOLDER_SEL_MOVE, NULL, TRUE, NULL);
++	msg = g_strdup_printf(_("Select folder to move folder '%s' to"),
++		from_folder->name);
++	to_folder = foldersel_folder_sel(NULL, FOLDER_SEL_MOVE, NULL, TRUE, msg);
++	g_free(msg);
 +	if (!to_folder)
 +		return;
 +
@@ -2787,10 +3033,10 @@ index 000000000..05d5d1571
 +#endif /* __VFOLDER_FOLDER_H__ */
 diff --git a/src/plugins/vfolder/vfolder_item_prefs.c b/src/plugins/vfolder/vfolder_item_prefs.c
 new file mode 100644
-index 000000000..a90792590
+index 000000000..d44089bda
 --- /dev/null
 +++ b/src/plugins/vfolder/vfolder_item_prefs.c
-@@ -0,0 +1,1101 @@
+@@ -0,0 +1,1158 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -2827,6 +3073,7 @@ index 000000000..a90792590
 +#include "matcher_parser.h"
 +#include "alertpanel.h"
 +#include "foldersel.h"
++#include "combobox.h"
 +
 +#include "plugin.h"
 +#include "vfolder_item_prefs.h"
@@ -2889,6 +3136,8 @@ index 000000000..a90792590
 +static GtkWidget *cond_list_view;
 +static GtkWidget *autorefresh_btn;
 +
++#define GTK_ENTRY_FROM_COMBOBOX(c)	GTK_ENTRY(gtk_bin_get_child(GTK_BIN(c)))
++
 +static void prefs_select_row(GtkTreeView *list_view, GtkTreePath *path)
 +{
 +	GtkTreeModel *model = gtk_tree_view_get_model(list_view);
@@ -2916,7 +3165,7 @@ index 000000000..a90792590
 +
 +		gtk_entry_set_text(GTK_ENTRY(folder_entry), folder);
 +		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(recursive_btn), recursive);
-+		gtk_entry_set_text(GTK_ENTRY(cond_entry), cond);
++		gtk_entry_set_text(GTK_ENTRY_FROM_COMBOBOX(cond_entry), cond);
 +
 +		g_free(folder);
 +		g_free(cond);
@@ -3165,6 +3414,49 @@ index 000000000..a90792590
 +	}
 +}
 +
++static void combo_set_search_strings(
++#if !GTK_CHECK_VERSION(2, 24, 0)
++	GtkComboBox *combo
++#else
++	GtkComboBoxText *combo
++#endif
++	)
++{
++	GList *strings = prefs_common.summary_quicksearch_history;
++	GList *list = NULL;
++	gchar *newstr = NULL;
++	MatcherList *matcher_list = NULL;
++
++	if (!strings)
++		return;
++
++	matcher_parser_disable_warnings(TRUE);
++
++	do {
++		newstr = advsearch_expand_search_string((gchar *) strings->data);
++		if (newstr && newstr[0] != '\0') {
++			if (strchr(newstr, ' ')) {
++				matcher_list = matcher_parser_get_cond(newstr, FALSE);
++
++				if (matcher_list) {
++					list = g_list_prepend(list, g_strdup(strings->data));
++					matcherlist_free(matcher_list);
++				}
++			}
++		}
++		g_free(newstr);
++
++	} while ((strings = g_list_next(strings)) != NULL);
++
++	matcher_parser_disable_warnings(FALSE);
++
++	if (list) {
++		list = g_list_reverse(list);
++		combobox_set_popdown_strings(combo, list);
++		g_list_free(list);
++	}
++}
++
 +static void prefs_page_create_widget(PrefsPage *page, GtkWindow *window, gpointer data)
 +{
 +	VFolderItemPrefsPage *vpage = (VFolderItemPrefsPage *) page;
@@ -3264,11 +3556,22 @@ index 000000000..a90792590
 +		(GtkAttachOptions) (GTK_FILL),
 +		(GtkAttachOptions) (0), 0, 0);
 +
-+	cond_entry = gtk_entry_new ();
++#if !GTK_CHECK_VERSION(2, 24, 0)
++	cond_entry = gtk_combo_box_entry_new_text ();
++#else
++	cond_entry = gtk_combo_box_text_new_with_entry ();
++#endif
 +	gtk_widget_show (cond_entry);
 +	gtk_table_attach (GTK_TABLE (table), cond_entry, 1, 2, 4, 5,
 +		(GtkAttachOptions) (GTK_FILL|GTK_EXPAND),
 +		(GtkAttachOptions) (0), 0, 0);
++	combo_set_search_strings(
++#if !GTK_CHECK_VERSION(2, 24, 0)
++	GTK_COMBO_BOX(cond_entry)
++#else
++	GTK_COMBO_BOX_TEXT(cond_entry)
++#endif
++	);
 +
 +	cond_btn =  gtk_button_new_with_mnemonic (_(" Def_ine... "));
 +	gtk_widget_show (cond_btn);
@@ -3432,7 +3735,7 @@ index 000000000..a90792590
 +	str = matcherlist_to_string(matchers);
 +
 +	if (str != NULL) {
-+		gtk_entry_set_text(GTK_ENTRY(cond_entry), str);
++		gtk_entry_set_text(GTK_ENTRY_FROM_COMBOBOX(cond_entry), str);
 +		g_free(str);
 +	}
 +}
@@ -3442,7 +3745,7 @@ index 000000000..a90792590
 +	gchar *cond_str;
 +	MatcherList *matchers = NULL;
 +
-+	cond_str = gtk_editable_get_chars(GTK_EDITABLE(cond_entry), 0, -1);
++	cond_str = gtk_editable_get_chars(GTK_EDITABLE(GTK_ENTRY_FROM_COMBOBOX(cond_entry)), 0, -1);
 +
 +	if (*cond_str != '\0') {
 +		matchers = matcher_parser_get_cond(cond_str, NULL);
@@ -3470,7 +3773,7 @@ index 000000000..a90792590
 +
 +	folder = gtk_entry_get_text(GTK_ENTRY(folder_entry));
 +	recursive = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(recursive_btn));
-+	cond = gtk_entry_get_text(GTK_ENTRY(cond_entry));
++	cond = gtk_entry_get_text(GTK_ENTRY_FROM_COMBOBOX(cond_entry));
 +
 +	/* validate values */
 +	{
@@ -3587,7 +3890,7 @@ index 000000000..a90792590
 +{
 +	gtk_entry_set_text(GTK_ENTRY(folder_entry), "");
 +	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(recursive_btn), FALSE);
-+	gtk_entry_set_text(GTK_ENTRY(cond_entry), "");
++	gtk_entry_set_text(GTK_ENTRY_FROM_COMBOBOX(cond_entry), "");
 +}
 +
 +static void prefs_page_up(gpointer action, gpointer data)
@@ -3933,10 +4236,10 @@ index 000000000..df56f60b4
 +#endif /* __VFOLDER_ITEM_PREFS_H__ */
 diff --git a/src/plugins/vfolder/vfolder_prefs.c b/src/plugins/vfolder/vfolder_prefs.c
 new file mode 100644
-index 000000000..a4bf1ebc3
+index 000000000..8c838dc24
 --- /dev/null
 +++ b/src/plugins/vfolder/vfolder_prefs.c
-@@ -0,0 +1,223 @@
+@@ -0,0 +1,247 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -4115,9 +4418,32 @@ index 000000000..a4bf1ebc3
 +	/* void */
 +}
 +
++static gboolean prefs_can_close(PrefsPage *page)
++{
++	if (!page->page_open)
++		return TRUE;
++
++	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(search_btn)))
++	{
++		FolderItem *item;
++
++		item = folder_find_item_from_identifier(gtk_entry_get_text(GTK_ENTRY(folder_entry)));
++		if (!item || item->folder->klass != vfolder_get_class())
++		{
++			alertpanel_error(_("VFolder: 'Search results' feature: Invalid virtual folder"));
++			return FALSE;
++		}
++	}
++
++	return TRUE;
++}
++
 +static void prefs_page_save(PrefsPage *page)
 +{
 +	VFolderConfig *vconfig = vfolder_get_config();
++
++	if (!page->page_open || !prefs_can_close(page))
++		return;
 +
 +	vconfig->add_trash = gtk_toggle_button_get_active(
 +		GTK_TOGGLE_BUTTON(trash_btn));
@@ -4151,6 +4477,7 @@ index 000000000..a4bf1ebc3
 +	vfolder_prefs_page.page.path = pfi_path;
 +	vfolder_prefs_page.page.create_widget = prefs_page_create_widget;
 +	vfolder_prefs_page.page.destroy_widget = prefs_page_destroy_widget;
++	vfolder_prefs_page.page.can_close = prefs_can_close;
 +	vfolder_prefs_page.page.save_page = prefs_page_save;
 +
 +	prefs_gtk_register_page((PrefsPage *) &vfolder_prefs_page);
@@ -4196,5 +4523,5 @@ index 000000000..eb87f63f6
 +
 +#endif /* __VFOLDER_PREFS_H__ */
 -- 
-2.12.1
+2.13.0
 
