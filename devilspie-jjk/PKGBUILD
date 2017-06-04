@@ -4,35 +4,39 @@
 # Contributor: Travis Willard <travisw@wmpub.ca>
 # Contributor: William Rea <sillywilly@gmail.com>
 
-pkgname=devilspie
+_pkgname=devilspie
+pkgname=$_pkgname-jjk
 pkgver=0.22
-pkgrel=7
+pkgrel=1
 pkgdesc='Window matching utility for X'
 arch=('x86_64' 'i686')
 url='http://www.burtonini.com/blog/computers/devilspie'
 license=('GPL')
 depends=('libwnck')
 makedepends=('pkgconfig' 'intltool' 'gnome-common')
-source=("http://www.burtonini.com/computing/$pkgname-$pkgver.tar.gz")
+provides=($_pkgname)
+conflicts=($_pkgname)
+source=("http://www.burtonini.com/computing/$_pkgname-$pkgver.tar.gz")
 sha256sums=('e06aba1d96889e1b58bd1b0ba4d3015f50adc3ade2824b5cb37a0ee7f2490aaf')
 
 build() {
-  cd "$pkgname-$pkgver"
+  cd "$_pkgname-$pkgver"
 
   sed -i -e '/-DG.*_DISABLE_DEPRECATED/d' src/Makefile.am
   export LIBS="-lX11"
+  export CFLAGS+=" -Wno-format-y2k"
   ./autogen.sh
   ./configure --prefix=/usr --sysconfdir=/etc
   make
 }
 
 package() {
-  cd "$pkgname-$pkgver"
+  cd "$_pkgname-$pkgver"
 
-  make prefix=$pkgdir/usr install
+  make prefix="$pkgdir"/usr install
   # Make and install blank config
-  mkdir -p $pkgdir/etc/devilspie
-  echo '(debug)' > $pkgdir/etc/devilspie/example.ds
+  mkdir -p "$pkgdir"/etc/devilspie
+  echo '(debug)' > "$pkgdir"/etc/devilspie/example.ds
 }
 
 # vim:set ts=2 sw=2 et:
