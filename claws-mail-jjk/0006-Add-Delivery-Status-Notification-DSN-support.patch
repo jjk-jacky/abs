@@ -1,0 +1,903 @@
+From cbec286b320737bdb04b62d3f42ed2f53bbad356 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Mon, 5 Jun 2017 22:10:50 +0200
+Subject: [PATCH 6/7] Add Delivery Status Notification (DSN) support
+
+New account options under Compose allow to set which (if any) DSN must
+be used: Success, Failure, Delay.
+
+Those options only set a default, which can itself be overwritten by
+similar options under folder properties, page Compose.
+Either way, a new menu in Compose window will show the current options
+as well as allow to set them on a per-message basis.
+
+Based on a patch by Alex Fedorov.
+
+http://www.thewildbeast.co.uk/claws-mail/bugzilla/show_bug.cgi?id=3533
+---
+ src/account.c           |   3 ++
+ src/common/Makefile.am  |   1 +
+ src/common/dsn.h        |  32 ++++++++++++++
+ src/common/smtp.c       |  64 ++++++++++++++++++++++++++--
+ src/common/smtp.h       |   4 ++
+ src/compose.c           | 111 ++++++++++++++++++++++++++++++++++++++++++++++--
+ src/compose.h           |   2 +
+ src/folder_item_prefs.c |   4 ++
+ src/folder_item_prefs.h |   2 +
+ src/prefs_account.c     |  40 +++++++++++++++++
+ src/prefs_account.h     |   3 ++
+ src/prefs_folder_item.c |  84 ++++++++++++++++++++++++++++++++++++
+ src/procmsg.c           |  10 ++++-
+ src/send_message.c      |  10 +++--
+ src/send_message.h      |   3 ++
+ 15 files changed, 359 insertions(+), 14 deletions(-)
+ create mode 100644 src/common/dsn.h
+
+diff --git a/src/account.c b/src/account.c
+index 962505682..b334e2f85 100644
+--- a/src/account.c
++++ b/src/account.c
+@@ -1008,6 +1008,9 @@ static void account_clone(GtkWidget *widget, gpointer data)
+ 	ACP_FASSIGN(forward_with_format);
+ 	ACP_FDUP(forward_quotemark);
+ 	ACP_FDUP(forward_body_format);
++	ACP_FASSIGN(dsn_success);
++	ACP_FASSIGN(dsn_failure);
++	ACP_FASSIGN(dsn_delay);
+ 
+         /* privacy */
+ 	ACP_FDUP(default_privacy_system);
+diff --git a/src/common/Makefile.am b/src/common/Makefile.am
+index 1dd8e9190..be728f2a3 100644
+--- a/src/common/Makefile.am
++++ b/src/common/Makefile.am
+@@ -47,6 +47,7 @@ libclawscommon_la_SOURCES = $(arch_sources) \
+ clawscommonincludedir = $(pkgincludedir)/common
+ clawscommoninclude_HEADERS = $(arch_headers) \
+ 	defs.h \
++	dsn.h \
+ 	hooks.h \
+ 	log.h \
+ 	md5.h \
+diff --git a/src/common/dsn.h b/src/common/dsn.h
+new file mode 100644
+index 000000000..cc037b1e8
+--- /dev/null
++++ b/src/common/dsn.h
+@@ -0,0 +1,32 @@
++/*
++ * Claws Mail -- a GTK+ based, lightweight, and fast e-mail client
++ * Copyright (C) 2017 the Claws Mail team
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef __DSN_H__
++#define __DSN_H__
++
++typedef enum {
++	DSN_SUCCESS	= 1 << 0,
++	DSN_FAILURE	= 1 << 1,
++	DSN_DELAY	= 1 << 2,
++
++	/* indicates that values should be used, used for folder properties to
++	 * be able to override account defaults by not setting any DSN */
++	DSN_IS_SET	= 1 << 8
++} DsnType;
++
++#endif /* __DSN_H__ */
+diff --git a/src/common/smtp.c b/src/common/smtp.c
+index 2460f7e04..825aafdbc 100644
+--- a/src/common/smtp.c
++++ b/src/common/smtp.c
+@@ -31,11 +31,13 @@
+ #endif
+ #include <stdio.h>
+ #include <string.h>
++#include <stdarg.h>
+ 
+ #include "smtp.h"
+ #include "md5.h"
+ #include "utils.h"
+ #include "log.h"
++#include "dsn.h"
+ 
+ static void smtp_session_destroy(Session *session);
+ 
+@@ -122,9 +124,28 @@ static void smtp_session_destroy(Session *session)
+ 	g_free(smtp_session->error_msg);
+ }
+ 
++static void add_buf_printf(gchar **b, gulong *left, const gchar *fmt, ...)
++{
++	gint len;
++	va_list args;
++
++	va_start(args, fmt);
++	len = g_vsnprintf(*b, *left, fmt, args);
++	va_end(args);
++
++	if (len >= *left)
++		*left = 0;
++	else {
++		*left -= len;
++		*b += len;
++	}
++}
++
+ gint smtp_from(SMTPSession *session)
+ {
+ 	gchar buf[MESSAGEBUFSIZE];
++	gchar *b = buf;
++	gulong left = sizeof(buf);
+ 	gchar *mail_size = NULL;
+ 
+ 	cm_return_val_if_fail(session->from != NULL, SM_ERROR);
+@@ -138,12 +159,15 @@ gint smtp_from(SMTPSession *session)
+ 		
+ 
+ 	if (strchr(session->from, '<'))
+-		g_snprintf(buf, sizeof(buf), "MAIL FROM:%s%s", session->from,
++		add_buf_printf(&b, &left, "MAIL FROM:%s%s", session->from,
+ 			   mail_size);
+ 	else
+-		g_snprintf(buf, sizeof(buf), "MAIL FROM:<%s>%s", session->from,
++		add_buf_printf(&b, &left, "MAIL FROM:<%s>%s", session->from,
+ 			   mail_size);
+ 
++	if (session->dsn && session->is_dsn_supported)
++		add_buf_printf(&b, &left, " RET=HDRS");
++
+ 	g_free(mail_size);
+ 
+ 	if (session_send_msg(SESSION(session), buf) < 0)
+@@ -327,6 +351,10 @@ static gint smtp_ehlo_recv(SMTPSession *session, const gchar *msg)
+ 			p += 9;
+ 			session->avail_auth_type |= SMTPAUTH_TLS_AVAILABLE;
+ 		}
++		if (g_ascii_strncasecmp(p, "DSN", 3) == 0) {
++			p += 4;
++			session->is_dsn_supported = TRUE;
++		}
+ 		return SM_OK;
+ 	} else if ((msg[0] == '1' || msg[0] == '2' || msg[0] == '3') &&
+ 	    (msg[3] == ' ' || msg[3] == '\0'))
+@@ -421,6 +449,8 @@ static gint smtp_helo(SMTPSession *session)
+ static gint smtp_rcpt(SMTPSession *session)
+ {
+ 	gchar buf[MESSAGEBUFSIZE];
++	gchar *b = buf;
++	gulong left = sizeof(buf);
+ 	gchar *to;
+ 
+ 	cm_return_val_if_fail(session->cur_to != NULL, SM_ERROR);
+@@ -430,9 +460,35 @@ static gint smtp_rcpt(SMTPSession *session)
+ 	to = (gchar *)session->cur_to->data;
+ 
+ 	if (strchr(to, '<'))
+-		g_snprintf(buf, sizeof(buf), "RCPT TO:%s", to);
++		add_buf_printf(&b, &left, "RCPT TO:%s", to);
+ 	else
+-		g_snprintf(buf, sizeof(buf), "RCPT TO:<%s>", to);
++		add_buf_printf(&b, &left, "RCPT TO:<%s>", to);
++	
++	if (session->dsn && session->is_dsn_supported)
++	{
++		gboolean first = TRUE;
++
++		add_buf_printf(&b, &left, " NOTIFY=");
++		if (session->dsn & DSN_SUCCESS) {
++			add_buf_printf(&b, &left, "SUCCESS");
++			first = FALSE;
++		}
++		if (session->dsn & DSN_FAILURE) {
++			add_buf_printf(&b, &left, "%sFAILURE",
++				(first) ? "" : ",");
++			first = FALSE;
++		}
++		if (session->dsn & DSN_DELAY) {
++			add_buf_printf(&b, &left, "%sDELAY",
++				(first) ? "" : ",");
++		}
++		add_buf_printf(&b, &left, " ORCPT=rfc822;");
++		if (strchr(to, '<'))
++			add_buf_printf(&b, &left, "%s", to);
++		else	
++			add_buf_printf(&b, &left, "<%s>", to);
++	}
++	
+ 	if (session_send_msg(SESSION(session), buf) < 0)
+ 		return SM_ERROR;
+ 	log_print(LOG_PROTOCOL, "SMTP> %s\n", buf);
+diff --git a/src/common/smtp.h b/src/common/smtp.h
+index 706a0978a..3396a8874 100644
+--- a/src/common/smtp.h
++++ b/src/common/smtp.h
+@@ -27,6 +27,7 @@
+ #include <glib.h>
+ 
+ #include "session.h"
++#include "dsn.h"
+ 
+ typedef struct _SMTPSession	SMTPSession;
+ 
+@@ -112,6 +113,9 @@ struct _SMTPSession
+ 	gboolean is_esmtp;
+ 	ESMTPFlag esmtp_flags;
+ 	
++	DsnType dsn;
++        gboolean is_dsn_supported;
++
+ 	void *dialog;
+ 
+ #ifdef USE_GNUTLS
+diff --git a/src/compose.c b/src/compose.c
+index bd34f43d8..7aee5c380 100644
+--- a/src/compose.c
++++ b/src/compose.c
+@@ -494,6 +494,12 @@ static void compose_use_signing(Compose *compose, gboolean use_signing);
+ static void compose_use_encryption(Compose *compose, gboolean use_encryption);
+ static void compose_toggle_return_receipt_cb(GtkToggleAction *action,
+ 					 gpointer	 data);
++static void compose_toggle_dsn_success_cb(GtkToggleAction *action,
++					 gpointer	 data);
++static void compose_toggle_dsn_failure_cb(GtkToggleAction *action,
++					 gpointer	 data);
++static void compose_toggle_dsn_delay_cb(GtkToggleAction *action,
++					 gpointer	 data);
+ static void compose_toggle_remove_refs_cb(GtkToggleAction *action,
+ 					 gpointer	 data);
+ static void compose_set_priority_cb	(GtkAction *action, GtkRadioAction *current, gpointer data);
+@@ -697,6 +703,8 @@ static GtkActionEntry compose_entries[] =
+ 	{"Options/Encoding/Korean",       NULL, N_("Korean"), NULL, NULL, NULL },
+ 	{"Options/Encoding/Thai",         NULL, N_("Thai"), NULL, NULL, NULL },
+ 
++	{"Options/Dsn",                   NULL, N_("_Delivery Status Notification"), NULL, NULL, NULL },
++
+ /* Tools menu */
+ 	{"Tools/AddressBook",             NULL, N_("_Address book"), NULL, NULL, G_CALLBACK(compose_address_cb) }, 
+ 
+@@ -716,6 +724,9 @@ static GtkToggleActionEntry compose_toggle_entries[] =
+ 	{"Options/Sign",             NULL, N_("Si_gn"), NULL, NULL, G_CALLBACK(compose_toggle_sign_cb), FALSE }, /* Toggle */
+ 	{"Options/Encrypt",          NULL, N_("_Encrypt"), NULL, NULL, G_CALLBACK(compose_toggle_encrypt_cb), FALSE }, /* Toggle */
+ 	{"Options/RequestRetRcpt",   NULL, N_("_Request Return Receipt"), NULL, NULL, G_CALLBACK(compose_toggle_return_receipt_cb), FALSE }, /* Toggle */
++	{"Options/Dsn/Success",      NULL, N_("_Success"), NULL, NULL, G_CALLBACK(compose_toggle_dsn_success_cb), FALSE }, /* Toggle */
++	{"Options/Dsn/Failure",      NULL, N_("_Failure"), NULL, NULL, G_CALLBACK(compose_toggle_dsn_failure_cb), FALSE }, /* Toggle */
++	{"Options/Dsn/Delay",        NULL, N_("_Delay"), NULL, NULL, G_CALLBACK(compose_toggle_dsn_delay_cb), FALSE }, /* Toggle */
+ 	{"Options/RemoveReferences", NULL, N_("Remo_ve references"), NULL, NULL, G_CALLBACK(compose_toggle_remove_refs_cb), FALSE }, /* Toggle */
+ 	{"Tools/ShowRuler",          NULL, N_("Show _ruler"), NULL, NULL, G_CALLBACK(compose_toggle_ruler_cb), FALSE }, /* Toggle */
+ };
+@@ -1108,15 +1119,36 @@ Compose *compose_generic_new(PrefsAccount *account, const gchar *mailto, FolderI
+ 	gtk_text_buffer_place_cursor(textbuf, &iter);
+ 
+ 	if (account->protocol != A_NNTP) {
++		gboolean has_dsn = FALSE;
++
+ 		if (mailto && *mailto != '\0') {
+ 			mfield = compose_entries_set(compose, mailto, COMPOSE_TO);
+ 
+ 		} else {
+ 			compose_set_folder_prefs(compose, item, TRUE);
+ 		}
+-		if (item && item->ret_rcpt) {
+-			cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/RequestRetRcpt", TRUE);
++		if (item) {
++			if (item->ret_rcpt)
++				cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/RequestRetRcpt", TRUE);
++			if (item->prefs && item->prefs->dsn & DSN_IS_SET) {
++				has_dsn = TRUE;
++				if (item->prefs->dsn & DSN_SUCCESS)
++					cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Success", TRUE);
++				if (item->prefs->dsn & DSN_FAILURE)
++					cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Failure", TRUE);
++				if (item->prefs->dsn & DSN_DELAY)
++					cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Delay", TRUE);
++			}
+ 		}
++		if (!has_dsn) {
++			if (account->dsn_success)
++				cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Success", TRUE);
++			if (account->dsn_failure)
++				cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Failure", TRUE);
++			if (account->dsn_delay)
++				cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Delay", TRUE);
++		}
++
+ 	} else {
+ 		if (mailto && *mailto != '\0') {
+ 			if (!strchr(mailto, '@'))
+@@ -1585,6 +1617,7 @@ static Compose *compose_generic_reply(MsgInfo *msginfo,
+ 	const gchar *qmark = NULL;
+ 	const gchar *body_fmt = NULL;
+ 	gchar *s_system = NULL;
++	gboolean has_dsn = FALSE;
+ 	START_TIMING("");
+ 	cm_return_val_if_fail(msginfo != NULL, NULL);
+ 	cm_return_val_if_fail(msginfo->folder != NULL, NULL);
+@@ -1606,8 +1639,27 @@ static Compose *compose_generic_reply(MsgInfo *msginfo,
+ 
+ 	compose_extract_original_charset(compose);
+ 	
+-    	if (msginfo->folder && msginfo->folder->ret_rcpt)
+-		cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/RequestRetRcpt", TRUE);
++	if (msginfo->folder) {
++		if (msginfo->folder->ret_rcpt)
++			cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/RequestRetRcpt", TRUE);
++		if (msginfo->folder->prefs && msginfo->folder->prefs->dsn & DSN_IS_SET) {
++			has_dsn = TRUE;
++			if (msginfo->folder->prefs->dsn & DSN_SUCCESS)
++				cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Success", TRUE);
++			if (msginfo->folder->prefs->dsn & DSN_FAILURE)
++				cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Failure", TRUE);
++			if (msginfo->folder->prefs->dsn & DSN_DELAY)
++				cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Delay", TRUE);
++		}
++	}
++	if (!has_dsn) {
++		if (account->dsn_success)
++			cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Success", TRUE);
++		if (account->dsn_failure)
++			cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Failure", TRUE);
++		if (account->dsn_delay)
++			cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Delay", TRUE);
++	}
+ 
+ 	/* Set save folder */
+ 	if (msginfo->folder && msginfo->folder->prefs && msginfo->folder->prefs->save_copy_to_folder) {
+@@ -2423,6 +2475,16 @@ Compose *compose_reedit(MsgInfo *msginfo, gboolean batch)
+ 			}
+ 			g_free(queueheader_buf);
+ 		}
++		if (!procheader_get_header_from_msginfo(msginfo, &queueheader_buf, "DSN:")) {
++			gint dsn = atoi(&queueheader_buf[strlen("DSN:")]);
++			if (dsn & DSN_SUCCESS)
++				cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Success", TRUE);
++			if (dsn & DSN_FAILURE)
++				cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Failure", TRUE);
++			if (dsn & DSN_DELAY)
++				cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Delay", TRUE);
++			g_free(queueheader_buf);
++		}
+ 	}
+ 	
+ 	if (compose_parse_header(compose, msginfo) < 0) {
+@@ -5543,6 +5605,7 @@ static gint compose_redirect_write_to_file(Compose *compose, FILE *fdest)
+ 		"X-Sylpheed-Privacy",	"X-Sylpheed-Sign:",	"X-Sylpheed-Encrypt",
+ 		"X-Sylpheed-End-Special-Headers:", 		"X-Sylpheed-Account-Id:",
+ 		"X-Claws-Auto-Wrapping:", "X-Claws-Auto-Indent:",
++		"DSN:",
+ 		NULL
+ 		};
+ 	gint ret = 0;
+@@ -6205,6 +6268,9 @@ static gint compose_queue_sub(Compose *compose, gint *msgnum, FolderItem **item,
+ 	if (compose->return_receipt) {
+ 		err |= (fprintf(fp, "RRCPT:1\n") < 0);
+ 	}
++	if (compose->dsn) {
++		err |= (fprintf(fp, "DSN:%d\n", compose->dsn) < 0);
++	}
+ 	/* Message-ID of message replying to */
+ 	if ((compose->replyinfo != NULL) && (compose->replyinfo->msgid != NULL)) {
+ 		gchar *folderid = NULL;
+@@ -7824,6 +7890,10 @@ static Compose *compose_create(PrefsAccount *account,
+ 
+ 	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "Separator3", "Options/---", GTK_UI_MANAGER_SEPARATOR)
+ 	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "RequestRetRcpt", "Options/RequestRetRcpt", GTK_UI_MANAGER_MENUITEM)
++	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "Dsn", "Options/Dsn", GTK_UI_MANAGER_MENU)
++	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options/Dsn", "Success", "Options/Dsn/Success", GTK_UI_MANAGER_MENUITEM)
++	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options/Dsn", "Failure", "Options/Dsn/Failure", GTK_UI_MANAGER_MENUITEM)
++	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options/Dsn", "Delay", "Options/Dsn/Delay", GTK_UI_MANAGER_MENUITEM)
+ 	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "Separator4", "Options/---", GTK_UI_MANAGER_SEPARATOR)
+ 	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "RemoveReferences", "Options/RemoveReferences", GTK_UI_MANAGER_MENUITEM)
+ 	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "Separator5", "Options/---", GTK_UI_MANAGER_SEPARATOR)
+@@ -10230,6 +10300,9 @@ gboolean compose_draft (gpointer data, guint action)
+ 	if (compose->return_receipt) {
+ 		err |= (fprintf(fp, "RRCPT:1\n") < 0);
+ 	}
++	if (compose->dsn) {
++		err |= (fprintf(fp, "DSN:%d\n", compose->dsn) < 0);
++	}
+ 	if (compose->privacy_system) {
+ 		err |= (fprintf(fp, "X-Claws-Sign:%d\n", compose->use_signing) < 0);
+ 		err |= (fprintf(fp, "X-Claws-Encrypt:%d\n", compose->use_encryption) < 0);
+@@ -11632,6 +11705,36 @@ static void compose_toggle_return_receipt_cb(GtkToggleAction *action, gpointer d
+ 		compose->return_receipt = FALSE;
+ }
+ 
++static void compose_toggle_dsn_success_cb(GtkToggleAction *action, gpointer data)
++{
++	Compose *compose = (Compose *)data;
++
++	if (gtk_toggle_action_get_active (GTK_TOGGLE_ACTION (action)))
++		compose->dsn |= DSN_SUCCESS;
++	else
++		compose->dsn &= ~DSN_SUCCESS;
++}
++
++static void compose_toggle_dsn_failure_cb(GtkToggleAction *action, gpointer data)
++{
++	Compose *compose = (Compose *)data;
++
++	if (gtk_toggle_action_get_active (GTK_TOGGLE_ACTION (action)))
++		compose->dsn |= DSN_FAILURE;
++	else
++		compose->dsn &= ~DSN_FAILURE;
++}
++
++static void compose_toggle_dsn_delay_cb(GtkToggleAction *action, gpointer data)
++{
++	Compose *compose = (Compose *)data;
++
++	if (gtk_toggle_action_get_active (GTK_TOGGLE_ACTION (action)))
++		compose->dsn |= DSN_DELAY;
++	else
++		compose->dsn &= ~DSN_DELAY;
++}
++
+ static void compose_toggle_remove_refs_cb(GtkToggleAction *action, gpointer data)
+ {
+ 	Compose *compose = (Compose *)data;
+diff --git a/src/compose.h b/src/compose.h
+index cca482d0b..358417ff5 100644
+--- a/src/compose.h
++++ b/src/compose.h
+@@ -35,6 +35,7 @@ typedef struct _AttachInfo	AttachInfo;
+ #include "template.h"
+ #include "viewtypes.h"
+ #include "folder.h"
++#include "dsn.h"
+ 
+ #ifdef USE_ENCHANT
+ #include "gtkaspell.h"
+@@ -194,6 +195,7 @@ struct _Compose
+ 	gboolean sending;
+ 	
+ 	gboolean return_receipt;
++	DsnType dsn;
+ 
+ 	gboolean batch;
+ 	
+diff --git a/src/folder_item_prefs.c b/src/folder_item_prefs.c
+index e54bff04c..58ae645e3 100644
+--- a/src/folder_item_prefs.c
++++ b/src/folder_item_prefs.c
+@@ -120,6 +120,8 @@ static PrefParam param[] = {
+ 	 NULL, NULL, NULL},
+ 	{"forward_body_format", NULL, &tmp_prefs.forward_body_format, P_STRING,
+ 	 NULL, NULL, NULL},
++	{"dsn", NULL, &tmp_prefs.dsn, P_INT,
++	 NULL, NULL, NULL},
+ 	{NULL, NULL, NULL, P_OTHER, NULL, NULL, NULL}
+ };
+ 
+@@ -200,6 +202,7 @@ static FolderItemPrefs *folder_item_prefs_clear(FolderItemPrefs *prefs)
+ #endif
+ 	prefs->save_copy_to_folder = FALSE;
+ 	prefs->color = 0;
++	prefs->dsn = 0;
+ 
+         prefs->enable_processing = TRUE;
+         prefs->enable_processing_when_opening = TRUE;
+@@ -307,6 +310,7 @@ void folder_item_prefs_copy_prefs(FolderItem * src, FolderItem * dest)
+ #endif
+ 	tmp_prefs.save_copy_to_folder		= src->prefs->save_copy_to_folder;
+ 	tmp_prefs.color				= src->prefs->color;
++	tmp_prefs.dsn				= src->prefs->dsn;
+ 
+ 	tmp_prefs.compose_with_format = src->prefs->compose_with_format;
+ 	tmp_prefs.compose_subject_format = g_strdup(src->prefs->compose_subject_format);
+diff --git a/src/folder_item_prefs.h b/src/folder_item_prefs.h
+index 44e49985d..c0193e5bf 100644
+--- a/src/folder_item_prefs.h
++++ b/src/folder_item_prefs.h
+@@ -26,6 +26,7 @@
+ typedef struct _FolderItemPrefs FolderItemPrefs;
+ 
+ #include "folder.h"
++#include "dsn.h"
+ typedef enum {
+ 	HTML_PROMOTE_DEFAULT=0,
+ 	HTML_PROMOTE_NEVER,
+@@ -46,6 +47,7 @@ struct _FolderItemPrefs {
+ 	HTMLPromoteType promote_html_part;
+ 
+ 	gboolean request_return_receipt;
++	DsnType dsn;
+ 	gboolean enable_default_to;
+ 	gchar *default_to;
+ 	gboolean enable_default_reply_to;
+diff --git a/src/prefs_account.c b/src/prefs_account.c
+index 589d63d1d..69a3e55ae 100644
+--- a/src/prefs_account.c
++++ b/src/prefs_account.c
+@@ -199,6 +199,9 @@ typedef struct ComposePage
+ 	GtkWidget *autobcc_entry;
+ 	GtkWidget *autoreplyto_checkbtn;
+ 	GtkWidget *autoreplyto_entry;
++	GtkWidget *dsn_success_checkbtn;
++	GtkWidget *dsn_failure_checkbtn;
++	GtkWidget *dsn_delay_checkbtn;
+ #if USE_ENCHANT
+ 	GtkWidget *checkbtn_enable_default_dictionary;
+ 	GtkWidget *combo_default_dictionary;
+@@ -591,6 +594,18 @@ static PrefParam compose_param[] = {
+ 	 &compose_page.autoreplyto_entry,
+ 	 prefs_set_data_from_entry, prefs_set_entry},
+ 
++	{"dsn_success", "FALSE", &tmp_ac_prefs.dsn_success, P_BOOL,
++	 &compose_page.dsn_success_checkbtn,
++	 prefs_set_data_from_toggle, prefs_set_toggle},
++
++	{"dsn_failure", "TRUE", &tmp_ac_prefs.dsn_failure, P_BOOL,
++	 &compose_page.dsn_failure_checkbtn,
++	 prefs_set_data_from_toggle, prefs_set_toggle},
++
++	{"dsn_delay", "TRUE", &tmp_ac_prefs.dsn_delay, P_BOOL,
++	 &compose_page.dsn_delay_checkbtn,
++	 prefs_set_data_from_toggle, prefs_set_toggle},
++
+ #if USE_ENCHANT
+ 	{"enable_default_dictionary", "", &tmp_ac_prefs.enable_default_dictionary, P_BOOL,
+ 	 &compose_page.checkbtn_enable_default_dictionary,
+@@ -1961,6 +1976,10 @@ static void compose_create_widget_func(PrefsPage * _page,
+ 	GtkWidget *autobcc_entry;
+ 	GtkWidget *autoreplyto_checkbtn;
+ 	GtkWidget *autoreplyto_entry;
++	GtkWidget *hbox_dsn;
++	GtkWidget *dsn_success_checkbtn;
++	GtkWidget *dsn_failure_checkbtn;
++	GtkWidget *dsn_delay_checkbtn;
+ #if USE_ENCHANT
+ 	GtkWidget *frame_dict;
+ 	GtkWidget *table_dict;
+@@ -2091,6 +2110,23 @@ static void compose_create_widget_func(PrefsPage * _page,
+ 
+ 	SET_TOGGLE_SENSITIVITY (autoreplyto_checkbtn, autoreplyto_entry);
+ 
++	frame = gtk_frame_new (_("Default Delivery Status Notification"));
++	gtk_widget_show (frame);
++	gtk_box_pack_start (GTK_BOX (vbox1), frame, FALSE, TRUE, 0);
++	gtk_frame_set_label_align (GTK_FRAME (frame), 0.01, 0.5);
++
++	hbox_dsn = gtk_hbox_new (FALSE, 4);
++	gtk_widget_show (hbox_dsn);
++	gtk_container_add (GTK_CONTAINER (frame), hbox_dsn);
++	gtk_container_set_border_width (GTK_CONTAINER (hbox_dsn), 8);
++
++	PACK_CHECK_BUTTON (hbox_dsn, dsn_success_checkbtn,
++		_("Success"));
++	PACK_CHECK_BUTTON (hbox_dsn, dsn_failure_checkbtn,
++		_("Failure"));
++	PACK_CHECK_BUTTON (hbox_dsn, dsn_delay_checkbtn,
++		_("Delay"));
++
+ #if USE_ENCHANT
+ 	PACK_FRAME (vbox1, frame_dict, _("Spell check dictionaries"));
+ 
+@@ -2141,6 +2177,10 @@ static void compose_create_widget_func(PrefsPage * _page,
+ 	page->autobcc_entry      = autobcc_entry;
+ 	page->autoreplyto_checkbtn = autoreplyto_checkbtn;
+ 	page->autoreplyto_entry  = autoreplyto_entry;
++
++	page->dsn_success_checkbtn = dsn_success_checkbtn;
++	page->dsn_failure_checkbtn = dsn_failure_checkbtn;
++	page->dsn_delay_checkbtn   = dsn_delay_checkbtn;
+ #ifdef USE_ENCHANT
+ 	page->checkbtn_enable_default_dictionary = checkbtn_enable_default_dictionary;
+ 	page->combo_default_dictionary = combo_default_dictionary;
+diff --git a/src/prefs_account.h b/src/prefs_account.h
+index 83f6efad7..a25b9c4d6 100644
+--- a/src/prefs_account.h
++++ b/src/prefs_account.h
+@@ -146,6 +146,9 @@ struct _PrefsAccount
+ 	gboolean  forward_with_format;
+ 	gchar	 *forward_quotemark;
+ 	gchar	 *forward_body_format;
++	gboolean dsn_success;
++	gboolean dsn_failure;
++	gboolean dsn_delay;
+ 
+ 	/* Privacy */
+ 	gchar	 *default_privacy_system;
+diff --git a/src/prefs_folder_item.c b/src/prefs_folder_item.c
+index 560871550..fa8e2d791 100644
+--- a/src/prefs_folder_item.c
++++ b/src/prefs_folder_item.c
+@@ -115,6 +115,10 @@ struct _FolderItemComposePage
+ 	GtkWidget *table;
+ 	GtkWidget *no_save_warning;
+ 	GtkWidget *checkbtn_request_return_receipt;
++	GtkWidget *checkbtn_dsn;
++	GtkWidget *checkbtn_dsn_success;
++	GtkWidget *checkbtn_dsn_failure;
++	GtkWidget *checkbtn_dsn_delay;
+ 	GtkWidget *checkbtn_save_copy_to_folder;
+ 	GtkWidget *checkbtn_default_to;
+ 	GtkWidget *entry_default_to;
+@@ -137,6 +141,7 @@ struct _FolderItemComposePage
+ 
+ 	/* apply to sub folders */
+ 	GtkWidget *request_return_receipt_rec_checkbtn;
++	GtkWidget *dsn_rec_checkbtn;
+ 	GtkWidget *save_copy_to_folder_rec_checkbtn;
+ 	GtkWidget *default_to_rec_checkbtn;
+ 	GtkWidget *default_reply_to_rec_checkbtn;
+@@ -808,6 +813,16 @@ static RecvProtocol item_protocol(FolderItem *item)
+ 	return item->folder->account->protocol;
+ }
+ 
++static void dsn_toggle_cb(GtkWidget *widget, gpointer data)
++{
++	FolderItemComposePage *page = data;
++	gboolean sensitive = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(page->checkbtn_dsn));
++
++	gtk_widget_set_sensitive (page->checkbtn_dsn_success, sensitive);
++	gtk_widget_set_sensitive (page->checkbtn_dsn_failure, sensitive);
++	gtk_widget_set_sensitive (page->checkbtn_dsn_delay, sensitive);
++}
++
+ static void prefs_folder_item_compose_create_widget_func(PrefsPage * page_,
+ 						   GtkWindow * window,
+                                 		   gpointer data)
+@@ -823,6 +838,11 @@ static void prefs_folder_item_compose_create_widget_func(PrefsPage * page_,
+ 	
+ 	GtkWidget *no_save_warning = NULL;
+ 	GtkWidget *checkbtn_request_return_receipt = NULL;
++	GtkWidget *checkbtn_dsn = NULL;
++	GtkWidget *hbox;
++	GtkWidget *checkbtn_dsn_success = NULL;
++	GtkWidget *checkbtn_dsn_failure = NULL;
++	GtkWidget *checkbtn_dsn_delay = NULL;
+ 	GtkWidget *checkbtn_save_copy_to_folder = NULL;
+ 	GtkWidget *checkbtn_default_to = NULL;
+ 	GtkWidget *entry_default_to = NULL;
+@@ -848,6 +868,7 @@ static void prefs_folder_item_compose_create_widget_func(PrefsPage * page_,
+ 	gchar *dictionary;
+ #endif
+ 	GtkWidget *request_return_receipt_rec_checkbtn = NULL;
++	GtkWidget *dsn_rec_checkbtn = NULL;
+ 	GtkWidget *save_copy_to_folder_rec_checkbtn = NULL;
+ 	GtkWidget *default_to_rec_checkbtn = NULL;
+ 	GtkWidget *default_reply_to_rec_checkbtn = NULL;
+@@ -905,6 +926,51 @@ static void prefs_folder_item_compose_create_widget_func(PrefsPage * page_,
+ 
+ 		rowcount++;
+ 
++		/* Delivery Status Notification */
++		checkbtn_dsn = gtk_check_button_new_with_label
++			(_("Default Delivery Status Notification:"));
++		gtk_table_attach(GTK_TABLE(table), checkbtn_dsn,
++			0, 2, rowcount, rowcount + 1, GTK_SHRINK | GTK_FILL,
++			GTK_FILL, 0, 0);
++		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(checkbtn_dsn),
++			(item->prefs->dsn & DSN_IS_SET) ? TRUE : FALSE);
++		g_signal_connect(G_OBJECT(checkbtn_dsn), "toggled",
++			G_CALLBACK(dsn_toggle_cb), page);
++
++		dsn_rec_checkbtn = gtk_check_button_new();
++		gtk_table_attach(GTK_TABLE(table), dsn_rec_checkbtn, 2, 3,
++			rowcount, rowcount + 1, GTK_SHRINK, GTK_SHRINK, 0, 0);
++
++		rowcount++;
++
++		hbox = gtk_hbox_new (FALSE, 0);
++		gtk_table_attach(GTK_TABLE(table), hbox,
++			1, 2, rowcount, rowcount + 1, GTK_SHRINK | GTK_FILL,
++			GTK_FILL, 0, 0);
++
++		checkbtn_dsn_success = gtk_check_button_new_with_label
++			(_("Success"));
++		gtk_box_pack_start (GTK_BOX(hbox), checkbtn_dsn_success, FALSE, FALSE, 0);
++		gtk_widget_set_sensitive (checkbtn_dsn_success, item->prefs->dsn & DSN_IS_SET);
++		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(checkbtn_dsn_success),
++			(item->prefs->dsn & DSN_SUCCESS) ? TRUE : FALSE);
++
++		checkbtn_dsn_failure = gtk_check_button_new_with_label
++			(_("Failure"));
++		gtk_box_pack_start (GTK_BOX(hbox), checkbtn_dsn_failure, FALSE, FALSE, 0);
++		gtk_widget_set_sensitive (checkbtn_dsn_failure, item->prefs->dsn & DSN_IS_SET);
++		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(checkbtn_dsn_failure),
++			(item->prefs->dsn & DSN_FAILURE) ? TRUE : FALSE);
++
++		checkbtn_dsn_delay = gtk_check_button_new_with_label
++			(_("Delay"));
++		gtk_box_pack_start (GTK_BOX(hbox), checkbtn_dsn_delay, FALSE, FALSE, 0);
++		gtk_widget_set_sensitive (checkbtn_dsn_delay, item->prefs->dsn & DSN_IS_SET);
++		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(checkbtn_dsn_delay),
++			(item->prefs->dsn & DSN_DELAY) ? TRUE : FALSE);
++
++		rowcount++;
++
+ 		/* Save Copy to Folder */
+ 		checkbtn_save_copy_to_folder = gtk_check_button_new_with_label
+ 			(_("Save copy of outgoing messages to this folder instead of Sent"));
+@@ -1175,6 +1241,10 @@ static void prefs_folder_item_compose_create_widget_func(PrefsPage * page_,
+ 	page->table = table;
+ 	page->no_save_warning = no_save_warning;
+ 	page->checkbtn_request_return_receipt = checkbtn_request_return_receipt;
++	page->checkbtn_dsn = checkbtn_dsn;
++	page->checkbtn_dsn_success = checkbtn_dsn_success;
++	page->checkbtn_dsn_failure = checkbtn_dsn_failure;
++	page->checkbtn_dsn_delay = checkbtn_dsn_delay;
+ 	page->checkbtn_save_copy_to_folder = checkbtn_save_copy_to_folder;
+ 	page->checkbtn_default_to = checkbtn_default_to;
+ 	page->entry_default_to = entry_default_to;
+@@ -1196,6 +1266,7 @@ static void prefs_folder_item_compose_create_widget_func(PrefsPage * page_,
+ #endif
+ 
+ 	page->request_return_receipt_rec_checkbtn = request_return_receipt_rec_checkbtn;
++	page->dsn_rec_checkbtn			  = dsn_rec_checkbtn;
+ 	page->save_copy_to_folder_rec_checkbtn	  = save_copy_to_folder_rec_checkbtn;
+ 	page->default_to_rec_checkbtn		  = default_to_rec_checkbtn;
+ 	page->default_reply_to_rec_checkbtn	  = default_reply_to_rec_checkbtn;
+@@ -1254,6 +1325,18 @@ static void compose_save_folder_prefs(FolderItem *folder, FolderItemComposePage
+ 			folder->ret_rcpt = prefs->request_return_receipt;
+ 		}
+ 
++		if (all || gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(page->dsn_rec_checkbtn))) {
++			prefs->dsn = 0;
++			if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(page->checkbtn_dsn)))
++				prefs->dsn |= DSN_IS_SET;
++			if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(page->checkbtn_dsn_success)))
++				prefs->dsn |= DSN_SUCCESS;
++			if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(page->checkbtn_dsn_failure)))
++				prefs->dsn |= DSN_FAILURE;
++			if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(page->checkbtn_dsn_delay)))
++				prefs->dsn |= DSN_DELAY;
++		}
++
+ 		if (all || gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(page->save_copy_to_folder_rec_checkbtn))) {
+ 			prefs->save_copy_to_folder = 
+ 				gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(page->checkbtn_save_copy_to_folder));
+@@ -1352,6 +1435,7 @@ static gboolean compose_save_recurse_func(GNode *node, gpointer data)
+ 	   it once */
+ 	if ((node == page->item->node) && item_protocol(item) != A_NNTP &&
+ 	    !(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(page->request_return_receipt_rec_checkbtn)) ||
++	      gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(page->dsn_rec_checkbtn)) ||
+ 	      gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(page->save_copy_to_folder_rec_checkbtn)) ||
+ 	      gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(page->default_to_rec_checkbtn)) ||
+ 	      gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(page->default_account_rec_checkbtn)) ||
+diff --git a/src/procmsg.c b/src/procmsg.c
+index c9b077eb1..2106fabd2 100644
+--- a/src/procmsg.c
++++ b/src/procmsg.c
+@@ -75,6 +75,7 @@ enum
+ 	Q_ENCRYPT_OLD 	     = 14,
+ 	Q_ENCRYPT_DATA_OLD   = 15,
+ 	Q_CLAWS_HDRS_OLD     = 16,
++	Q_DSN                = 17
+ };
+ 
+ void procmsg_msg_list_free(GSList *mlist)
+@@ -1532,6 +1533,7 @@ static gint procmsg_send_message_queue_full(const gchar *file, gboolean keep_ses
+ 				       {"X-Sylpheed-Encrypt:", NULL, FALSE},
+ 				       {"X-Sylpheed-Encrypt-Data:", NULL, FALSE}, /* 15 */
+ 				       {"X-Sylpheed-End-Special-Headers:", NULL, FALSE},
++				       {"DSN:", NULL, FALSE},
+ 				       {NULL,    NULL, FALSE}};
+ 	FILE *fp;
+ 	gint filepos;
+@@ -1548,6 +1550,7 @@ static gint procmsg_send_message_queue_full(const gchar *file, gboolean keep_ses
+ 	PrefsAccount *mailac = NULL, *newsac = NULL;
+ 	gboolean encrypt = FALSE;
+ 	FolderItem *outbox;
++	DsnType dsn = 0;
+ 
+ 	cm_return_val_if_fail(file != NULL, -1);
+ 
+@@ -1601,6 +1604,9 @@ static gint procmsg_send_message_queue_full(const gchar *file, gboolean keep_ses
+ 			if (p[0] == '1') 
+ 				encrypt = TRUE;
+ 			break;
++		case Q_DSN:
++			dsn = atoi(p);
++			break;
+ 		case Q_CLAWS_HDRS:
+ 		case Q_CLAWS_HDRS_OLD:
+ 			/* end of special headers reached */
+@@ -1642,7 +1648,7 @@ send_mail:
+ 			}
+ 
+ 			if (mailac) {
+-				mailval = send_message_smtp_full(mailac, to_list, fp, keep_session);
++				mailval = send_message_smtp_full(mailac, to_list, dsn, fp, keep_session);
+ 				if (mailval == -1 && errstr) {
+ 					if (*errstr) g_free(*errstr);
+ 					*errstr = g_strdup_printf(_("An error happened during SMTP session."));
+@@ -1656,7 +1662,7 @@ send_mail:
+ 				tmp_ac.address = from;
+ 				tmp_ac.smtp_server = smtpserver;
+ 				tmp_ac.smtpport = SMTP_PORT;
+-				mailval = send_message_smtp(&tmp_ac, to_list, fp);
++				mailval = send_message_smtp(&tmp_ac, to_list, dsn, fp);
+ 				if (mailval == -1 && errstr) {
+ 					if (*errstr) g_free(*errstr);
+ 					*errstr = g_strdup_printf(_("No specific account has been found to "
+diff --git a/src/send_message.c b/src/send_message.c
+index 1560f9dc9..960630518 100644
+--- a/src/send_message.c
++++ b/src/send_message.c
+@@ -122,7 +122,7 @@ gint send_message(const gchar *file, PrefsAccount *ac_prefs, GSList *to_list)
+ 		inc_unlock();
+ 		return val;
+ 	} else {
+-		val = send_message_smtp(ac_prefs, to_list, fp);
++		val = send_message_smtp(ac_prefs, to_list, 0, fp);
+ 		
+ 		fclose(fp);
+ 		inc_unlock();
+@@ -209,7 +209,7 @@ gint send_message_local(const gchar *command, FILE *fp)
+ 	return 0;
+ }
+ 
+-gint send_message_smtp_full(PrefsAccount *ac_prefs, GSList *to_list, FILE *fp, gboolean keep_session)
++gint send_message_smtp_full(PrefsAccount *ac_prefs, GSList *to_list, DsnType dsn, FILE *fp, gboolean keep_session)
+ {
+ 	Session *session;
+ 	SMTPSession *smtp_session;
+@@ -379,6 +379,7 @@ gint send_message_smtp_full(PrefsAccount *ac_prefs, GSList *to_list, FILE *fp, g
+ 		smtp_session = SMTP_SESSION(session);
+ 		smtp_session->state = SMTP_HELO;
+ 		send_dialog = (SendProgressDialog *)smtp_session->dialog;
++		smtp_session->is_dsn_supported = FALSE;
+ 		was_inited = TRUE;
+ 	}
+ 
+@@ -388,6 +389,7 @@ gint send_message_smtp_full(PrefsAccount *ac_prefs, GSList *to_list, FILE *fp, g
+ 	smtp_session->cur_to = to_list;
+ 	smtp_session->send_data = (guchar *)get_outgoing_rfc2822_str(fp);
+ 	smtp_session->send_data_len = strlen((gchar *)smtp_session->send_data);
++	smtp_session->dsn = dsn;
+ 
+ 	session_set_timeout(session,
+ 			    prefs_common.io_timeout_secs * 1000);
+@@ -465,9 +467,9 @@ gint send_message_smtp_full(PrefsAccount *ac_prefs, GSList *to_list, FILE *fp, g
+ 	return ret;
+ }
+ 
+-gint send_message_smtp(PrefsAccount *ac_prefs, GSList *to_list, FILE *fp)
++gint send_message_smtp(PrefsAccount *ac_prefs, GSList *to_list, DsnType dsn, FILE *fp)
+ {
+-	return send_message_smtp_full(ac_prefs, to_list, fp, FALSE);
++	return send_message_smtp_full(ac_prefs, to_list, dsn, fp, FALSE);
+ }
+ 
+ static gint send_recv_message(Session *session, const gchar *msg, gpointer data)
+diff --git a/src/send_message.h b/src/send_message.h
+index c0861fd47..99ae2a516 100644
+--- a/src/send_message.h
++++ b/src/send_message.h
+@@ -23,6 +23,7 @@
+ #include <glib.h>
+ 
+ #include "prefs_account.h"
++#include "dsn.h"
+ 
+ #define SMTP_PORT	25
+ #ifdef USE_GNUTLS
+@@ -36,9 +37,11 @@ gint send_message_local		(const gchar *command,
+ 				 FILE *fp);
+ gint send_message_smtp		(PrefsAccount *ac_prefs,
+ 				 GSList *to_list,
++				 DsnType dsn,
+ 				 FILE *fp);
+ gint send_message_smtp_full	(PrefsAccount *ac_prefs, 
+ 				 GSList *to_list, 
++				 DsnType dsn,
+ 				 FILE *fp, 
+ 				 gboolean keep_session);
+ void send_cancel	(void);
+-- 
+2.13.0
+
