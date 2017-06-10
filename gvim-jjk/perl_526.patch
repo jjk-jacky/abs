@@ -1,0 +1,43 @@
+From 3653d904171e94097b0a8ac68c1ee02d7adf2d56 Mon Sep 17 00:00:00 2001
+From: Jesin <Jesin00@gmail.com>
+Date: Thu, 8 Jun 2017 15:06:53 -0400
+Subject: [PATCH] Add missing static functions for perl>=5.26
+
+---
+ src/if_perl.xs | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+
+diff --git a/src/if_perl.xs b/src/if_perl.xs
+index 2bf72c5343..a66e5c0d5d 100644
+--- a/src/if_perl.xs
++++ b/src/if_perl.xs
+@@ -632,6 +632,29 @@ S_SvREFCNT_dec(pTHX_ SV *sv)
+     }
+ }
+ # endif
++/* perl-5.26 also needs S_TOPMARK and S_POPMARK. */
++# if (PERL_REVISION == 5) && (PERL_VERSION >= 26)
++PERL_STATIC_INLINE I32
++S_TOPMARK(pTHX)
++{
++    DEBUG_s(DEBUG_v(PerlIO_printf(Perl_debug_log,
++				 "MARK top  %p %" IVdf "\n",
++				  PL_markstack_ptr,
++				  (IV)*PL_markstack_ptr)));
++    return *PL_markstack_ptr;
++}
++
++PERL_STATIC_INLINE I32
++S_POPMARK(pTHX)
++{
++    DEBUG_s(DEBUG_v(PerlIO_printf(Perl_debug_log,
++				 "MARK pop  %p %" IVdf "\n",
++				  (PL_markstack_ptr-1),
++				  (IV)*(PL_markstack_ptr-1))));
++    assert((PL_markstack_ptr > PL_markstack) || !"MARK underflow");
++    return *PL_markstack_ptr--;
++}
++# endif
+ 
+ /*
+  * Make all runtime-links of perl.
