@@ -4,7 +4,7 @@
 _pkgname=claws-mail
 pkgname=$_pkgname-jjk
 pkgver=3.15.0
-pkgrel=5
+pkgrel=6
 pkgdesc="A GTK+ based e-mail client."
 arch=('i686' 'x86_64')
 license=('GPL3')
@@ -27,16 +27,20 @@ source=(http://www.claws-mail.org/download.php?file=releases/claws-mail-$pkgver.
         0001-Fix-diff-format-detection.patch
         0002-Add-coloring-of-diff-patches-inside-emails.patch
         0003-Always-sort-by-date-ASC-within-a-thread-when-by-thre.patch
-        0004-Add-vfolder-plugin.patch
-        0005-prefs-add-option-Ignore-sort-direction-Make-sort-ord.patch
-        0006-Add-Delivery-Status-Notification-DSN-support.patch
-        0007-Fix-Date-null-in-return-receipt-since-989b3a3f.patch)
+        0004-Allow-external-use-of-strings-about-Extended-Search.patch
+        0005-Add-vfolder-plugin.patch
+        0006-quicksearch-expand-extended-symbols-on-Edit.patch
+        0007-prefs-add-option-Ignore-sort-direction-Make-sort-ord.patch
+        0008-Add-Delivery-Status-Notification-DSN-support.patch
+        0009-Fix-Date-null-in-return-receipt-since-989b3a3f.patch)
 sha256sums=('4e4d2d0d43f8ae3d4623408612f5979e9a697ccbc12038b80dd27802e868dc2e'
             'SKIP'
             '9934dd6e323836fa8381312d9f9784c6d047fa78de39b8ad2ea130e3aa415d0e'
             '47a38b38fd5b79c0473ad942faa143c0cf6d5dd22e084e262510456ea6eb4603'
             'b755811c12a96bcb6c5709f90e8dfa09d4719184fc9c68f0cc51970d8dd3a140'
-            '749caf5e8683bc7ecbc7cd39aac9f44941101763328d7c15be5ebcdab54505db'
+            'af10f4b7e952c118eaa71fc8a22161e8f6aef144d981770b78f603f55a01439c'
+            '6a49bb6d1ad988c7c83969115a05d4c48058f3c6acd993449334ad43e7b01b1f'
+            '5a6ec17e4c37fafebfa77453c9bf2eb476941453a22a8b899c87de5acd505f7b'
             '9dfd84369736194f77976b915a84e9ae1317d628796065b9fe853859ffa32412'
             '61895d56345fa89c2266e4c9316bbbd5d2e9c76353c74efeda0ec7bf74377b21'
             '005372582c0e6982466f93773ac1f27b8dbd22dee464c302fcb374dc7de04561')
@@ -47,10 +51,12 @@ prepare() {
   patch -p1 -i ../0001-Fix-diff-format-detection.patch
   patch -p1 -i ../0002-Add-coloring-of-diff-patches-inside-emails.patch
   patch -p1 -i ../0003-Always-sort-by-date-ASC-within-a-thread-when-by-thre.patch
-  patch -p1 -i ../0004-Add-vfolder-plugin.patch
-  patch -p1 -i ../0005-prefs-add-option-Ignore-sort-direction-Make-sort-ord.patch
-  patch -p1 -i ../0006-Add-Delivery-Status-Notification-DSN-support.patch
-  patch -p1 -i ../0007-Fix-Date-null-in-return-receipt-since-989b3a3f.patch
+  patch -p1 -i ../0004-Allow-external-use-of-strings-about-Extended-Search.patch
+  patch -p1 -i ../0005-Add-vfolder-plugin.patch
+  patch -p1 -i ../0006-quicksearch-expand-extended-symbols-on-Edit.patch
+  patch -p1 -i ../0007-prefs-add-option-Ignore-sort-direction-Make-sort-ord.patch
+  patch -p1 -i ../0008-Add-Delivery-Status-Notification-DSN-support.patch
+  patch -p1 -i ../0009-Fix-Date-null-in-return-receipt-since-989b3a3f.patch
 
   NOCONFIGURE=1 ./autogen.sh
 }

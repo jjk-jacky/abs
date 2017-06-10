@@ -1,7 +1,7 @@
-From ec520c4edaa7b222c52f54f8dfed4219e51f57fe Mon Sep 17 00:00:00 2001
+From 4a279c84e50f31fc18ce244551539de1f7c376ee Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
-Date: Sat, 3 Jun 2017 22:17:39 +0200
-Subject: [PATCH 4/7] Add vfolder plugin
+Date: Sat, 10 Jun 2017 22:27:08 +0200
+Subject: [PATCH 5/8] Add vfolder plugin
 
 This adds support for "Virtual folders" aka folders that show search
 results. Unlike elsewhere in Claws, such folders can include messages
@@ -28,10 +28,10 @@ Lastly, a 'search results' feature is provided, which is really just a
 quick way to edit the "Content" properties of a given virtual folder and
 go there. So it does feel somewhat like a "classic" search feature.
 
---
+---
 
 v2: Fix minimum requirement of glib being 2.20
-v3: Fix possible segfault; Fix memory leaks
+v3: Fix possible segfault; Fix& memory leaks
 v4: Rebase on 3.15.0
 v5: - Better description
     - Add little screen shown on first time with description & offer to
@@ -39,21 +39,23 @@ v5: - Better description
     - Fix not removing actions on unload
     - prefs: Ensure folder is valid if search feature enabled
     - Content: Add extended quicksearch MRU on searches
+v6: - Add "Clear content" to vfolder's popup menu
+    - Fully support extended searches, inc. extended symbols
 ---
  configure.ac                             |   15 +
  src/plugins/Makefile.am                  |    3 +-
  src/plugins/vfolder/Makefile.am          |   37 +
  src/plugins/vfolder/plugin.c             |  202 +++++
  src/plugins/vfolder/plugin.h             |   54 ++
- src/plugins/vfolder/plugin_gtk.c         | 1074 +++++++++++++++++++++++
+ src/plugins/vfolder/plugin_gtk.c         | 1092 +++++++++++++++++++++++
  src/plugins/vfolder/plugin_gtk.h         |   31 +
- src/plugins/vfolder/vfolder.c            | 1408 ++++++++++++++++++++++++++++++
- src/plugins/vfolder/vfolder.h            |   59 ++
- src/plugins/vfolder/vfolder_item_prefs.c | 1158 ++++++++++++++++++++++++
+ src/plugins/vfolder/vfolder.c            | 1417 ++++++++++++++++++++++++++++++
+ src/plugins/vfolder/vfolder.h            |   60 ++
+ src/plugins/vfolder/vfolder_item_prefs.c | 1211 +++++++++++++++++++++++++
  src/plugins/vfolder/vfolder_item_prefs.h |   33 +
  src/plugins/vfolder/vfolder_prefs.c      |  247 ++++++
  src/plugins/vfolder/vfolder_prefs.h      |   29 +
- 13 files changed, 4349 insertions(+), 1 deletion(-)
+ 13 files changed, 4430 insertions(+), 1 deletion(-)
  create mode 100644 src/plugins/vfolder/Makefile.am
  create mode 100644 src/plugins/vfolder/plugin.c
  create mode 100644 src/plugins/vfolder/plugin.h
@@ -437,10 +439,10 @@ index 000000000..7f27c2184
 +#endif /* __VFOLDER_PLUGIN_H__ */
 diff --git a/src/plugins/vfolder/plugin_gtk.c b/src/plugins/vfolder/plugin_gtk.c
 new file mode 100644
-index 000000000..1aa6b3739
+index 000000000..259c19cfd
 --- /dev/null
 +++ b/src/plugins/vfolder/plugin_gtk.c
-@@ -0,0 +1,1074 @@
+@@ -0,0 +1,1092 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -495,6 +497,7 @@ index 000000000..1aa6b3739
 +
 +static void add_mailbox(GtkAction *action, gpointer data);
 +static void refresh_content(GtkAction *action, gpointer data);
++static void clear_content(GtkAction *action, gpointer data);
 +static void remove_mailbox(GtkAction *action, gpointer data);
 +static void new_folder(GtkAction *action, gpointer data);
 +static void rename_folder(GtkAction *action, gpointer data);
@@ -533,6 +536,8 @@ index 000000000..1aa6b3739
 +		NULL, NULL, G_CALLBACK(delete_folder) },
 +	{ "FolderViewPopup/RefreshContent",    NULL,   N_("Re_fresh content"),
 +		NULL, NULL, G_CALLBACK(refresh_content) },
++	{ "FolderViewPopup/ClearContent",    NULL,   N_("_Clear content"),
++		NULL, NULL, G_CALLBACK(clear_content) },
 +	{ "FolderViewPopup/RemoveMailbox",    NULL,   N_("Remove _mailbox..."),
 +		NULL, NULL, G_CALLBACK(remove_mailbox) }
 +};
@@ -982,6 +987,8 @@ index 000000000..1aa6b3739
 +		"FolderViewPopup/---", GTK_UI_MANAGER_SEPARATOR);
 +	MENUITEM_ADDUI_MANAGER(ui_mngr, "/Popup/FolderViewPopup", "RefreshContent",
 +		"FolderViewPopup/RefreshContent", GTK_UI_MANAGER_MENUITEM);
++	MENUITEM_ADDUI_MANAGER(ui_mngr, "/Popup/FolderViewPopup", "ClearContent",
++		"FolderViewPopup/ClearContent", GTK_UI_MANAGER_MENUITEM);
 +	MENUITEM_ADDUI_MANAGER(ui_mngr, "/Popup/FolderViewPopup", "Separator4",
 +		"FolderViewPopup/---", GTK_UI_MANAGER_SEPARATOR);
 +	MENUITEM_ADDUI_MANAGER(ui_mngr, "/Popup/FolderViewPopup", "RemoveMailbox",
@@ -997,6 +1004,7 @@ index 000000000..1aa6b3739
 +	cm_menu_set_sensitive_full(ui_mngr, "Popup/FolderViewPopup/MoveFolder", folder_item_parent(item) != NULL);
 +	cm_menu_set_sensitive_full(ui_mngr, "Popup/FolderViewPopup/DeleteFolder", folder_item_parent(item) != NULL);
 +	cm_menu_set_sensitive_full(ui_mngr, "Popup/FolderViewPopup/RefreshContent", folder_item_parent(item) != NULL);
++	cm_menu_set_sensitive_full(ui_mngr, "Popup/FolderViewPopup/ClearContent", folder_item_parent(item) != NULL);
 +	cm_menu_set_sensitive_full(ui_mngr, "Popup/FolderViewPopup/RemoveMailbox", folder_item_parent(item) == NULL);
 +}
 +
@@ -1088,6 +1096,18 @@ index 000000000..1aa6b3739
 +	cm_return_if_fail(item->folder != NULL);
 +
 +	vfolder_refresh_content((VFolderItem *) item);
++}
++
++static void clear_content(GtkAction *action, gpointer data)
++{
++	FolderView *fv = (FolderView *) data;
++	FolderItem *item;
++
++	item = folderview_get_selected_item(fv);
++	cm_return_if_fail(item != NULL);
++	cm_return_if_fail(item->folder != NULL);
++
++	vfolder_clear_content((VFolderItem *) item);
 +}
 +
 +static void remove_mailbox(GtkAction *action, gpointer data)
@@ -1554,10 +1574,10 @@ index 000000000..260f67ed9
 +#endif /* __VFOLDER_PLUGIN_GTK_H__ */
 diff --git a/src/plugins/vfolder/vfolder.c b/src/plugins/vfolder/vfolder.c
 new file mode 100644
-index 000000000..66e80ea5f
+index 000000000..3e9bbd072
 --- /dev/null
 +++ b/src/plugins/vfolder/vfolder.c
-@@ -0,0 +1,1408 @@
+@@ -0,0 +1,1417 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -2548,6 +2568,15 @@ index 000000000..66e80ea5f
 +	refresh_content(vitem, TRUE);
 +}
 +
++void vfolder_clear_content(VFolderItem *vitem)
++{
++	cm_return_if_fail(vitem != NULL);
++	clear_content(vitem);
++	trigger_item_update(vitem);
++	if (vitem->item.opened)
++		vfolder_gtk_refresh_summary((FolderItem *) vitem, 0);
++}
++
 +void vfolder_load_config(VFolderItem *vitem, gboolean force)
 +{
 +	PrefFile *pfile;
@@ -2968,10 +2997,10 @@ index 000000000..66e80ea5f
 +}
 diff --git a/src/plugins/vfolder/vfolder.h b/src/plugins/vfolder/vfolder.h
 new file mode 100644
-index 000000000..05d5d1571
+index 000000000..b21f2bb00
 --- /dev/null
 +++ b/src/plugins/vfolder/vfolder.h
-@@ -0,0 +1,59 @@
+@@ -0,0 +1,60 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -3020,6 +3049,7 @@ index 000000000..05d5d1571
 +
 +void vfolder_load_config(VFolderItem *vitem, gboolean force);
 +void vfolder_refresh_content(VFolderItem *vitem);
++void vfolder_clear_content(VFolderItem *vitem);
 +
 +#define VFOLDER_ERR_NOT_VIRTUAL     -1
 +#define VFOLDER_ERR_DELETED         -2
@@ -3033,10 +3063,10 @@ index 000000000..05d5d1571
 +#endif /* __VFOLDER_FOLDER_H__ */
 diff --git a/src/plugins/vfolder/vfolder_item_prefs.c b/src/plugins/vfolder/vfolder_item_prefs.c
 new file mode 100644
-index 000000000..d44089bda
+index 000000000..1ee2e68e6
 --- /dev/null
 +++ b/src/plugins/vfolder/vfolder_item_prefs.c
-@@ -0,0 +1,1158 @@
+@@ -0,0 +1,1211 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -3074,6 +3104,7 @@ index 000000000..d44089bda
 +#include "alertpanel.h"
 +#include "foldersel.h"
 +#include "combobox.h"
++#include "description_window.h"
 +
 +#include "plugin.h"
 +#include "vfolder_item_prefs.h"
@@ -3087,7 +3118,9 @@ index 000000000..d44089bda
 +
 +};
 +
-+static void prefs_cond_define(gpointer action, gpointer data);
++static void prefs_cond_clear(gpointer action, gpointer data);
++static void prefs_cond_edit(gpointer action, gpointer data);
++static void prefs_cond_info(gpointer action, gpointer data);
 +static void prefs_register_cb(gpointer action, gpointer data);
 +static void prefs_substitute_cb(gpointer action, gpointer data);
 +static void prefs_delete_cb(gpointer action, gpointer data);
@@ -3414,6 +3447,27 @@ index 000000000..d44089bda
 +	}
 +}
 +
++static gboolean is_search_string_valid(const gchar *str, MatcherList **matchers)
++{
++	gboolean r = FALSE;
++	gchar *newstr = advsearch_expand_search_string(str);
++
++	if (newstr && newstr[0] != '\0' && strchr(newstr, ' ')) {
++		MatcherList *matcher_list = NULL;
++
++		matcher_list = matcher_parser_get_cond(newstr, FALSE);
++		if (matcher_list) {
++			r = TRUE;
++			if (matchers)
++				*matchers = matcher_list;
++			else
++				matcherlist_free(matcher_list);
++		}
++	}
++	g_free(newstr);
++	return r;
++}
++
 +static void combo_set_search_strings(
 +#if !GTK_CHECK_VERSION(2, 24, 0)
 +	GtkComboBox *combo
@@ -3424,8 +3478,6 @@ index 000000000..d44089bda
 +{
 +	GList *strings = prefs_common.summary_quicksearch_history;
 +	GList *list = NULL;
-+	gchar *newstr = NULL;
-+	MatcherList *matcher_list = NULL;
 +
 +	if (!strings)
 +		return;
@@ -3433,18 +3485,8 @@ index 000000000..d44089bda
 +	matcher_parser_disable_warnings(TRUE);
 +
 +	do {
-+		newstr = advsearch_expand_search_string((gchar *) strings->data);
-+		if (newstr && newstr[0] != '\0') {
-+			if (strchr(newstr, ' ')) {
-+				matcher_list = matcher_parser_get_cond(newstr, FALSE);
-+
-+				if (matcher_list) {
-+					list = g_list_prepend(list, g_strdup(strings->data));
-+					matcherlist_free(matcher_list);
-+				}
-+			}
-+		}
-+		g_free(newstr);
++		if (is_search_string_valid(strings->data, NULL))
++			list = g_list_prepend(list, g_strdup(strings->data));
 +
 +	} while ((strings = g_list_next(strings)) != NULL);
 +
@@ -3491,7 +3533,9 @@ index 000000000..d44089bda
 +	GtkWidget *folder_label;
 +	GtkWidget *folder_btn;
 +	GtkWidget *cond_label;
-+	GtkWidget *cond_btn;
++	GtkWidget *cond_btn_clear;
++	GtkWidget *cond_btn_edit;
++	GtkWidget *cond_btn_info;
 +	GtkWidget *reg_hbox;
 +	GtkWidget *arrow;
 +	GtkWidget *btn_hbox;
@@ -3556,15 +3600,19 @@ index 000000000..d44089bda
 +		(GtkAttachOptions) (GTK_FILL),
 +		(GtkAttachOptions) (0), 0, 0);
 +
++	cond_hbox = gtk_hbox_new(FALSE, 5);
++	gtk_widget_show (cond_hbox);
++	gtk_table_attach (GTK_TABLE (table), cond_hbox, 1, 3, 4, 5,
++		(GtkAttachOptions) (GTK_FILL|GTK_EXPAND),
++		(GtkAttachOptions) (0), 0, 0);
++
 +#if !GTK_CHECK_VERSION(2, 24, 0)
 +	cond_entry = gtk_combo_box_entry_new_text ();
 +#else
 +	cond_entry = gtk_combo_box_text_new_with_entry ();
 +#endif
 +	gtk_widget_show (cond_entry);
-+	gtk_table_attach (GTK_TABLE (table), cond_entry, 1, 2, 4, 5,
-+		(GtkAttachOptions) (GTK_FILL|GTK_EXPAND),
-+		(GtkAttachOptions) (0), 0, 0);
++	gtk_box_pack_start(GTK_BOX(cond_hbox), cond_entry, TRUE, TRUE, 0);
 +	combo_set_search_strings(
 +#if !GTK_CHECK_VERSION(2, 24, 0)
 +	GTK_COMBO_BOX(cond_entry)
@@ -3573,13 +3621,28 @@ index 000000000..d44089bda
 +#endif
 +	);
 +
-+	cond_btn =  gtk_button_new_with_mnemonic (_(" Def_ine... "));
-+	gtk_widget_show (cond_btn);
-+	gtk_table_attach (GTK_TABLE (table), cond_btn, 2, 3, 4, 5,
-+		(GtkAttachOptions) (GTK_FILL),
-+		(GtkAttachOptions) (0), 2, 2);
-+	g_signal_connect(G_OBJECT (cond_btn), "clicked",
-+		G_CALLBACK(prefs_cond_define),
++	cond_btn_clear = gtk_button_new_from_stock(GTK_STOCK_CLEAR);
++	gtk_widget_show (cond_btn_clear);
++	gtk_box_pack_start(GTK_BOX(cond_hbox), cond_btn_clear, FALSE, FALSE, 0);
++	CLAWS_SET_TIP(cond_btn_clear, _("Clear search criteria"));
++	g_signal_connect(G_OBJECT (cond_btn_clear), "clicked",
++		G_CALLBACK(prefs_cond_clear),
++		NULL);
++
++	cond_btn_edit = gtk_button_new_from_stock(GTK_STOCK_EDIT);
++	gtk_widget_show (cond_btn_edit);
++	gtk_box_pack_start(GTK_BOX(cond_hbox), cond_btn_edit, FALSE, FALSE, 0);
++	CLAWS_SET_TIP(cond_btn_edit, _("Edit search criteria"));
++	g_signal_connect(G_OBJECT (cond_btn_edit), "clicked",
++		G_CALLBACK(prefs_cond_edit),
++		NULL);
++
++	cond_btn_info = gtk_button_new_from_stock(GTK_STOCK_INFO);
++	gtk_widget_show (cond_btn_info);
++	gtk_box_pack_start(GTK_BOX(cond_hbox), cond_btn_info, FALSE, FALSE, 0);
++	CLAWS_SET_TIP(cond_btn_info, _("Information about extended symbols"));
++	g_signal_connect(G_OBJECT (cond_btn_info), "clicked",
++		G_CALLBACK(prefs_cond_info),
 +		NULL);
 +
 +
@@ -3740,18 +3803,20 @@ index 000000000..d44089bda
 +	}
 +}
 +
-+static void prefs_cond_define(gpointer action, gpointer data)
++static void prefs_cond_clear(gpointer action, gpointer data)
++{
++	gtk_entry_set_text(GTK_ENTRY_FROM_COMBOBOX(cond_entry), "");
++}
++
++static void prefs_cond_edit(gpointer action, gpointer data)
 +{
 +	gchar *cond_str;
 +	MatcherList *matchers = NULL;
 +
 +	cond_str = gtk_editable_get_chars(GTK_EDITABLE(GTK_ENTRY_FROM_COMBOBOX(cond_entry)), 0, -1);
 +
-+	if (*cond_str != '\0') {
-+		matchers = matcher_parser_get_cond(cond_str, NULL);
-+		if (matchers == NULL)
-+			alertpanel_error(_("Condition string is not valid."));
-+	}
++	if (*cond_str != '\0' && !is_search_string_valid(cond_str, &matchers))
++		alertpanel_error(_("Condition string is not valid."));
 +
 +	g_free(cond_str);
 +
@@ -3759,6 +3824,24 @@ index 000000000..d44089bda
 +
 +	if (matchers != NULL)
 +		matcherlist_free(matchers);
++}
++
++static DescriptionWindow search_descr = {
++	NULL,
++	NULL,
++	FALSE,
++	2,
++	N_("Extended Search"),
++	N_("Extended Search allows the user to define criteria that messages must "
++           "have in order to match and be displayed in the message list.\n"
++	   "The following symbols can be used:"),
++	extended_search_descr_strings
++};
++
++static void prefs_cond_info(gpointer action, gpointer data)
++{
++	search_descr.parent = gtk_widget_get_toplevel (cond_entry);
++	description_window_create(&search_descr);
 +}
 +
 +static gint prefs_list_view_insert_search(gint row)
@@ -3791,7 +3874,7 @@ index 000000000..d44089bda
 +			return -1;
 +		}
 +
-+		if (!matcher_parser_get_cond((gchar *) cond, NULL))
++		if (!is_search_string_valid(cond, NULL))
 +		{
 +			alertpanel_error(_("Condition string is not valid."));
 +			return -1;
@@ -4523,5 +4606,5 @@ index 000000000..eb87f63f6
 +
 +#endif /* __VFOLDER_PREFS_H__ */
 -- 
-2.13.0
+2.13.1
 
