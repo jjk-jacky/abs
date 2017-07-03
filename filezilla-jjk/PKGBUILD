@@ -1,0 +1,35 @@
+_pkgname=filezilla
+pkgname=$_pkgname-jjk
+pkgver=3.26.2
+pkgrel=1
+pkgdesc="Fast and reliable FTP, FTPS and SFTP client"
+arch=('i686' 'x86_64')
+url="http://filezilla-project.org/"
+license=('GPL')
+depends=('xdg-utils' 'wxgtk' 'libidn' 'hicolor-icon-theme' 'sqlite' 'gnutls'
+         'libfilezilla')
+provides=($_pkgname)
+conflicts=($_pkgname)
+source=("http://downloads.sourceforge.net/project/filezilla/FileZilla_Client/$pkgver/FileZilla_${pkgver}_src.tar.bz2")
+sha512sums=('09badf4b8cf11a991a52012df9b950309cb64d6a73d228d367c8139fecdc95efa979cc60c891898c3fb713c2bc4771f9eb0c620a19c6e36369fc87480cf93789')
+
+build() {
+  cd $_pkgname-$pkgver
+
+  ./configure \
+    --prefix=/usr \
+    --disable-manualupdatecheck \
+    --disable-autoupdatecheck \
+    --disable-static \
+    --disable-locales \
+    --without-dbus \
+    --with-pugixml=builtin
+
+  make
+}
+
+package() {
+  cd $_pkgname-$pkgver
+
+  make DESTDIR="$pkgdir" install
+}
