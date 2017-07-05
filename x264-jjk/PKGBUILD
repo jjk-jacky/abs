@@ -6,13 +6,13 @@
 # Contributor: Paul Mattal <paul@archlinux.org>
 
 pkgname=('x264-jjk' 'libx264-jjk')
-pkgver=148.20170519
+pkgver=148.20170521
 pkgrel=1
 arch=('i686' 'x86_64')
 url='http://www.videolan.org/developers/x264.html'
 license=('GPL')
 makedepends=('yasm' 'git' 'ffmpeg' 'l-smash')
-_commit='d32d7bf1c6923a42cbd5ac2fd540ecbb009ba681'
+_commit='aaa9aa83a111ed6f1db253d5afa91c5fc844583f'
 source=("git://git.videolan.org/x264.git#commit=${_commit}")
 sha256sums=('SKIP')
 
