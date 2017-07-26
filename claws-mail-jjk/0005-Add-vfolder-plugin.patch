@@ -1,7 +1,7 @@
-From 4a279c84e50f31fc18ce244551539de1f7c376ee Mon Sep 17 00:00:00 2001
+From 0bbc0b93dd8d62276815af4c7aae4dca2b012746 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
-Date: Sat, 10 Jun 2017 22:27:08 +0200
-Subject: [PATCH 5/8] Add vfolder plugin
+Date: Wed, 26 Jul 2017 14:02:13 +0200
+Subject: [PATCH] Add vfolder plugin
 
 This adds support for "Virtual folders" aka folders that show search
 results. Unlike elsewhere in Claws, such folders can include messages
@@ -41,21 +41,25 @@ v5: - Better description
     - Content: Add extended quicksearch MRU on searches
 v6: - Add "Clear content" to vfolder's popup menu
     - Fully support extended searches, inc. extended symbols
+v7: Fix invalid check on qs strings
+v8: - Fix searches lost on rename
+    - Fix renaming folder
+    - Add 'Copy folder'
 ---
  configure.ac                             |   15 +
  src/plugins/Makefile.am                  |    3 +-
  src/plugins/vfolder/Makefile.am          |   37 +
  src/plugins/vfolder/plugin.c             |  202 +++++
  src/plugins/vfolder/plugin.h             |   54 ++
- src/plugins/vfolder/plugin_gtk.c         | 1092 +++++++++++++++++++++++
+ src/plugins/vfolder/plugin_gtk.c         | 1152 ++++++++++++++++++++++++
  src/plugins/vfolder/plugin_gtk.h         |   31 +
- src/plugins/vfolder/vfolder.c            | 1417 ++++++++++++++++++++++++++++++
+ src/plugins/vfolder/vfolder.c            | 1433 ++++++++++++++++++++++++++++++
  src/plugins/vfolder/vfolder.h            |   60 ++
  src/plugins/vfolder/vfolder_item_prefs.c | 1211 +++++++++++++++++++++++++
  src/plugins/vfolder/vfolder_item_prefs.h |   33 +
- src/plugins/vfolder/vfolder_prefs.c      |  247 ++++++
+ src/plugins/vfolder/vfolder_prefs.c      |  247 +++++
  src/plugins/vfolder/vfolder_prefs.h      |   29 +
- 13 files changed, 4430 insertions(+), 1 deletion(-)
+ 13 files changed, 4506 insertions(+), 1 deletion(-)
  create mode 100644 src/plugins/vfolder/Makefile.am
  create mode 100644 src/plugins/vfolder/plugin.c
  create mode 100644 src/plugins/vfolder/plugin.h
@@ -439,10 +443,10 @@ index 000000000..7f27c2184
 +#endif /* __VFOLDER_PLUGIN_H__ */
 diff --git a/src/plugins/vfolder/plugin_gtk.c b/src/plugins/vfolder/plugin_gtk.c
 new file mode 100644
-index 000000000..259c19cfd
+index 000000000..249a033fe
 --- /dev/null
 +++ b/src/plugins/vfolder/plugin_gtk.c
-@@ -0,0 +1,1092 @@
+@@ -0,0 +1,1152 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -502,6 +506,7 @@ index 000000000..259c19cfd
 +static void new_folder(GtkAction *action, gpointer data);
 +static void rename_folder(GtkAction *action, gpointer data);
 +static void move_folder(GtkAction *action, gpointer data);
++static void copy_folder(GtkAction *action, gpointer data);
 +static void delete_folder(GtkAction *action, gpointer data);
 +static void move_to_trash(GtkAction *action, gpointer data);
 +static void move_thread_to_trash(GtkAction *action, gpointer data);
@@ -532,6 +537,8 @@ index 000000000..259c19cfd
 +		NULL, NULL, G_CALLBACK(rename_folder) },
 +	{ "FolderViewPopup/MoveFolder",    NULL,   N_("M_ove folder..."),
 +		NULL, NULL, G_CALLBACK(move_folder) },
++	{ "FolderViewPopup/CopyFolder",    NULL,   N_("Cop_y folder..."),
++		NULL, NULL, G_CALLBACK(copy_folder) },
 +	{ "FolderViewPopup/DeleteFolder",    NULL,   N_("_Delete folder..."),
 +		NULL, NULL, G_CALLBACK(delete_folder) },
 +	{ "FolderViewPopup/RefreshContent",    NULL,   N_("Re_fresh content"),
@@ -979,6 +986,8 @@ index 000000000..259c19cfd
 +		"FolderViewPopup/RenameFolder", GTK_UI_MANAGER_MENUITEM);
 +	MENUITEM_ADDUI_MANAGER(ui_mngr, "/Popup/FolderViewPopup", "MoveFolder",
 +		"FolderViewPopup/MoveFolder", GTK_UI_MANAGER_MENUITEM);
++	MENUITEM_ADDUI_MANAGER(ui_mngr, "/Popup/FolderViewPopup", "CopyFolder",
++		"FolderViewPopup/CopyFolder", GTK_UI_MANAGER_MENUITEM);
 +	MENUITEM_ADDUI_MANAGER(ui_mngr, "/Popup/FolderViewPopup", "Separator2",
 +		"FolderViewPopup/---", GTK_UI_MANAGER_SEPARATOR);
 +	MENUITEM_ADDUI_MANAGER(ui_mngr, "/Popup/FolderViewPopup", "DeleteFolder",
@@ -1002,6 +1011,7 @@ index 000000000..259c19cfd
 +	cm_menu_set_sensitive_full(ui_mngr, "Popup/FolderViewPopup/CreateNewFolder", TRUE);
 +	cm_menu_set_sensitive_full(ui_mngr, "Popup/FolderViewPopup/RenameFolder", folder_item_parent(item) != NULL);
 +	cm_menu_set_sensitive_full(ui_mngr, "Popup/FolderViewPopup/MoveFolder", folder_item_parent(item) != NULL);
++	cm_menu_set_sensitive_full(ui_mngr, "Popup/FolderViewPopup/CopyFolder", folder_item_parent(item) != NULL);
 +	cm_menu_set_sensitive_full(ui_mngr, "Popup/FolderViewPopup/DeleteFolder", folder_item_parent(item) != NULL);
 +	cm_menu_set_sensitive_full(ui_mngr, "Popup/FolderViewPopup/RefreshContent", folder_item_parent(item) != NULL);
 +	cm_menu_set_sensitive_full(ui_mngr, "Popup/FolderViewPopup/ClearContent", folder_item_parent(item) != NULL);
@@ -1175,6 +1185,36 @@ index 000000000..259c19cfd
 +	folder_write_list();
 +}
 +
++static gboolean vfolder_load_config_func(GNode *node, gpointer data)
++{
++	VFolderItem *vitem = node->data;
++	vfolder_load_config(vitem, FALSE);
++	return FALSE;
++}
++
++/* from vfolder.c */
++void _vfolder_item_refresh_path(VFolderItem *item);
++void _vfolder_item_get_searches(VFolderItem *vitem, gint *len, VFolderSearch **searches);
++static gboolean folder_item_prefs_save_config_func(GNode *node, gpointer data)
++{
++	FolderItem *item = (FolderItem *) node->data;
++	VFolderItem *vitem = (VFolderItem *) item;
++	VFolderSearch *searches;
++	gint len;
++
++	folder_item_prefs_save_config(item);
++
++	if (item != (FolderItem *) data)
++		_vfolder_item_refresh_path(vitem);
++
++	_vfolder_item_get_searches(vitem, &len, &searches);
++	vfolder_item_prefs_save(vitem,
++		vfolder_is_item_autorefresh(vitem),
++		len, searches);
++
++	return FALSE;
++}
++
 +static void rename_folder(GtkAction *action, gpointer data)
 +{
 +	FolderView *fv = (FolderView *) data;
@@ -1208,6 +1248,9 @@ index 000000000..259c19cfd
 +	}
 +
 +	oldid = folder_item_get_identifier(item);
++	/* ensure any searches are loaded */
++	g_node_traverse(item->node, G_PRE_ORDER, G_TRAVERSE_ALL,
++		-1, vfolder_load_config_func, NULL);
 +
 +	if (folder_item_rename(item, name) < 0)
 +	{
@@ -1224,7 +1267,8 @@ index 000000000..259c19cfd
 +	g_free(oldid);
 +	g_free(newid);
 +
-+	folder_item_prefs_save_config_recursive(item);
++	g_node_traverse(item->node, G_PRE_ORDER, G_TRAVERSE_ALL,
++		-1, folder_item_prefs_save_config_func, item);
 +	folder_write_list();
 +}
 +
@@ -1246,6 +1290,26 @@ index 000000000..259c19cfd
 +		return;
 +
 +	folderview_move_folder(fv, from_folder, to_folder, 0);
++}
++
++static void copy_folder(GtkAction *action, gpointer data)
++{
++	FolderView *fv = (FolderView *) data;
++	FolderItem *from_folder, *to_folder;
++	gchar *msg;
++
++	from_folder = folderview_get_selected_item(fv);
++	if (!from_folder || from_folder->folder->klass != vfolder_get_class())
++		return;
++
++	msg = g_strdup_printf(_("Select folder to copy folder '%s' to"),
++		from_folder->name);
++	to_folder = foldersel_folder_sel(NULL, FOLDER_SEL_MOVE, NULL, TRUE, msg);
++	g_free(msg);
++	if (!to_folder)
++		return;
++
++	folderview_move_folder(fv, from_folder, to_folder, 1);
 +}
 +
 +static void delete_folder(GtkAction *action, gpointer data)
@@ -1574,10 +1638,10 @@ index 000000000..260f67ed9
 +#endif /* __VFOLDER_PLUGIN_GTK_H__ */
 diff --git a/src/plugins/vfolder/vfolder.c b/src/plugins/vfolder/vfolder.c
 new file mode 100644
-index 000000000..3e9bbd072
+index 000000000..718dbc4ba
 --- /dev/null
 +++ b/src/plugins/vfolder/vfolder.c
-@@ -0,0 +1,1417 @@
+@@ -0,0 +1,1433 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -2144,6 +2208,22 @@ index 000000000..3e9bbd072
 +	item->name = g_strdup(name);
 +
 +	return 0;
++}
++
++void _vfolder_item_refresh_path(VFolderItem *vitem)
++{
++	FolderItem *item = (FolderItem *) vitem;
++	FolderItem *parent;
++
++	parent = folder_item_parent(item);
++	if (!parent)
++		return;
++
++	if (!parent->path)
++		return;
++
++	g_free(item->path);
++	item->path = g_strconcat(parent->path, "/", item->name, NULL);
 +}
 +
 +static gint _vfolder_remove_folder(Folder *folder, FolderItem *item)
@@ -3063,7 +3143,7 @@ index 000000000..b21f2bb00
 +#endif /* __VFOLDER_FOLDER_H__ */
 diff --git a/src/plugins/vfolder/vfolder_item_prefs.c b/src/plugins/vfolder/vfolder_item_prefs.c
 new file mode 100644
-index 000000000..1ee2e68e6
+index 000000000..19d3c39f7
 --- /dev/null
 +++ b/src/plugins/vfolder/vfolder_item_prefs.c
 @@ -0,0 +1,1211 @@
@@ -3452,7 +3532,7 @@ index 000000000..1ee2e68e6
 +	gboolean r = FALSE;
 +	gchar *newstr = advsearch_expand_search_string(str);
 +
-+	if (newstr && newstr[0] != '\0' && strchr(newstr, ' ')) {
++	if (newstr && newstr[0] != '\0') {
 +		MatcherList *matcher_list = NULL;
 +
 +		matcher_list = matcher_parser_get_cond(newstr, FALSE);
@@ -4606,5 +4686,5 @@ index 000000000..eb87f63f6
 +
 +#endif /* __VFOLDER_PREFS_H__ */
 -- 
-2.13.1
+2.13.3
 
