@@ -1,0 +1,55 @@
+pkgname=dropbear
+pkgver=2017.75
+pkgrel=1
+pkgdesc="lightweight SSH server"
+arch=('i686' 'x86_64')
+url="https://matt.ucc.asn.au/dropbear/dropbear.html"
+license=('MIT')
+makedepends=('musl')
+source=(https://matt.ucc.asn.au/dropbear/releases/dropbear-$pkgver.tar.bz2{,.asc})
+sha256sums=('6cbc1dcb1c9709d226dff669e5604172a18cf5dbf9a201474d5618ae4465098c'
+            'SKIP')
+validpgpkeys=('F7347EF2EE2E07A267628CA944931494F29C6773')
+
+prepare() {
+  cd "$pkgname-$pkgver"
+
+  local -a opt
+  opt+=(INETD_MODE ENABLE_X11FWD)
+  opt+=(ENABLE_SVR_LOCALTCPFWD ENABLE_SVR_REMOTETCPFWD ENABLE_SVR_AGENTFWD)
+  opt+=(ENABLE_USER_ALGO_LIST)
+  opt+=(DROPBEAR_TWOFISH256 DROPBEAR_TWOFISH128)
+  opt+=(DROPBEAR_ENABLE_CBC_MODE)
+  opt+=(DROPBEAR_MD5_HMAC)
+  opt+=(DROPBEAR_ECDSA DROPBEAR_ECDH)
+  opt+=(DROPBEAR_CURVE25519)
+  opt+=(DO_MOTD)
+
+  local o
+  for o in "${opt[@]}"; do
+      sed -i "s|#define $o||" options.h
+  done
+
+  sed -i 's|/\*#define NO_FAST_EXPTMOD\*/|#define NO_FAST_EXPTMOD|' options.h
+
+  export CPPFLAGS='-static -nostdinc -isystem /usr/lib/musl/include -isystem /usr/include'
+  export CC="musl-gcc"
+  ./configure --prefix=/usr --sbindir=/usr/bin \
+      --disable-syslog \
+      --disable-zlib \
+      --disable-lastlog \
+      --disable-utmp --disable-utmpx \
+      --disable-wtmp --disable-wtmpx
+}
+
+build() {
+  cd "$pkgname-$pkgver"
+  export CPPFLAGS='-static -nostdinc -isystem /usr/lib/musl/include -isystem /usr/include'
+  export CC="musl-gcc"
+  make PROGRAMS=dropbear STATIC=1
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  make PROGRAMS=dropbear DESTDIR="$pkgdir/" install
+}
