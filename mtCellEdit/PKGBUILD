@@ -1,0 +1,49 @@
+# Maintainer: jjacky
+pkgname=mtCellEdit
+pkgver=3.0.2017.0730.1348
+pkgrel=1
+pkgdesc="lightweight spreadsheet"
+arch=('i686' 'x86_64')
+url="http://mtcelledit.sourceforge.net"
+license=('GPL3+')
+depends=('qt4' 'cairo' 'pango' 'giflib')
+source=("git+https://github.com/matyler/mtCellEdit.git#commit=f43660cdf13852da57c69a4079346d72b73bd367")
+sha256sums=('SKIP')
+dirs=('libmtkit' 'libmtcelledit' 'libmtpixy' 'libmtcedui' 'libmtqex'
+      'mtcelledit')
+
+build() {
+  cd mtCellEdit
+
+  for d in "${dirs[@]}"; do
+    cd "$d"
+    case "$d" in
+      'libmtqex') ./configure --use-qt4 ;;
+      'mtcelledit') ./configure --use-qt4 --disable-handbook ;;
+      *) ./configure ;;
+    esac
+    make
+    cd ..
+    for f in "$d"/src/lib*.so.1; do
+      so=${f##*/}
+      so=${so:0:${#so}-2}
+      ln -s "$f" "$so"
+    done
+    s="$srcdir/mtCellEdit/$d/src"
+    export CFLAGS="-I$s $CFLAGS"
+    export CXXFLAGS="-I$s $CXXFLAGS"
+    export LDFLAGS="-L$srcdir/mtCellEdit $LDFLAGS"
+  done
+}
+
+package() {
+  cd mtCellEdit
+
+  for d in "${dirs[@]}"; do
+    cd "$d"
+    make DESTDIR="$pkgdir/" install
+    cd ..
+  done
+}
+
+# vim:set ts=2 sw=2 et:
