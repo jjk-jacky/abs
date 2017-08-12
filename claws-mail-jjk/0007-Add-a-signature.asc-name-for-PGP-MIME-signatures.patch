@@ -1,0 +1,26 @@
+From a1a68445f87645551c0ee7c0692ea829de9fd72f Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Mon, 3 Jul 2017 19:43:07 +0200
+Subject: [PATCH 07/11] Add a 'signature.asc' name for PGP MIME signatures
+
+http://www.thewildbeast.co.uk/claws-mail/bugzilla/show_bug.cgi?id=3836
+---
+ src/plugins/pgpmime/pgpmime.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/plugins/pgpmime/pgpmime.c b/src/plugins/pgpmime/pgpmime.c
+index e14ebe040..ff1c1d0b6 100644
+--- a/src/plugins/pgpmime/pgpmime.c
++++ b/src/plugins/pgpmime/pgpmime.c
+@@ -594,6 +594,8 @@ gboolean pgpmime_sign(MimeInfo *mimeinfo, PrefsAccount *account, const gchar *fr
+ 	newinfo = procmime_mimeinfo_new();
+ 	newinfo->type = MIMETYPE_APPLICATION;
+ 	newinfo->subtype = g_strdup("pgp-signature");
++	g_hash_table_insert(newinfo->typeparameters,
++			g_strdup("name"), g_strdup("signature.asc"));
+ 	newinfo->description = g_strdup(_("OpenPGP digital signature"));
+ 	newinfo->content = MIMECONTENT_MEM;
+ 	newinfo->data.mem = g_malloc(len + 1);
+-- 
+2.14.1
+

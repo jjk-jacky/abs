@@ -1,13 +1,22 @@
-From 0bbc0b93dd8d62276815af4c7aae4dca2b012746 Mon Sep 17 00:00:00 2001
+From 4f8de92fbdb12d2f8bc3aa4fad77c312082f9883 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Wed, 26 Jul 2017 14:02:13 +0200
-Subject: [PATCH] Add vfolder plugin
+Subject: [PATCH 05/11] Add vfolder plugin
 
 This adds support for "Virtual folders" aka folders that show search
 results. Unlike elsewhere in Claws, such folders can include messages
 from different folders. In fact, they can show combined results of
 multiple searches (useful to do same search in multiple (non related,
 i.e. can't be done simply via recursive search) folders).
+
+Additionally, each search has a "mode" so it can find more messages:
+- Message: list matching messages, i.e. normal/standard behavior
+- With replies: list matching messages and their replies
+- Threads: list threads containing matching messages
+
+(Should be noted that this feature is based on headers Message-ID,
+In-Reply-To and References to be properly set, since it actually runs
+additional searches for the corresponding Message-ID in References.)
 
 What is done to "virtual messages" is relayed to the source ones: flags,
 tags, etc (Re)moving such messages will also be done on the source ones,
@@ -45,21 +54,23 @@ v7: Fix invalid check on qs strings
 v8: - Fix searches lost on rename
     - Fix renaming folder
     - Add 'Copy folder'
+v9: - Fix slow copy folder w/ many msgs
+    - Add "mode" (msgs, w/replies, threads)
 ---
  configure.ac                             |   15 +
  src/plugins/Makefile.am                  |    3 +-
  src/plugins/vfolder/Makefile.am          |   37 +
- src/plugins/vfolder/plugin.c             |  202 +++++
+ src/plugins/vfolder/plugin.c             |  202 ++++
  src/plugins/vfolder/plugin.h             |   54 ++
- src/plugins/vfolder/plugin_gtk.c         | 1152 ++++++++++++++++++++++++
+ src/plugins/vfolder/plugin_gtk.c         | 1152 ++++++++++++++++++++++
  src/plugins/vfolder/plugin_gtk.h         |   31 +
- src/plugins/vfolder/vfolder.c            | 1433 ++++++++++++++++++++++++++++++
- src/plugins/vfolder/vfolder.h            |   60 ++
- src/plugins/vfolder/vfolder_item_prefs.c | 1211 +++++++++++++++++++++++++
+ src/plugins/vfolder/vfolder.c            | 1537 ++++++++++++++++++++++++++++++
+ src/plugins/vfolder/vfolder.h            |   69 ++
+ src/plugins/vfolder/vfolder_item_prefs.c | 1279 +++++++++++++++++++++++++
  src/plugins/vfolder/vfolder_item_prefs.h |   33 +
  src/plugins/vfolder/vfolder_prefs.c      |  247 +++++
  src/plugins/vfolder/vfolder_prefs.h      |   29 +
- 13 files changed, 4506 insertions(+), 1 deletion(-)
+ 13 files changed, 4687 insertions(+), 1 deletion(-)
  create mode 100644 src/plugins/vfolder/Makefile.am
  create mode 100644 src/plugins/vfolder/plugin.c
  create mode 100644 src/plugins/vfolder/plugin.h
@@ -73,7 +84,7 @@ v8: - Fix searches lost on rename
  create mode 100644 src/plugins/vfolder/vfolder_prefs.h
 
 diff --git a/configure.ac b/configure.ac
-index 62fabfe6b..bc601a220 100644
+index ecdd2850d..9b3e75e1d 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -1094,6 +1094,10 @@ AC_ARG_ENABLE(vcalendar-plugin,
@@ -1638,10 +1649,10 @@ index 000000000..260f67ed9
 +#endif /* __VFOLDER_PLUGIN_GTK_H__ */
 diff --git a/src/plugins/vfolder/vfolder.c b/src/plugins/vfolder/vfolder.c
 new file mode 100644
-index 000000000..718dbc4ba
+index 000000000..7631c6ea3
 --- /dev/null
 +++ b/src/plugins/vfolder/vfolder.c
-@@ -0,0 +1,1433 @@
+@@ -0,0 +1,1537 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -1708,6 +1719,7 @@ index 000000000..718dbc4ba
 +{
 +	gchar *folder_id;
 +	gboolean recursive;
++	VFolderMode mode;
 +	gchar *cond;
 +
 +	/* keep VFolderSearch from vfolder.h in sync */
@@ -1769,7 +1781,11 @@ index 000000000..718dbc4ba
 +static gchar *_vfolder_fetch_msg(Folder *folder, FolderItem *item, gint num);
 +static gint _vfolder_add_msg(Folder *folder, FolderItem *dest, const gchar *file,
 +	MsgFlags *flags);
++static gint _vfolder_add_msgs(Folder *folder, FolderItem *dest, GSList *file_list,
++	GHashTable *relation);
 +static gint _vfolder_copy_msg(Folder *folder, FolderItem *dest, MsgInfo *msginfo);
++static gint _vfolder_copy_msgs(Folder *folder, FolderItem *dest, MsgInfoList *msglist,
++	GHashTable *relation);
 +static gint _vfolder_remove_msg(Folder *folder, FolderItem *item, gint num);
 +static gint _vfolder_remove_msgs(Folder *folder, FolderItem *item,
 +	MsgInfoList *msglist, GHashTable *relation);
@@ -1810,7 +1826,9 @@ index 000000000..718dbc4ba
 +		vfolder_class.get_msginfos = _vfolder_get_msginfos;
 +		vfolder_class.fetch_msg = _vfolder_fetch_msg;
 +		vfolder_class.add_msg = _vfolder_add_msg;
++		vfolder_class.add_msgs = _vfolder_add_msgs;
 +		vfolder_class.copy_msg = _vfolder_copy_msg;
++		vfolder_class.copy_msgs = _vfolder_copy_msgs;
 +		vfolder_class.remove_msg = _vfolder_remove_msg;
 +		vfolder_class.remove_msgs = _vfolder_remove_msgs;
 +		vfolder_class.remove_all_msg = _vfolder_remove_all_msg;
@@ -2329,7 +2347,19 @@ index 000000000..718dbc4ba
 +	return -1;
 +}
 +
++static gint _vfolder_add_msgs(Folder *folder, FolderItem *dest, GSList *file_list,
++	GHashTable *relation)
++{
++	return -1;
++}
++
 +static gint _vfolder_copy_msg(Folder *folder, FolderItem *dest, MsgInfo *msginfo)
++{
++	return -1;
++}
++
++static gint _vfolder_copy_msgs(Folder *folder, FolderItem *dest, MsgInfoList *msglist,
++	GHashTable *relation)
 +{
 +	return -1;
 +}
@@ -2480,6 +2510,7 @@ index 000000000..718dbc4ba
 +
 +			dst_search.folder_id = g_strdup(src_search->folder_id);
 +			dst_search.recursive = src_search->recursive;
++			dst_search.mode = src_search->mode;
 +			dst_search.cond = g_strdup(src_search->cond);
 +			dst_search.as = NULL;
 +			dst_search.folder = src_search->folder;
@@ -2711,6 +2742,7 @@ index 000000000..718dbc4ba
 +		struct search search;
 +		gchar *s = buf;
 +		gint esc = 0;
++		gint skip = 0;
 +
 +		if (*s == '[')
 +			break;
@@ -2727,7 +2759,25 @@ index 000000000..718dbc4ba
 +
 +		search.recursive = *s == '+';
 +		if (*s == '+')
++		{
++			++skip;
 +			++s;
++		}
++
++		if (*s == '<')
++		{
++			search.mode = VFOLDER_MODE_THREAD;
++			++skip;
++			++s;
++		}
++		else if (*s == '>')
++		{
++			search.mode = VFOLDER_MODE_REPLIES;
++			++skip;
++			++s;
++		}
++		else
++			search.mode = VFOLDER_MODE_MESSAGE;
 +
 +		for ( ; *s != ' '; ++s)
 +		{
@@ -2750,7 +2800,7 @@ index 000000000..718dbc4ba
 +			break;
 +		s -= esc;
 +		*s = '\0';
-+		search.folder_id = g_strdup(buf + ((search.recursive) ? 1 : 0));
++		search.folder_id = g_strdup(buf + skip);
 +		*strchr(s + esc + 1, '\n') = '\0';
 +		search.cond = g_strdup(s + esc + 1);
 +		search.as = NULL;
@@ -2761,24 +2811,113 @@ index 000000000..718dbc4ba
 +	prefs_file_close(pfile);
 +}
 +
-+struct tmp
++struct subsearch
 +{
-+	MsgInfo *msginfo;
-+	gchar *key;
++	FolderItem *folder;
++	GString *cond;
 +};
 +
-+static gint cmp_tmp(gconstpointer a, gconstpointer b)
++static gint run_search(VFolderItem *vitem, AdvancedSearch *as, FolderItem *folder,
++	gboolean recursive, VFolderMode mode, guint *nb, const gchar **msgid, gint *msgnum,
++	GArray **arr)
 +{
-+	const struct tmp *t1 = a;
-+	const struct tmp *t2 = b;
++	MsgInfoList *msgs = NULL;
++	MsgInfoList *cur;
 +
-+	return t1->msginfo->date_t - t2->msginfo->date_t;
++	if (!advsearch_search_msgs_in_folders(as, &msgs, folder, recursive))
++		return -1;
++
++	for (cur = msgs; cur != NULL; cur = cur->next)
++	{
++		MsgInfo *mi = (MsgInfo *) cur->data;
++		struct vmi vmi;
++		gchar *id, *s;
++
++		if (mode == VFOLDER_MODE_THREAD)
++		{
++			while (mi->inreplyto)
++			{
++				MsgInfo *parent;
++				parent = folder_item_get_msginfo_by_msgid(
++					mi->folder, mi->inreplyto);
++				if (!parent)
++					break;
++				procmsg_msginfo_free(&mi);
++				mi = parent;
++			}
++		}
++
++		id = folder_item_get_identifier(mi->folder);
++		s = g_strdup_printf("%d%s", mi->msgnum, id);
++		g_free(id);
++
++		if (g_hash_table_lookup_extended(vitem->ht, s, NULL, NULL))
++		{
++			g_free(s);
++			procmsg_msginfo_free(&mi);
++			continue;
++		}
++
++		vmi.msginfo = procmsg_msginfo_copy(mi);
++		vmi.msginfo->tags = g_slist_copy(mi->tags);
++		vmi.src_folder = mi->folder;
++		vmi.src_msgnum = mi->msgnum;
++		vmi.msginfo->folder = (FolderItem *) vitem;
++		vmi.msginfo->msgnum = ++(*nb);
++
++		procmsg_msginfo_free(&mi);
++
++		g_array_append_val(vitem->vmi, vmi);
++		g_hash_table_insert(vitem->ht, s, GINT_TO_POINTER(*nb));
++
++		if (mode != VFOLDER_MODE_MESSAGE && mi->msgid)
++		{
++			guint j;
++
++			if (!*arr)
++				*arr = g_array_new(FALSE, FALSE,
++					sizeof (struct subsearch));
++			for (j = 0; j < (*arr)->len; ++j)
++			{
++				struct subsearch *ss = &g_array_index(*arr,
++					struct subsearch, j);
++
++				if (ss->folder == mi->folder)
++				{
++					g_string_append(ss->cond, " | references matchcase \"");
++					g_string_append(ss->cond, mi->msgid);
++					g_string_append_c(ss->cond, '"');
++					break;
++				}
++			}
++			if (j >= (*arr)->len)
++			{
++				struct subsearch ss;
++
++				ss.folder = mi->folder;
++				ss.cond = g_string_new("references matchcase \"");
++				g_string_append(ss.cond, mi->msgid);
++				g_string_append_c(ss.cond, '"');
++				g_array_append_val(*arr, ss);
++			}
++		}
++
++		if (msgid && *msgid && vmi.msginfo->msgid
++			&& !strcmp(*msgid, vmi.msginfo->msgid))
++		{
++			*msgid = NULL;
++			*msgnum = *nb;
++		}
++	}
++	g_slist_free(msgs);
++
++	return 0;
 +}
 +
 +static gint build_content(VFolderItem *vitem, const gchar *msgid, gint *msgnum)
 +{
 +	dbg("build_content\n");
-+	GArray *arr;
++	GArray *arr_ss = NULL;
 +	guint i;
 +	guint nb = 0;
 +
@@ -2804,13 +2943,9 @@ index 000000000..718dbc4ba
 +		return 0;
 +	}
 +
-+	arr = g_array_new(FALSE, FALSE, sizeof(struct tmp));
-+
 +	for (i = 0; i < vitem->search->len; ++i)
 +	{
 +		struct search *search = &g_array_index(vitem->search, struct search, i);
-+		MsgInfoList *msgs = NULL;
-+		MsgInfoList *cur;
 +
 +		if (!search->folder)
 +		{
@@ -2825,60 +2960,31 @@ index 000000000..718dbc4ba
 +			advsearch_set(search->as, ADVANCED_SEARCH_EXTENDED, search->cond);
 +		}
 +
-+		if (!advsearch_search_msgs_in_folders(search->as,
-+				&msgs, search->folder, search->recursive))
++		if (run_search(vitem,
++				search->as, search->folder, search->recursive, search->mode,
++				&nb, &msgid, msgnum, &arr_ss) < 0)
 +			goto fail;
-+
-+		for (cur = msgs; cur != NULL; cur = cur->next)
-+		{
-+			MsgInfo *mi = (MsgInfo *) cur->data;
-+			struct tmp tmp;
-+			gchar *id, *s;
-+
-+			id = folder_item_get_identifier(mi->folder);
-+			s = g_strdup_printf("%d%s", mi->msgnum, id);
-+			g_free(id);
-+
-+			if (i > 0 && g_hash_table_lookup_extended(vitem->ht, s, NULL, NULL))
-+			{
-+				g_free(s);
-+				procmsg_msginfo_free(&mi);
-+				continue;
-+			}
-+
-+			tmp.msginfo = mi;
-+			tmp.key = s;
-+			g_array_append_val(arr, tmp);
-+			g_hash_table_insert(vitem->ht, s, GINT_TO_POINTER(0));
-+		}
-+		g_slist_free(msgs);
 +	}
 +
-+	g_array_sort(arr, cmp_tmp);
-+	for (i = 0; i < arr->len; ++i)
++	if (arr_ss)
 +	{
-+		struct tmp *tmp = &g_array_index(arr, struct tmp, i);
-+		struct vmi vmi;
-+
-+		vmi.msginfo = procmsg_msginfo_copy(tmp->msginfo);
-+		vmi.msginfo->tags = g_slist_copy(tmp->msginfo->tags);
-+		vmi.src_folder = tmp->msginfo->folder;
-+		vmi.src_msgnum = tmp->msginfo->msgnum;
-+		vmi.msginfo->folder = (FolderItem *) vitem;
-+		vmi.msginfo->msgnum = ++nb;
-+
-+		procmsg_msginfo_free(&tmp->msginfo);
-+
-+		g_array_append_val(vitem->vmi, vmi);
-+		g_hash_table_insert(vitem->ht, g_strdup(tmp->key), GINT_TO_POINTER(nb));
-+
-+		if (msgid && vmi.msginfo->msgid && !strcmp(msgid, vmi.msginfo->msgid))
++		AdvancedSearch *as = advsearch_new();
++		for (i = 0; i < arr_ss->len; ++i)
 +		{
-+			msgid = NULL;
-+			*msgnum = nb;
++			struct subsearch *ss = &g_array_index(arr_ss, struct subsearch, i);
++			advsearch_set(as, ADVANCED_SEARCH_EXTENDED, ss->cond->str);
++			if (run_search(vitem, as, ss->folder, FALSE, VFOLDER_MODE_MESSAGE,
++					&nb, NULL, NULL, NULL) < 0)
++			{
++				advsearch_free(as);
++				goto fail;
++			}
++			g_string_free(ss->cond, TRUE);
++			ss->cond = NULL;
 +		}
++		g_array_free(arr_ss, TRUE);
++		advsearch_free(as);
 +	}
-+	g_array_free(arr, TRUE);
 +
 +	dbg("building done:%d\n",vitem->vmi->len);
 +	vitem->is_building = 0;
@@ -2887,9 +2993,18 @@ index 000000000..718dbc4ba
 +	return nb;
 +
 +fail:
-+	g_array_free(arr, TRUE);
-+	g_hash_table_remove_all(vitem->ht);
 +	dbg("building failed:%d\n",vitem->vmi->len);
++	g_hash_table_remove_all(vitem->ht);
++	if (arr_ss)
++	{
++		for (i = 0; i < arr_ss->len; ++i)
++		{
++			struct subsearch *ss = &g_array_index(arr_ss, struct subsearch, i);
++			if (ss->cond)
++				g_string_free(ss->cond, TRUE);
++		}
++		g_array_free(arr_ss, TRUE);
++	}
 +	vitem->is_building = 0;
 +	return -1;
 +}
@@ -3077,10 +3192,10 @@ index 000000000..718dbc4ba
 +}
 diff --git a/src/plugins/vfolder/vfolder.h b/src/plugins/vfolder/vfolder.h
 new file mode 100644
-index 000000000..b21f2bb00
+index 000000000..826dd82c1
 --- /dev/null
 +++ b/src/plugins/vfolder/vfolder.h
-@@ -0,0 +1,60 @@
+@@ -0,0 +1,69 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -3110,14 +3225,23 @@ index 000000000..b21f2bb00
 +typedef struct _VFolder VFolder;
 +typedef struct _VFolderItem VFolderItem;
 +
++typedef enum _VFolderMode
++{
++	VFOLDER_MODE_MESSAGE = 0,
++	VFOLDER_MODE_REPLIES,
++	VFOLDER_MODE_THREAD
++} VFolderMode;
++
 +typedef struct _VFolderSearch VFolderSearch;
 +struct _VFolderSearch
 +{
 +	gchar *folder_id;
 +	gboolean recursive;
++	VFolderMode mode;
 +	gchar *cond;
 +
-+	gpointer *reserved[2];
++	/* to match struct search from vfolder.c */
++	gpointer reserved[2];
 +};
 +
 +typedef void (*vfolder_worker_fn) (MsgInfoList *msglist, gpointer data);
@@ -3143,10 +3267,10 @@ index 000000000..b21f2bb00
 +#endif /* __VFOLDER_FOLDER_H__ */
 diff --git a/src/plugins/vfolder/vfolder_item_prefs.c b/src/plugins/vfolder/vfolder_item_prefs.c
 new file mode 100644
-index 000000000..19d3c39f7
+index 000000000..2aaf85d9e
 --- /dev/null
 +++ b/src/plugins/vfolder/vfolder_item_prefs.c
-@@ -0,0 +1,1211 @@
+@@ -0,0 +1,1279 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -3218,6 +3342,7 @@ index 000000000..19d3c39f7
 +{
 +	PREFS_COL_FOLDER,
 +	PREFS_COL_RECURSIVE,
++	PREFS_COL_MODE,
 +	PREFS_COL_COND,
 +	NB_PREFS_COL
 +};
@@ -3246,6 +3371,7 @@ index 000000000..19d3c39f7
 +static GtkWidget *cond_entry;
 +static GtkWidget *folder_entry;
 +static GtkWidget *recursive_btn;
++static GtkWidget *mode_combo;
 +static GtkWidget *cond_list_view;
 +static GtkWidget *autorefresh_btn;
 +
@@ -3260,6 +3386,7 @@ index 000000000..19d3c39f7
 +		GtkTreeIter iter;
 +		gchar *folder, *cond;
 +		gboolean recursive;
++		guint mode;
 +
 +		if (gtk_tree_path_get_depth(path) == 1
 +			&& gtk_tree_path_get_indices(path)[0] == 0)
@@ -3273,11 +3400,13 @@ index 000000000..19d3c39f7
 +		gtk_tree_model_get(model, &iter,
 +			PREFS_COL_FOLDER,       &folder,
 +			PREFS_COL_RECURSIVE,    &recursive,
++			PREFS_COL_MODE,		&mode,
 +			PREFS_COL_COND,         &cond,
 +			-1);
 +
 +		gtk_entry_set_text(GTK_ENTRY(folder_entry), folder);
 +		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(recursive_btn), recursive);
++		gtk_combo_box_set_active(GTK_COMBO_BOX(mode_combo), mode);
 +		gtk_entry_set_text(GTK_ENTRY_FROM_COMBOBOX(cond_entry), cond);
 +
 +		g_free(folder);
@@ -3383,6 +3512,29 @@ index 000000000..19d3c39f7
 +	return TRUE;
 +}
 +
++static void show_mode(GtkTreeViewColumn *column, GtkCellRenderer *renderer,
++	GtkTreeModel *model, GtkTreeIter *iter, gpointer data)
++{
++	guint mode;
++
++	gtk_tree_model_get(model, iter, PREFS_COL_MODE, &mode, -1);
++	switch (mode)
++	{
++		case VFOLDER_MODE_MESSAGE:
++			g_object_set(renderer, "text", _("Message"), NULL);
++			break;
++		case VFOLDER_MODE_THREAD:
++			g_object_set(renderer, "text", _("Threads"), NULL);
++			break;
++		case VFOLDER_MODE_REPLIES:
++			g_object_set(renderer, "text", _("With replies"), NULL);
++			break;
++		case -1:
++			g_object_set(renderer, "text", _("(New)"), NULL);
++			break;
++	}
++}
++
 +static void prefs_create_list_view_columns(GtkWidget *list_view)
 +{
 +	GtkTreeViewColumn *column;
@@ -3409,6 +3561,15 @@ index 000000000..19d3c39f7
 +		 NULL);
 +	gtk_tree_view_column_set_alignment (column, 0.5);
 +	gtk_tree_view_append_column(GTK_TREE_VIEW(list_view), column);
++
++	renderer = gtk_cell_renderer_text_new();
++	column = gtk_tree_view_column_new();
++	gtk_tree_view_column_set_title(column, _("Mode"));
++	gtk_tree_view_column_pack_start(column, renderer, FALSE);
++	gtk_tree_view_column_set_cell_data_func(column, renderer,
++		show_mode, NULL, NULL);
++	gtk_tree_view_append_column(GTK_TREE_VIEW(list_view), column);
++	gtk_tree_view_column_set_resizable(column, TRUE);
 +
 +	renderer = gtk_cell_renderer_text_new();
 +	column = gtk_tree_view_column_new_with_attributes
@@ -3444,6 +3605,7 @@ index 000000000..19d3c39f7
 +			GTK_TREE_MODEL(gtk_list_store_new(NB_PREFS_COL,
 +					G_TYPE_STRING,
 +					G_TYPE_BOOLEAN,
++					G_TYPE_UINT,
 +					G_TYPE_STRING,
 +					-1))));
 +#ifdef GENERIC_UMPC
@@ -3497,6 +3659,7 @@ index 000000000..19d3c39f7
 +	gtk_list_store_set(list_store, &iter,
 +		PREFS_COL_FOLDER, _("(New)"),
 +		PREFS_COL_RECURSIVE, FALSE,
++		PREFS_COL_MODE, -1,
 +		PREFS_COL_COND, _("(New)"),
 +		-1);
 +}
@@ -3522,6 +3685,7 @@ index 000000000..19d3c39f7
 +		gtk_list_store_set(list_store, &iter,
 +			PREFS_COL_FOLDER, search->folder_id,
 +			PREFS_COL_RECURSIVE, search->recursive,
++			PREFS_COL_MODE, search->mode,
 +			PREFS_COL_COND, search->cond,
 +			-1);
 +	}
@@ -3612,6 +3776,7 @@ index 000000000..19d3c39f7
 +	GtkWidget *table;
 +	GtkWidget *folder_label;
 +	GtkWidget *folder_btn;
++	GtkWidget *mode_label;
 +	GtkWidget *cond_label;
 +	GtkWidget *cond_btn_clear;
 +	GtkWidget *cond_btn_edit;
@@ -3638,7 +3803,7 @@ index 000000000..19d3c39f7
 +	gtk_box_pack_start (GTK_BOX (vbox1), vbox2, FALSE, TRUE, 0);
 +	gtk_container_set_border_width (GTK_CONTAINER (vbox2), 8);
 +
-+	table = gtk_table_new(4, 3, FALSE);
++	table = gtk_table_new(4, 4, FALSE);
 +	gtk_table_set_row_spacings (GTK_TABLE (table), VSPACING_NARROW_2);
 +	gtk_table_set_col_spacings (GTK_TABLE (table), 4);
 +	gtk_widget_show(table);
@@ -3669,20 +3834,36 @@ index 000000000..19d3c39f7
 +
 +	recursive_btn = gtk_check_button_new_with_label (_("Recursive"));
 +	gtk_widget_show (recursive_btn);
-+	gtk_table_attach (GTK_TABLE (table), recursive_btn, 1, 3, 3, 4,
++	gtk_table_attach (GTK_TABLE (table), recursive_btn, 1, 2, 3, 4,
++		(GtkAttachOptions) (GTK_FILL),
++		(GtkAttachOptions) (0), 0, 0);
++
++	mode_label = gtk_label_new (_("Mode"));
++	gtk_widget_show (mode_label);
++	gtk_misc_set_alignment (GTK_MISC (mode_label), 1, 0.5);
++	gtk_table_attach (GTK_TABLE (table), mode_label, 0, 1, 4, 5,
++		(GtkAttachOptions) (GTK_FILL),
++		(GtkAttachOptions) (0), 0, 0);
++
++	mode_combo = combobox_text_new (FALSE,
++		_("Message (List matching messages)"),
++		_("With replies (List matching messages and their replies)"),
++		_("Threads (List threads containing matching messages)"), NULL);
++	gtk_widget_show (mode_combo);
++	gtk_table_attach (GTK_TABLE (table), mode_combo, 1, 2, 4, 5,
 +		(GtkAttachOptions) (GTK_FILL),
 +		(GtkAttachOptions) (0), 0, 0);
 +
 +	cond_label = gtk_label_new (_("Condition"));
 +	gtk_widget_show (cond_label);
 +	gtk_misc_set_alignment (GTK_MISC (cond_label), 1, 0.5);
-+	gtk_table_attach (GTK_TABLE (table), cond_label, 0, 1, 4, 5,
++	gtk_table_attach (GTK_TABLE (table), cond_label, 0, 1, 5, 6,
 +		(GtkAttachOptions) (GTK_FILL),
 +		(GtkAttachOptions) (0), 0, 0);
 +
 +	cond_hbox = gtk_hbox_new(FALSE, 5);
 +	gtk_widget_show (cond_hbox);
-+	gtk_table_attach (GTK_TABLE (table), cond_hbox, 1, 3, 4, 5,
++	gtk_table_attach (GTK_TABLE (table), cond_hbox, 1, 3, 5, 6,
 +		(GtkAttachOptions) (GTK_FILL|GTK_EXPAND),
 +		(GtkAttachOptions) (0), 0, 0);
 +
@@ -3932,10 +4113,12 @@ index 000000000..19d3c39f7
 +	GtkTreeIter sibling;
 +	const gchar *folder;
 +	gboolean recursive;
++	VFolderMode mode;
 +	const gchar *cond;
 +
 +	folder = gtk_entry_get_text(GTK_ENTRY(folder_entry));
 +	recursive = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(recursive_btn));
++	mode = gtk_combo_box_get_active(GTK_COMBO_BOX(mode_combo));
 +	cond = gtk_entry_get_text(GTK_ENTRY_FROM_COMBOBOX(cond_entry));
 +
 +	/* validate values */
@@ -3978,6 +4161,7 @@ index 000000000..19d3c39f7
 +		gtk_list_store_set(list_store, &iter,
 +			PREFS_COL_FOLDER, folder,
 +			PREFS_COL_RECURSIVE, recursive,
++			PREFS_COL_MODE, mode,
 +			PREFS_COL_COND, cond,
 +			-1);
 +		return gtk_tree_model_iter_n_children(GTK_TREE_MODEL(list_store), NULL) - 1;
@@ -3987,6 +4171,7 @@ index 000000000..19d3c39f7
 +		gtk_list_store_set(list_store, &iter,
 +			PREFS_COL_FOLDER, folder,
 +			PREFS_COL_RECURSIVE, recursive,
++			PREFS_COL_MODE, mode,
 +			PREFS_COL_COND, cond,
 +			-1);
 +		return gtk_tree_model_iter_n_children(GTK_TREE_MODEL(list_store), NULL) - 1;
@@ -3995,6 +4180,7 @@ index 000000000..19d3c39f7
 +		gtk_list_store_set(list_store, &iter,
 +			PREFS_COL_FOLDER, folder,
 +			PREFS_COL_RECURSIVE, recursive,
++			PREFS_COL_MODE, mode,
 +			PREFS_COL_COND, cond,
 +			-1);
 +		return row;
@@ -4248,6 +4434,11 @@ index 000000000..19d3c39f7
 +		if (search->recursive && fputc('+', pfile->fp) == EOF)
 +			goto fail;
 +
++		if (search->mode == VFOLDER_MODE_THREAD && fputc('<', pfile->fp) == EOF)
++			goto fail;
++		if (search->mode == VFOLDER_MODE_REPLIES && fputc('>', pfile->fp) == EOF)
++			goto fail;
++
 +		for (s = search->folder_id; s && *s != '\0'; ++s)
 +		{
 +			if ((*s == ' ' || *s == '\\') && fputc('\\', pfile->fp) == EOF)
@@ -4300,6 +4491,7 @@ index 000000000..19d3c39f7
 +		gtk_tree_model_get(model, &iter,
 +			PREFS_COL_FOLDER,       &search->folder_id,
 +			PREFS_COL_RECURSIVE,    &search->recursive,
++			PREFS_COL_MODE,		&search->mode,
 +			PREFS_COL_COND,         &search->cond,
 +			-1);
 +	}
@@ -4686,5 +4878,5 @@ index 000000000..eb87f63f6
 +
 +#endif /* __VFOLDER_PREFS_H__ */
 -- 
-2.13.3
+2.14.1
 

@@ -1,7 +1,7 @@
-From 92934b3fddf38bc3cae71587bb92abd91c9f2cb1 Mon Sep 17 00:00:00 2001
+From 15d9b56b4a69f3fc81292990cb3e51ab487090d5 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
-Date: Tue, 28 Mar 2017 19:59:57 +0200
-Subject: [PATCH 5/5] prefs: add option "Ignore sort direction / Make sort
+Date: Sat, 3 Jun 2017 22:10:37 +0200
+Subject: [PATCH 09/11] prefs: add option "Ignore sort direction / Make sort
  order aware"
 
 When enabled, we get the old/classic claws behavior, where first means
@@ -11,11 +11,6 @@ When disabled, things make sense. :)
 
 It affects default selection when opening folder, go to previous/next
 {,unread,marked,etc} message and next_on_delete behavior.
-
-Also make all actions on folder opening sort order aware, as in only
-first/last mail in list were, not first unread/marked/etc mail
-
-Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
  src/prefs_common.c    |   3 +
  src/prefs_common.h    |   2 +
@@ -449,5 +444,5 @@ index 99b7e4a5d..4ca400d04 100644
  		}
  
 -- 
-2.12.1
+2.14.1
 

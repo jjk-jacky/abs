@@ -4,7 +4,7 @@
 _pkgname=claws-mail
 pkgname=$_pkgname-jjk
 pkgver=3.15.0
-pkgrel=7
+pkgrel=8
 pkgdesc="A GTK+ based e-mail client."
 arch=('i686' 'x86_64')
 license=('GPL3')
@@ -30,34 +30,31 @@ source=(http://www.claws-mail.org/download.php?file=releases/claws-mail-$pkgver.
         0004-Allow-external-use-of-strings-about-Extended-Search.patch
         0005-Add-vfolder-plugin.patch
         0006-quicksearch-expand-extended-symbols-on-Edit.patch
-        0007-prefs-add-option-Ignore-sort-direction-Make-sort-ord.patch
-        0008-Add-Delivery-Status-Notification-DSN-support.patch
-        0009-Fix-Date-null-in-return-receipt-since-989b3a3f.patch)
+        0007-Add-a-signature.asc-name-for-PGP-MIME-signatures.patch
+        0008-Speed-up-searches-in-References-via-x.patch
+        0009-prefs-add-option-Ignore-sort-direction-Make-sort-ord.patch
+        0010-Add-Delivery-Status-Notification-DSN-support.patch
+        0011-Fix-Date-null-in-return-receipt-since-989b3a3f.patch)
 sha256sums=('4e4d2d0d43f8ae3d4623408612f5979e9a697ccbc12038b80dd27802e868dc2e'
             'SKIP'
-            '9934dd6e323836fa8381312d9f9784c6d047fa78de39b8ad2ea130e3aa415d0e'
-            '47a38b38fd5b79c0473ad942faa143c0cf6d5dd22e084e262510456ea6eb4603'
-            'b755811c12a96bcb6c5709f90e8dfa09d4719184fc9c68f0cc51970d8dd3a140'
-            'af10f4b7e952c118eaa71fc8a22161e8f6aef144d981770b78f603f55a01439c'
-            'dc7d2aceba2e1ccc8d59fcd2cfcec718673f786b397a2ff576e9c54ca0bc57eb'
-            '5a6ec17e4c37fafebfa77453c9bf2eb476941453a22a8b899c87de5acd505f7b'
-            '9dfd84369736194f77976b915a84e9ae1317d628796065b9fe853859ffa32412'
-            '61895d56345fa89c2266e4c9316bbbd5d2e9c76353c74efeda0ec7bf74377b21'
-            '005372582c0e6982466f93773ac1f27b8dbd22dee464c302fcb374dc7de04561')
+            '051656075f888c83053c4424c16974bb531f82bbe148790f6d39443bfaaddc1e'
+            '470fea22cf815cd94d78a9b05ae5ceab2f540e85c1c4cf8982cac4e0eb8dded9'
+            'b65fabc3bb87ee7ac7a3c0bc3a6f3a5dfc3e251aef2db5da12050a8dbee4629f'
+            'd80fa11fab35133f6ca14d8dbc2e5ecccca0ca544ddf68a6193a21cfa4913ea8'
+            '498e9a3651a343b8a35399c0a07a4d74fce211ccaa0b5323d367d51446e83d3c'
+            'aff93518c1cce373928acaba53fe86be4fbfddcfa1a6738567472d18c054cba5'
+            'c48c01cf903c12edb154c19c7d7a455d29adcbf08e6c48f5030f486d05ffcf26'
+            'f49501b94de47ffc286e8042431ec17ae13181b6d115b66bb757aface77aea7e'
+            '74150256543c65261b5ec48d8f004a5f33b557a799a0868bf8dc357f6e8eee2e'
+            '757a5344fca283b0a892d923b511fe118ef25cbbc9819de62f89d9fdaa9548bc'
+            'd8111e0deec8ccbbd1addd0359b20d2fba366ddb44d79a4bd351e8953d489f60')
 validpgpkeys=('8B3B297A03468356692F8D592CD716D654D6BBD4') # Paul <paul@claws-mail.org>
 
 prepare() {
   cd "${_pkgname}-${pkgver}"
-  patch -p1 -i ../0001-Fix-diff-format-detection.patch
-  patch -p1 -i ../0002-Add-coloring-of-diff-patches-inside-emails.patch
-  patch -p1 -i ../0003-Always-sort-by-date-ASC-within-a-thread-when-by-thre.patch
-  patch -p1 -i ../0004-Allow-external-use-of-strings-about-Extended-Search.patch
-  patch -p1 -i ../0005-Add-vfolder-plugin.patch
-  patch -p1 -i ../0006-quicksearch-expand-extended-symbols-on-Edit.patch
-  patch -p1 -i ../0007-prefs-add-option-Ignore-sort-direction-Make-sort-ord.patch
-  patch -p1 -i ../0008-Add-Delivery-Status-Notification-DSN-support.patch
-  patch -p1 -i ../0009-Fix-Date-null-in-return-receipt-since-989b3a3f.patch
-
+  for f in "${source[@]}"; do
+      [[ "$f" = *".patch" ]] && patch -p1 -i ../"$f"
+  done
   NOCONFIGURE=1 ./autogen.sh
 }
 

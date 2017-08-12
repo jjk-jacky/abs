@@ -1,0 +1,29 @@
+From 82215d287f0531976016270ffbe96130996fa648 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Wed, 2 Aug 2017 20:48:58 +0200
+Subject: [PATCH 08/11] Speed-up searches in References via "x"
+
+Since commit 5c9f9e47 (in 2001!) the header "References" is actually
+cached in MsgInfo, so searching it can be substantially faster if "x"
+expands to 'references' instead of 'header "References"', much like with
+'i' (messageid) or 'I' (inreplyto).
+---
+ src/advsearch.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/advsearch.c b/src/advsearch.c
+index 94e010e13..f2d8af0f1 100644
+--- a/src/advsearch.c
++++ b/src/advsearch.c
+@@ -184,7 +184,7 @@ gchar *advsearch_expand_search_string(const gchar *search_string)
+ 		{ "tg", "tag",				1,	TRUE,	TRUE  },
+ 		{ "T",	"marked",			0,	FALSE,	FALSE },
+ 		{ "U",	"unread",			0,	FALSE,	FALSE },
+-		{ "x",	"header \"References\"",	1,	TRUE,	TRUE  },
++		{ "x",	"references",			1,	TRUE,	TRUE  },
+ 		{ "X",  "test",				1,	FALSE,  FALSE },
+ 		{ "y",	"header \"X-Label\"",		1,	TRUE,	TRUE  },
+ 		{ "&",	"&",				0,	FALSE,	FALSE },
+-- 
+2.14.1
+
