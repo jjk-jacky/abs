@@ -5,7 +5,7 @@
 pkgbase=xorg-server
 pkgname=(xorg-server-jjk xorg-server-xephyr-jjk)
 pkgver=1.19.3
-pkgrel=1 # build first with 0.1 and then rebuild it after xf86-input-evdev rebuild
+pkgrel=2 # build first with 0.1 and then rebuild it after xf86-input-evdev rebuild
 arch=('i686' 'x86_64')
 license=('custom')
 url="https://xorg.freedesktop.org"
@@ -18,6 +18,8 @@ makedepends=('pixman' 'libx11' 'mesa' 'libgl' 'xf86driproto' 'xcmiscproto' 'xtra
              'libxshmfence' 'libunwind' 'libevdev')
 source=($url/releases/individual/xserver/xorg-server-$pkgver.tar.bz2{,.sig}
         xvfb-run xvfb-run.1
+        CVE-2017-10971.patch
+        CVE-2017-10972.patch
         0001-Add-config-scan-mode-for-hotplug-support.patch)
 validpgpkeys=('7B27A3F1A6E18CD9588B4AE8310180050905E40C'
               'C383B778255613DFDB409D91DB221A6900000011'
@@ -26,11 +28,15 @@ sha256sums=('677a8166e03474719238dfe396ce673c4234735464d6dadf2959b600d20e5a98'
             'SKIP'
             'ff0156309470fc1d378fd2e104338020a884295e285972cc88e250e031cc35b9'
             '2460adccd3362fefd4cdc5f1c70f332d7b578091fb9167bf88b5f91265bbd776'
+            '3950d5d64822b4a34ca0358389216eed25e159751006d674e7cb491aa3b54d0b'
+            '700af48c541f613b376eb7a7e567d13c0eba7a835d0aaa9d4b0431ebdd9f397c'
             '063d4d3173c906fa220f2d045e110d2c6eb41329b12dca0c9770b4452f8db96e')
 
 prepare() {
   cd "$pkgbase-$pkgver"
 
+  patch -Np1 -i ../CVE-2017-10971.patch
+  patch -Np1 -i ../CVE-2017-10972.patch
   patch -Np1 -i ../0001-Add-config-scan-mode-for-hotplug-support.patch
 }
 
