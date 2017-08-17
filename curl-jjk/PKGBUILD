@@ -7,7 +7,7 @@
 
 _pkgname=curl
 pkgname=$_pkgname-jjk
-pkgver=7.54.1
+pkgver=7.55.1
 pkgrel=1
 pkgdesc="An URL retrieval utility and library"
 arch=('i686' 'x86_64')
@@ -16,9 +16,8 @@ license=('MIT')
 depends=('ca-certificates' 'krb5' 'libssh2' 'openssl' 'zlib')
 provides=('libcurl.so' $_pkgname)
 conflicts=($_pkgname)
-options=('strip' 'debug')
 source=("https://curl.haxx.se/download/$_pkgname-$pkgver.tar.gz"{,.asc})
-md5sums=('21a6e5658fd55103a90b11de7b2a8a8c'
+md5sums=('3b832160a8c9c40075fd71191960307c'
          'SKIP')
 validpgpkeys=('27EDEAF22F3ABCEB50DB9A125CC908FDB71E12C2'   # Daniel Stenberg
               '914C533DF9B2ADA2204F586D78E11C6B279D5C91')  # Daniel Stenberg (old key)
