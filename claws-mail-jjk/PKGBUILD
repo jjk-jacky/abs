@@ -104,12 +104,11 @@ package() {
   cd "${_pkgname}-${pkgver}"
   make DESTDIR="${pkgdir}" install
 
-  # build and install extra tools
+  # install extra tools
   cd tools
-  make
-   # all executables and .conf files ; only top directory
-  find -maxdepth 1 -type f -and -perm /111 -or -name '*.conf' | while read i ; do
-      install -D -m755 "${i}" \
-        "${pkgdir}/usr/lib/claws-mail/tools/${i}"
+  install -m755 -d "$pkgdir"/usr/lib/claws-mail/tools
+  for file in *.pl *.py *.sh multiwebsearch.conf tb2claws-mail update-po \
+      uudec uuooffice README; do
+      cp -av "$file" "$pkgdir"/usr/lib/claws-mail/tools
   done
 }
