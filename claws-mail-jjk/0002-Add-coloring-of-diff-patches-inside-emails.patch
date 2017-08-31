@@ -1,4 +1,4 @@
-From 9513a95b085fe1c85e1cf75159510c03c4f9d97e Mon Sep 17 00:00:00 2001
+From 1cb0c6d18d24d64ae38391f0b54696993e3b0d5c Mon Sep 17 00:00:00 2001
 From: Jakub Kicinski <kubakici@wp.pl>
 Date: Wed, 11 Dec 2013 18:12:05 +0100
 Subject: [PATCH 02/11] Add coloring of diff patches inside emails.

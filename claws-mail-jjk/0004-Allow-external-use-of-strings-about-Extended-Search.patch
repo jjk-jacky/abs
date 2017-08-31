@@ -1,4 +1,4 @@
-From 3ecaacd30a6595305bee14993e74b902c4cbde08 Mon Sep 17 00:00:00 2001
+From eaaac3504a6d560419de95bfd175d4b54f7123fa Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 9 Jun 2017 22:37:01 +0200
 Subject: [PATCH 04/11] Allow external use of strings about Extended Search

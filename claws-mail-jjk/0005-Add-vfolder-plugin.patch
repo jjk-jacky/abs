@@ -1,4 +1,4 @@
-From 4f8de92fbdb12d2f8bc3aa4fad77c312082f9883 Mon Sep 17 00:00:00 2001
+From 468381350f988dfe51eb023fb1a2dd79a6efb329 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Wed, 26 Jul 2017 14:02:13 +0200
 Subject: [PATCH 05/11] Add vfolder plugin
@@ -56,6 +56,8 @@ v8: - Fix searches lost on rename
     - Add 'Copy folder'
 v9: - Fix slow copy folder w/ many msgs
     - Add "mode" (msgs, w/replies, threads)
+v10:- Fix use after free (since v9)
+    - mode thread: Ensure found messages are shown
 ---
  configure.ac                             |   15 +
  src/plugins/Makefile.am                  |    3 +-
@@ -64,13 +66,13 @@ v9: - Fix slow copy folder w/ many msgs
  src/plugins/vfolder/plugin.h             |   54 ++
  src/plugins/vfolder/plugin_gtk.c         | 1152 ++++++++++++++++++++++
  src/plugins/vfolder/plugin_gtk.h         |   31 +
- src/plugins/vfolder/vfolder.c            | 1537 ++++++++++++++++++++++++++++++
+ src/plugins/vfolder/vfolder.c            | 1542 ++++++++++++++++++++++++++++++
  src/plugins/vfolder/vfolder.h            |   69 ++
  src/plugins/vfolder/vfolder_item_prefs.c | 1279 +++++++++++++++++++++++++
  src/plugins/vfolder/vfolder_item_prefs.h |   33 +
  src/plugins/vfolder/vfolder_prefs.c      |  247 +++++
  src/plugins/vfolder/vfolder_prefs.h      |   29 +
- 13 files changed, 4687 insertions(+), 1 deletion(-)
+ 13 files changed, 4692 insertions(+), 1 deletion(-)
  create mode 100644 src/plugins/vfolder/Makefile.am
  create mode 100644 src/plugins/vfolder/plugin.c
  create mode 100644 src/plugins/vfolder/plugin.h
@@ -84,7 +86,7 @@ v9: - Fix slow copy folder w/ many msgs
  create mode 100644 src/plugins/vfolder/vfolder_prefs.h
 
 diff --git a/configure.ac b/configure.ac
-index ecdd2850d..9b3e75e1d 100644
+index a54710b06..e3aaf61c5 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -1094,6 +1094,10 @@ AC_ARG_ENABLE(vcalendar-plugin,
@@ -122,7 +124,7 @@ index ecdd2850d..9b3e75e1d 100644
  
  
  dnl ****************************
-@@ -2044,6 +2058,7 @@ src/plugins/spamassassin/Makefile
+@@ -2043,6 +2057,7 @@ src/plugins/spamassassin/Makefile
  src/plugins/spam_report/Makefile
  src/plugins/tnef_parse/Makefile
  src/plugins/vcalendar/Makefile
@@ -131,10 +133,10 @@ index ecdd2850d..9b3e75e1d 100644
  doc/man/Makefile
  tools/Makefile
 diff --git a/src/plugins/Makefile.am b/src/plugins/Makefile.am
-index 28abfdb67..c800d43ca 100644
+index 6acc1fb36..e42d066e8 100644
 --- a/src/plugins/Makefile.am
 +++ b/src/plugins/Makefile.am
-@@ -33,4 +33,5 @@ SUBDIRS = \
+@@ -32,4 +32,5 @@ SUBDIRS = \
  	spamassassin \
  	spam_report \
  	tnef_parse \
@@ -1649,10 +1651,10 @@ index 000000000..260f67ed9
 +#endif /* __VFOLDER_PLUGIN_GTK_H__ */
 diff --git a/src/plugins/vfolder/vfolder.c b/src/plugins/vfolder/vfolder.c
 new file mode 100644
-index 000000000..7631c6ea3
+index 000000000..088f30ea4
 --- /dev/null
 +++ b/src/plugins/vfolder/vfolder.c
-@@ -0,0 +1,1537 @@
+@@ -0,0 +1,1542 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -2833,20 +2835,7 @@ index 000000000..7631c6ea3
 +		struct vmi vmi;
 +		gchar *id, *s;
 +
-+		if (mode == VFOLDER_MODE_THREAD)
-+		{
-+			while (mi->inreplyto)
-+			{
-+				MsgInfo *parent;
-+				parent = folder_item_get_msginfo_by_msgid(
-+					mi->folder, mi->inreplyto);
-+				if (!parent)
-+					break;
-+				procmsg_msginfo_free(&mi);
-+				mi = parent;
-+			}
-+		}
-+
++again:
 +		id = folder_item_get_identifier(mi->folder);
 +		s = g_strdup_printf("%d%s", mi->msgnum, id);
 +		g_free(id);
@@ -2864,8 +2853,6 @@ index 000000000..7631c6ea3
 +		vmi.src_msgnum = mi->msgnum;
 +		vmi.msginfo->folder = (FolderItem *) vitem;
 +		vmi.msginfo->msgnum = ++(*nb);
-+
-+		procmsg_msginfo_free(&mi);
 +
 +		g_array_append_val(vitem->vmi, vmi);
 +		g_hash_table_insert(vitem->ht, s, GINT_TO_POINTER(*nb));
@@ -2908,6 +2895,26 @@ index 000000000..7631c6ea3
 +			*msgid = NULL;
 +			*msgnum = *nb;
 +		}
++
++		if (mode == VFOLDER_MODE_THREAD)
++		{
++			int found = 0;
++			while (mi->inreplyto)
++			{
++				MsgInfo *parent;
++				parent = folder_item_get_msginfo_by_msgid(
++					mi->folder, mi->inreplyto);
++				if (!parent)
++					break;
++				procmsg_msginfo_free(&mi);
++				mi = parent;
++				found = 1;
++			}
++			if (found)
++				goto again;
++		}
++
++		procmsg_msginfo_free(&mi);
 +	}
 +	g_slist_free(msgs);
 +

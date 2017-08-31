@@ -1,4 +1,4 @@
-From e072b97d2f2ff7ef2aad2346e4dde7bba02236b6 Mon Sep 17 00:00:00 2001
+From a2185ac3504b1fdd1fbf1666fd098a11882bfce5 Mon Sep 17 00:00:00 2001
 From: Jakub Kicinski <kubakici@wp.pl>
 Date: Wed, 11 Dec 2013 18:09:59 +0100
 Subject: [PATCH 01/11] Fix diff format detection.

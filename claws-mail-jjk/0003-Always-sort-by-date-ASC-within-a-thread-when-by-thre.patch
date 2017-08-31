@@ -1,4 +1,4 @@
-From 303e71e2d0ac064b63e87a45386a9d3efd3f202b Mon Sep 17 00:00:00 2001
+From 8c8884b6985e38241bf0269618e8d35b4326c0ce Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sun, 15 Nov 2015 17:53:30 +0100
 Subject: [PATCH 03/11] Always sort by date ASC within a thread when by thread

@@ -1,4 +1,4 @@
-From f1c82e6849ee47f5778cb5c77fac7ae5294b6b15 Mon Sep 17 00:00:00 2001
+From 4944207805fdf164ef1d8dd122320e22e871af98 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Mon, 5 Jun 2017 22:10:50 +0200
 Subject: [PATCH 10/11] Add Delivery Status Notification (DSN) support
@@ -243,7 +243,7 @@ index 706a0978a..3396a8874 100644
  
  #ifdef USE_GNUTLS
 diff --git a/src/compose.c b/src/compose.c
-index 4a29775d4..34f2ced56 100644
+index 84f951d85..ad2120399 100644
 --- a/src/compose.c
 +++ b/src/compose.c
 @@ -494,6 +494,12 @@ static void compose_use_signing(Compose *compose, gboolean use_signing);
@@ -372,7 +372,7 @@ index 4a29775d4..34f2ced56 100644
  	}
  	
  	if (compose_parse_header(compose, msginfo) < 0) {
-@@ -5529,6 +5591,7 @@ static gint compose_redirect_write_to_file(Compose *compose, FILE *fdest)
+@@ -5531,6 +5593,7 @@ static gint compose_redirect_write_to_file(Compose *compose, FILE *fdest)
  		"X-Sylpheed-Privacy",	"X-Sylpheed-Sign:",	"X-Sylpheed-Encrypt",
  		"X-Sylpheed-End-Special-Headers:", 		"X-Sylpheed-Account-Id:",
  		"X-Claws-Auto-Wrapping:", "X-Claws-Auto-Indent:",
@@ -380,7 +380,7 @@ index 4a29775d4..34f2ced56 100644
  		NULL
  		};
  	gint ret = 0;
-@@ -6181,6 +6244,9 @@ static gint compose_queue_sub(Compose *compose, gint *msgnum, FolderItem **item,
+@@ -6183,6 +6246,9 @@ static gint compose_queue_sub(Compose *compose, gint *msgnum, FolderItem **item,
  	if (compose->return_receipt) {
  		err |= (fprintf(fp, "RRCPT:1\n") < 0);
  	}
@@ -390,7 +390,7 @@ index 4a29775d4..34f2ced56 100644
  	/* Message-ID of message replying to */
  	if ((compose->replyinfo != NULL) && (compose->replyinfo->msgid != NULL)) {
  		gchar *folderid = NULL;
-@@ -7800,6 +7866,10 @@ static Compose *compose_create(PrefsAccount *account,
+@@ -7802,6 +7868,10 @@ static Compose *compose_create(PrefsAccount *account,
  
  	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "Separator3", "Options/---", GTK_UI_MANAGER_SEPARATOR)
  	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "RequestRetRcpt", "Options/RequestRetRcpt", GTK_UI_MANAGER_MENUITEM)
@@ -401,7 +401,7 @@ index 4a29775d4..34f2ced56 100644
  	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "Separator4", "Options/---", GTK_UI_MANAGER_SEPARATOR)
  	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "RemoveReferences", "Options/RemoveReferences", GTK_UI_MANAGER_MENUITEM)
  	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "Separator5", "Options/---", GTK_UI_MANAGER_SEPARATOR)
-@@ -10206,6 +10276,9 @@ gboolean compose_draft (gpointer data, guint action)
+@@ -10208,6 +10278,9 @@ gboolean compose_draft (gpointer data, guint action)
  	if (compose->return_receipt) {
  		err |= (fprintf(fp, "RRCPT:1\n") < 0);
  	}
@@ -411,7 +411,7 @@ index 4a29775d4..34f2ced56 100644
  	if (compose->privacy_system) {
  		err |= (fprintf(fp, "X-Claws-Sign:%d\n", compose->use_signing) < 0);
  		err |= (fprintf(fp, "X-Claws-Encrypt:%d\n", compose->use_encryption) < 0);
-@@ -11608,6 +11681,36 @@ static void compose_toggle_return_receipt_cb(GtkToggleAction *action, gpointer d
+@@ -11610,6 +11683,36 @@ static void compose_toggle_return_receipt_cb(GtkToggleAction *action, gpointer d
  		compose->return_receipt = FALSE;
  }
  
