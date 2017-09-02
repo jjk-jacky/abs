@@ -1,0 +1,54 @@
+# $Id$
+# Maintainer: Christian Hesse <mail@eworm.de>
+# Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Eivind Uggedal <eivind@uggedal.com>
+
+_pkgname=mpv
+pkgname=$_pkgname-jjk
+pkgver=0.26.0
+pkgrel=2
+_waf_version=1.8.12
+pkgdesc='a free, open source, and cross-platform media player'
+arch=('i686' 'x86_64')
+license=('GPL')
+url='https://mpv.io'
+depends=(
+  'ffmpeg' 'lcms2' 'libgl' 'libass' 'lua52'
+  'libxss' 'libxinerama' 'libxv' 'libva' 'libdvdnav'
+  'desktop-file-utils' 'hicolor-icon-theme' 'xdg-utils'
+  'libxrandr'
+)
+makedepends=('mesa' 'python-docutils' 'ladspa')
+optdepends=('youtube-dl: for video-sharing websites playback')
+provides=($_pkgname)
+conflicts=($_pkgname)
+options=('!emptydirs')
+source=("$_pkgname-$pkgver.tar.gz::https://github.com/mpv-player/$_pkgname/archive/v$pkgver.tar.gz"
+  "http://www.freehackers.org/~tnagy/release/waf-$_waf_version")
+sha256sums=('daf3ef358d5f260f2269f7caabce27f446c291457ec330077152127133b71b46'
+            '01bf2beab2106d1558800c8709bc2c8e496d3da4a2ca343fe091f22fca60c98b')
+
+prepare() {
+  cd $_pkgname-$pkgver
+  install -m755 "$srcdir"/waf-$_waf_version waf
+}
+
+build() {
+  cd $_pkgname-$pkgver
+
+  ./waf configure --prefix=/usr \
+    --confdir=/etc/mpv \
+    --enable-dvdnav \
+    --enable-zsh-comp
+
+  ./waf build
+}
+
+package() {
+  cd $_pkgname-$pkgver
+
+  ./waf install --destdir="$pkgdir"
+
+  install -m644 DOCS/{encoding.rst,tech-overview.txt} \
+    "$pkgdir"/usr/share/doc/mpv
+}
