@@ -4,7 +4,7 @@
 _pkgname=claws-mail
 pkgname=$_pkgname-jjk
 pkgver=3.15.1
-pkgrel=1
+pkgrel=2
 pkgdesc="A GTK+ based e-mail client."
 arch=('i686' 'x86_64')
 license=('GPL3')
@@ -41,13 +41,13 @@ sha256sums=('8d093c2f32db863c1141d56e35424c04ee48fe5d6adf4c7f349f647fa3149542'
             'a07a86d707a3449612c633f194d1e83a466b6febaab530dbe93533c2ca430c2e'
             '1a3817f68d39652ce0eb42258c340d247e58905c70986bee13c3009a346a62fd'
             'e4a99fc05b29f226e5f042b01fbe6f1162a9ee0c8a63440ab65e8d45b16ed809'
-            'aa19c25a142c4c767ae7bb24d69a7e7b59b936caaa1799cacd7f97ec9a1f5f0c'
-            'de9a86d81c336f221bca34e5ad37e07a87690993ab8437aa1b0183e47666c961'
-            '34b672bb604466157c47cd2195311ff5334bcd61a582c1e411990a79617bb6ea'
-            '05e78d3db8d57af398d2d81c2627d0ffd34344bda8ece871d8429149eac06d42'
-            '35fe115ed58b82a34cdd2e16c8fa7619e57dd9c33e56d46ee58df0f081738c56'
-            '9a7fe567dfb2e680dcafc6b67edaf99fc56dc9d2e94a31af62216b22523f9070'
-            '725d5eb1d1717467ea11e1bbfaf7eada301438ff8a6071290dcc37672352be15')
+            '57634e48b43a0fe71cd2d85a92b93bedfc9743cd59e63f7fb326d48f982a79b8'
+            'b9eaae346bea00c61a82d076a4e7aab66d38134f9b3c80caca2fa47b83b26273'
+            '9fcbd1f970ba44ab7da8d7b1f322a80220410451a6843af734c876c6f2ea2800'
+            '448964e3f548675ae63075b6bd5514a8ed4d9b64ed4abaf59b2c06a3624192a4'
+            'e8cbf60a66a5e3be3324bf1bd80c608e62895f79c9817abc447ee8b2902b1814'
+            '1d09ee403b8f613656bf4024eaaacc7f1a8ce69b756071970063b510be79403b'
+            '20f16274d008131eadc41aa57fd6ee8c86659de746de90c54c6cc9161bca2637')
 validpgpkeys=('8B3B297A03468356692F8D592CD716D654D6BBD4') # Paul <paul@claws-mail.org>
 
 prepare() {

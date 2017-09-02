@@ -1,4 +1,4 @@
-From 468381350f988dfe51eb023fb1a2dd79a6efb329 Mon Sep 17 00:00:00 2001
+From efb04c88c63bd165d015d8456c72b8b707cf20fc Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Wed, 26 Jul 2017 14:02:13 +0200
 Subject: [PATCH 05/11] Add vfolder plugin
@@ -58,21 +58,22 @@ v9: - Fix slow copy folder w/ many msgs
     - Add "mode" (msgs, w/replies, threads)
 v10:- Fix use after free (since v9)
     - mode thread: Ensure found messages are shown
+v11:- Some optimization in auto-refresh
 ---
  configure.ac                             |   15 +
  src/plugins/Makefile.am                  |    3 +-
  src/plugins/vfolder/Makefile.am          |   37 +
  src/plugins/vfolder/plugin.c             |  202 ++++
- src/plugins/vfolder/plugin.h             |   54 ++
+ src/plugins/vfolder/plugin.h             |   64 ++
  src/plugins/vfolder/plugin_gtk.c         | 1152 ++++++++++++++++++++++
  src/plugins/vfolder/plugin_gtk.h         |   31 +
- src/plugins/vfolder/vfolder.c            | 1542 ++++++++++++++++++++++++++++++
+ src/plugins/vfolder/vfolder.c            | 1573 ++++++++++++++++++++++++++++++
  src/plugins/vfolder/vfolder.h            |   69 ++
- src/plugins/vfolder/vfolder_item_prefs.c | 1279 +++++++++++++++++++++++++
+ src/plugins/vfolder/vfolder_item_prefs.c | 1279 ++++++++++++++++++++++++
  src/plugins/vfolder/vfolder_item_prefs.h |   33 +
  src/plugins/vfolder/vfolder_prefs.c      |  247 +++++
  src/plugins/vfolder/vfolder_prefs.h      |   29 +
- 13 files changed, 4692 insertions(+), 1 deletion(-)
+ 13 files changed, 4733 insertions(+), 1 deletion(-)
  create mode 100644 src/plugins/vfolder/Makefile.am
  create mode 100644 src/plugins/vfolder/plugin.c
  create mode 100644 src/plugins/vfolder/plugin.h
@@ -396,10 +397,10 @@ index 000000000..acd3d2af1
 +}
 diff --git a/src/plugins/vfolder/plugin.h b/src/plugins/vfolder/plugin.h
 new file mode 100644
-index 000000000..7f27c2184
+index 000000000..cfab7ace4
 --- /dev/null
 +++ b/src/plugins/vfolder/plugin.h
-@@ -0,0 +1,54 @@
+@@ -0,0 +1,64 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -426,7 +427,17 @@ index 000000000..7f27c2184
 +#define PLUGIN_NAME (_("VFolder"))
 +
 +#if 0
-+#define dbg(...)    g_printf(__VA_ARGS__)
++#define dbg(...)    do { \
++	char timebuf[9]; \
++	time_t t; \
++	struct tm *tm; \
++	t = time(NULL); \
++	tm = localtime(&t); \
++	if (!tm || !strftime(timebuf, sizeof(timebuf), "%H:%M:%S", tm)) \
++		*timebuf = '\0'; \
++	g_printf("[%s] ", timebuf); \
++	g_printf(__VA_ARGS__); \
++} while (0)
 +#else
 +#define dbg(...)    debug_print(__VA_ARGS__)
 +#endif
@@ -1651,10 +1662,10 @@ index 000000000..260f67ed9
 +#endif /* __VFOLDER_PLUGIN_GTK_H__ */
 diff --git a/src/plugins/vfolder/vfolder.c b/src/plugins/vfolder/vfolder.c
 new file mode 100644
-index 000000000..088f30ea4
+index 000000000..035072502
 --- /dev/null
 +++ b/src/plugins/vfolder/vfolder.c
-@@ -0,0 +1,1542 @@
+@@ -0,0 +1,1573 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -1686,6 +1697,7 @@ index 000000000..088f30ea4
 +#include <glib.h>
 +#include <glib/gi18n.h>
 +
++#include "mainwindow.h"
 +#include "folder.h"
 +#include "procmsg.h"
 +#include "statusbar.h"
@@ -1739,6 +1751,8 @@ index 000000000..088f30ea4
 +	guint hook_folder_item;
 +	guint hook_folder;
 +	GSList *ignore_folder_update;
++
++	guint build_id;
 +
 +	/* properties */
 +	guint is_autorefresh    :1;
@@ -1903,9 +1917,9 @@ index 000000000..088f30ea4
 +
 +static gboolean on_msginfo_update(gpointer source, gpointer data)
 +{
-+	dbg("on_msginfo_update\n");
 +	MsgInfoUpdate *update = (MsgInfoUpdate *) source;
 +	VFolderItem *vitem = (VFolderItem *) data;
++	dbg("[%s] on_msginfo_update\n",vitem->item.name);
 +
 +	cm_return_val_if_fail(update != NULL, FALSE);
 +	cm_return_val_if_fail(vitem != NULL, FALSE);
@@ -1987,11 +2001,11 @@ index 000000000..088f30ea4
 +
 +static gboolean on_folder_item_update(gpointer source, gpointer data)
 +{
-+	dbg("on_folder_item_update\n");
 +	FolderItemUpdateData *update = (FolderItemUpdateData *) source;
 +	VFolderItem *vitem = (VFolderItem *) data;
 +	GSList *cur;
 +	gint i;
++	dbg("[%s] on_folder_item_update\n",vitem->item.name);
 +
 +	cm_return_val_if_fail(update != NULL, FALSE);
 +	cm_return_val_if_fail(vitem != NULL, FALSE);
@@ -2036,11 +2050,11 @@ index 000000000..088f30ea4
 +
 +static gboolean on_folder_update(gpointer source, gpointer data)
 +{
-+	dbg("on_folder_update\n");
 +	FolderUpdateData *update = (FolderUpdateData *) source;
 +	VFolderItem *vitem = (VFolderItem *) data;
 +	gboolean save = FALSE;
 +	gint i;
++	dbg("[%s] on_folder_update\n",vitem->item.name);
 +
 +	cm_return_val_if_fail(update != NULL, FALSE);
 +	cm_return_val_if_fail(vitem != NULL, FALSE);
@@ -2257,9 +2271,9 @@ index 000000000..088f30ea4
 +static gint _vfolder_get_num_list(Folder *folder, FolderItem *item,
 +	GSList **list, gboolean *old_uids_valid)
 +{
-+	dbg("get_num_list\n");
 +	VFolderItem *vitem = (VFolderItem *) item;
 +	gint i;
++	dbg("[%s] get_num_list\n",vitem->item.name);
 +
 +	cm_return_val_if_fail(item != NULL, -1);
 +	cm_return_val_if_fail(list != NULL, -1);
@@ -2369,7 +2383,7 @@ index 000000000..088f30ea4
 +static void remove_msgs_perfolder(MsgInfoList *msglist, gpointer _data);
 +static gint _vfolder_remove_msg(Folder *folder, FolderItem *item, gint num)
 +{
-+	dbg("remove_msg(%d)\n",num);
++	dbg("[%s] remove_msg(%d)\n",item->name,num);
 +	VFolderItem *vitem = (VFolderItem *) item;
 +	struct vmi *vmi;
 +	gint r = 0;
@@ -2403,13 +2417,13 @@ index 000000000..088f30ea4
 +
 +static void remove_msgs_perfolder(MsgInfoList *msglist, gpointer _data)
 +{
-+	dbg("remove_msgs_perfolder\n");
 +	gpointer *data = _data;
 +	VFolderItem *vitem = data[0];
 +	gint *r = data[1];
 +	FolderItem *src_folder = NULL;
 +	MsgInfoList *src_msglist = NULL;
 +	GSList *cur;
++	dbg("[%s] remove_msgs_perfolder\n",vitem->item.name);
 +
 +	if (*r != 0)
 +		return;
@@ -2458,7 +2472,7 @@ index 000000000..088f30ea4
 +static gint _vfolder_remove_msgs(Folder *folder, FolderItem *item,
 +	MsgInfoList *msglist, GHashTable *relation)
 +{
-+	dbg("remove_msgs\n");
++	dbg("[%s] remove_msgs\n",item->name);
 +	gint r = 0;
 +	gpointer data[2] = { item, &r };
 +
@@ -2612,7 +2626,7 @@ index 000000000..088f30ea4
 +
 +static void clear_content(VFolderItem *vitem)
 +{
-+	dbg("clear_content\n");
++	dbg("[%s] clear_content\n",vitem->item.name);
 +	if (vitem->vmi)
 +		_g_array_clear(vitem->vmi, sizeof(struct vmi),
 +			(GDestroyNotify) free_vmi_internals);
@@ -2649,21 +2663,27 @@ index 000000000..088f30ea4
 +		item->mark_dirty = TRUE;
 +		item->tags_dirty = TRUE;
 +	}
++
++	dbg("[%s] clear_content done\n",vitem->item.name);
 +}
 +
 +/* from plugin_gtk.c */
 +gchar *vfolder_gtk_get_current_msgid(void);
 +void vfolder_gtk_refresh_summary(FolderItem *item, gint msgnum);
-+static void refresh_content(VFolderItem *vitem, gboolean manual)
++static gboolean refresh_content_real(gpointer data)
 +{
++	VFolderItem *vitem = data;
 +	gchar *msgid = NULL;
 +	gint msgnum = 0;
++	dbg("[%s] refresh_content_real\n",vitem->item.name);
 +
++	main_window_cursor_wait(mainwindow_get_mainwindow());
 +	if (vitem->item.opened)
 +		msgid = vfolder_gtk_get_current_msgid();
 +
 +	clear_content(vitem);
-+	if (manual || vitem->is_autorefresh || vitem->item.opened)
++	/* vitem->build_id == -1 means manual trigger */
++	if (vitem->build_id == (guint) -1 || vitem->is_autorefresh || vitem->item.opened)
 +	{
 +		build_content(vitem, msgid, &msgnum);
 +		g_free(msgid);
@@ -2673,6 +2693,26 @@ index 000000000..088f30ea4
 +
 +	if (vitem->item.opened)
 +		vfolder_gtk_refresh_summary((FolderItem *) vitem, msgnum);
++
++	main_window_cursor_normal(mainwindow_get_mainwindow());
++	vitem->build_id = 0;
++	return G_SOURCE_REMOVE;
++}
++
++static void refresh_content(VFolderItem *vitem, gboolean manual)
++{
++	dbg("[%s] refresh_content\n",vitem->item.name);
++	if (vitem->build_id > 0)
++		g_source_remove (vitem->build_id);
++
++	if (manual)
++	{
++		/* indicate manual trigger */
++		vitem->build_id = (guint) -1;
++		refresh_content_real (vitem);
++	}
++	else
++		vitem->build_id = g_timeout_add (420, refresh_content_real, vitem);
 +}
 +
 +void vfolder_refresh_content(VFolderItem *vitem)
@@ -2923,7 +2963,7 @@ index 000000000..088f30ea4
 +
 +static gint build_content(VFolderItem *vitem, const gchar *msgid, gint *msgnum)
 +{
-+	dbg("build_content\n");
++	dbg("[%s] build_content\n", vitem->item.name);
 +	GArray *arr_ss = NULL;
 +	guint i;
 +	guint nb = 0;
@@ -2933,7 +2973,7 @@ index 000000000..088f30ea4
 +
 +	if (vitem->is_building)
 +		return -1;
-+	dbg("building...\n");
++	dbg("[%s] building...\n", vitem->item.name);
 +	vitem->is_building = 1;
 +
 +	if (!vitem->search)
@@ -2943,7 +2983,7 @@ index 000000000..088f30ea4
 +
 +	if (vitem->search->len == 0)
 +	{
-+		dbg("building done:%d\n",vitem->vmi->len);
++		dbg("[%s] building done:%d\n",vitem->item.name,vitem->vmi->len);
 +		vitem->is_building = 0;
 +		vitem->has_content = 1;
 +		trigger_item_update(vitem);
@@ -2953,6 +2993,7 @@ index 000000000..088f30ea4
 +	for (i = 0; i < vitem->search->len; ++i)
 +	{
 +		struct search *search = &g_array_index(vitem->search, struct search, i);
++		dbg("[%s] search %d/%d: %s\n",vitem->item.name,i+1,vitem->search->len,search->cond);
 +
 +		if (!search->folder)
 +		{
@@ -2979,6 +3020,7 @@ index 000000000..088f30ea4
 +		for (i = 0; i < arr_ss->len; ++i)
 +		{
 +			struct subsearch *ss = &g_array_index(arr_ss, struct subsearch, i);
++			dbg("[%s] subsearch %d/%d: %s\n",vitem->item.name,i+1,arr_ss->len,ss->cond->str);
 +			advsearch_set(as, ADVANCED_SEARCH_EXTENDED, ss->cond->str);
 +			if (run_search(vitem, as, ss->folder, FALSE, VFOLDER_MODE_MESSAGE,
 +					&nb, NULL, NULL, NULL) < 0)
@@ -2993,14 +3035,14 @@ index 000000000..088f30ea4
 +		advsearch_free(as);
 +	}
 +
-+	dbg("building done:%d\n",vitem->vmi->len);
++	dbg("[%s] building done:%d\n",vitem->item.name,vitem->vmi->len);
 +	vitem->is_building = 0;
 +	vitem->has_content = 1;
 +	trigger_item_update(vitem);
 +	return nb;
 +
 +fail:
-+	dbg("building failed:%d\n",vitem->vmi->len);
++	dbg("[%s] building failed:%d\n",vitem->item.name,vitem->vmi->len);
 +	g_hash_table_remove_all(vitem->ht);
 +	if (arr_ss)
 +	{
@@ -3018,7 +3060,7 @@ index 000000000..088f30ea4
 +
 +static void trigger_item_update(VFolderItem *vitem)
 +{
-+	dbg("trigger_item_update\n");
++	dbg("[%s] trigger_item_update\n",vitem->item.name);
 +	FolderItem *item = (FolderItem *) vitem;
 +	FolderItemUpdateData source;
 +	gint i;

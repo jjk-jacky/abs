@@ -1,4 +1,4 @@
-From 0e3570031424472bdc6b799e36b1229ceb01ef98 Mon Sep 17 00:00:00 2001
+From 804124b0d495a77fdd3e257ed2180ef2237e25d0 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 9 Jun 2017 22:40:42 +0200
 Subject: [PATCH 06/11] quicksearch: expand extended symbols on "Edit"

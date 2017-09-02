@@ -1,4 +1,4 @@
-From 4944207805fdf164ef1d8dd122320e22e871af98 Mon Sep 17 00:00:00 2001
+From a3ef6d95840cde24e6e7eb8acbbe1569c20a357f Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Mon, 5 Jun 2017 22:10:50 +0200
 Subject: [PATCH 10/11] Add Delivery Status Notification (DSN) support
