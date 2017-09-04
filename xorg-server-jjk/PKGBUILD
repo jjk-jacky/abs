@@ -5,7 +5,7 @@
 pkgbase=xorg-server
 pkgname=(xorg-server-jjk xorg-server-xephyr-jjk)
 pkgver=1.19.3
-pkgrel=2 # build first with 0.1 and then rebuild it after xf86-input-evdev rebuild
+pkgrel=3 # build first with 0.1 and then rebuild it after xf86-input-evdev rebuild
 arch=('i686' 'x86_64')
 license=('custom')
 url="https://xorg.freedesktop.org"
@@ -42,6 +42,14 @@ prepare() {
 
 build() {
   cd "$pkgbase-$pkgver"
+
+  # Since pacman 5.0.2-2, hardened flags are now enabled in makepkg.conf
+  # With them, module fail to load with undefined symbol.
+  # See https://bugs.archlinux.org/task/55102 / https://bugs.archlinux.org/task/54845
+  export CFLAGS=${CFLAGS/-fno-plt}
+  export CXXFLAGS=${CXXFLAGS/-fno-plt}
+  export LDFLAGS=${LDFLAGS/,-z,now}
+
   autoreconf -fi
   ./configure --prefix=/usr \
       --enable-ipv6 \
