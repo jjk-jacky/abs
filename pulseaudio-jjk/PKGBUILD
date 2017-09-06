@@ -8,8 +8,8 @@ _pkgbase=pulseaudio
 pkgbase=$_pkgbase-jjk
 pkgname=(pulseaudio-jjk libpulse-jjk)
 pkgdesc="A featureful, general-purpose sound server"
-pkgver=10.0
-pkgrel=2
+pkgver=11.0
+pkgrel=1
 arch=(i686 x86_64)
 url="http://www.freedesktop.org/wiki/Software/PulseAudio"
 license=(GPL LGPL)
@@ -18,7 +18,7 @@ makedepends=(libasyncns libcap attr libxtst libsm libsndfile libtool rtkit
              openssl orc gtk3)
 options=(!emptydirs)
 source=(http://freedesktop.org/software/$_pkgbase/releases/$_pkgbase-$pkgver.tar.xz)
-sha256sums=('a3186824de9f0d2095ded5d0d0db0405dc73133983c2fbb37291547e37462f57')
+sha256sums=('072305d4018fc5e75bb1b45ee6b938fa52fc9fd27493bf327415ef89ed14c969')
 
 build() {
   cd $_pkgbase-$pkgver
