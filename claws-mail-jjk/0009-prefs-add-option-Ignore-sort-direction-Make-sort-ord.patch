@@ -1,4 +1,4 @@
-From 2d2b4f73324660c56ed96cc8977f2f0c93124557 Mon Sep 17 00:00:00 2001
+From 4a480e24ee40d97082146e2fab7b5fb56517aeb5 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sat, 3 Jun 2017 22:10:37 +0200
 Subject: [PATCH 09/11] prefs: add option "Ignore sort direction / Make sort

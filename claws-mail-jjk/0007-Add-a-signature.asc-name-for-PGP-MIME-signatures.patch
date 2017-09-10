@@ -1,4 +1,4 @@
-From ff994cf0d8b0a8109b56ccc86a6cfc67ba8d80e7 Mon Sep 17 00:00:00 2001
+From 5ffb99789e6a395c190bdca53a84eaeedc47bcfc Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Mon, 3 Jul 2017 19:43:07 +0200
 Subject: [PATCH 07/11] Add a 'signature.asc' name for PGP MIME signatures

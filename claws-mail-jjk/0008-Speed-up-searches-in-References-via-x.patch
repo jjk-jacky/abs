@@ -1,4 +1,4 @@
-From eed05eb8344a042121d555288af9fd1ea85d77ef Mon Sep 17 00:00:00 2001
+From cae95d8256e60a52f851aab625e21042c58b39cb Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Wed, 2 Aug 2017 20:48:58 +0200
 Subject: [PATCH 08/11] Speed-up searches in References via "x"

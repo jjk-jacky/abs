@@ -1,4 +1,4 @@
-From efb04c88c63bd165d015d8456c72b8b707cf20fc Mon Sep 17 00:00:00 2001
+From 1d04523d2e00995f5b7e8f7dae7b0ecd30c8b1c3 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Wed, 26 Jul 2017 14:02:13 +0200
 Subject: [PATCH 05/11] Add vfolder plugin
@@ -59,21 +59,22 @@ v9: - Fix slow copy folder w/ many msgs
 v10:- Fix use after free (since v9)
     - mode thread: Ensure found messages are shown
 v11:- Some optimization in auto-refresh
+v12:- Use regexp to search faster
 ---
  configure.ac                             |   15 +
  src/plugins/Makefile.am                  |    3 +-
  src/plugins/vfolder/Makefile.am          |   37 +
  src/plugins/vfolder/plugin.c             |  202 ++++
  src/plugins/vfolder/plugin.h             |   64 ++
- src/plugins/vfolder/plugin_gtk.c         | 1152 ++++++++++++++++++++++
+ src/plugins/vfolder/plugin_gtk.c         | 1152 +++++++++++++++++++++
  src/plugins/vfolder/plugin_gtk.h         |   31 +
- src/plugins/vfolder/vfolder.c            | 1573 ++++++++++++++++++++++++++++++
+ src/plugins/vfolder/vfolder.c            | 1595 ++++++++++++++++++++++++++++++
  src/plugins/vfolder/vfolder.h            |   69 ++
  src/plugins/vfolder/vfolder_item_prefs.c | 1279 ++++++++++++++++++++++++
  src/plugins/vfolder/vfolder_item_prefs.h |   33 +
  src/plugins/vfolder/vfolder_prefs.c      |  247 +++++
  src/plugins/vfolder/vfolder_prefs.h      |   29 +
- 13 files changed, 4733 insertions(+), 1 deletion(-)
+ 13 files changed, 4755 insertions(+), 1 deletion(-)
  create mode 100644 src/plugins/vfolder/Makefile.am
  create mode 100644 src/plugins/vfolder/plugin.c
  create mode 100644 src/plugins/vfolder/plugin.h
@@ -1662,10 +1663,10 @@ index 000000000..260f67ed9
 +#endif /* __VFOLDER_PLUGIN_GTK_H__ */
 diff --git a/src/plugins/vfolder/vfolder.c b/src/plugins/vfolder/vfolder.c
 new file mode 100644
-index 000000000..035072502
+index 000000000..3dc66c250
 --- /dev/null
 +++ b/src/plugins/vfolder/vfolder.c
-@@ -0,0 +1,1573 @@
+@@ -0,0 +1,1595 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -2859,6 +2860,29 @@ index 000000000..035072502
 +	GString *cond;
 +};
 +
++static void g_string_add_message_id(GString *str, const gchar *msgid)
++{
++	while (*msgid != '\0')
++	{
++		switch (*msgid)
++		{
++			case '^':
++			case '.':
++			case '|':
++			case '+':
++			case '*':
++			case '$':
++				/* one escaping for w/in the regexp,
++				 * and one for claws' parsing */
++				g_string_append_c(str, '\\');
++				g_string_append_c(str, '\\');
++				break;
++		}
++		g_string_append_c(str, *msgid);
++		++msgid;
++	}
++}
++
 +static gint run_search(VFolderItem *vitem, AdvancedSearch *as, FolderItem *folder,
 +	gboolean recursive, VFolderMode mode, guint *nb, const gchar **msgid, gint *msgnum,
 +	GArray **arr)
@@ -2911,9 +2935,8 @@ index 000000000..035072502
 +
 +				if (ss->folder == mi->folder)
 +				{
-+					g_string_append(ss->cond, " | references matchcase \"");
-+					g_string_append(ss->cond, mi->msgid);
-+					g_string_append_c(ss->cond, '"');
++					g_string_append_c(ss->cond, '|');
++					g_string_add_message_id(ss->cond, mi->msgid);
 +					break;
 +				}
 +			}
@@ -2922,9 +2945,8 @@ index 000000000..035072502
 +				struct subsearch ss;
 +
 +				ss.folder = mi->folder;
-+				ss.cond = g_string_new("references matchcase \"");
-+				g_string_append(ss.cond, mi->msgid);
-+				g_string_append_c(ss.cond, '"');
++				ss.cond = g_string_new("references regexpcase \"");
++				g_string_add_message_id(ss.cond, mi->msgid);
 +				g_array_append_val(*arr, ss);
 +			}
 +		}
@@ -3020,6 +3042,7 @@ index 000000000..035072502
 +		for (i = 0; i < arr_ss->len; ++i)
 +		{
 +			struct subsearch *ss = &g_array_index(arr_ss, struct subsearch, i);
++			g_string_append_c(ss->cond, '"');
 +			dbg("[%s] subsearch %d/%d: %s\n",vitem->item.name,i+1,arr_ss->len,ss->cond->str);
 +			advsearch_set(as, ADVANCED_SEARCH_EXTENDED, ss->cond->str);
 +			if (run_search(vitem, as, ss->folder, FALSE, VFOLDER_MODE_MESSAGE,
