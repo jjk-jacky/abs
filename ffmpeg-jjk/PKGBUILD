@@ -5,7 +5,7 @@
 
 _pkgname=ffmpeg
 pkgname=$_pkgname-jjk
-pkgver=3.3.4
+pkgver=3.4
 pkgrel=1
 pkgdesc="Complete and free Internet live audio and video broadcasting solution for Linux/Unix"
 arch=('i686' 'x86_64')
@@ -25,7 +25,7 @@ provides=($_pkgname 'libavcodec.so' 'libavdevice.so' 'libavfilter.so'
 conflicts=($_pkgname)
 source=(https://ffmpeg.org/releases/$_pkgname-$pkgver.tar.xz{,.asc})
 validpgpkeys=('FCF986EA15E6E293A5644F10B4322F04D67658D8') # ffmpeg-devel
-sha256sums=('98b97e1b908dfeb6aeb6d407e5a5eacdfc253a40c2d195f5867ed2d1d46ea957'
+sha256sums=('aeee06e4d8b18d852c61ebbfe5e1bb7014b1e118e8728c1c2115f91e51bffbef'
             'SKIP')
 
 build() {
