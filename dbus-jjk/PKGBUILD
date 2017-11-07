@@ -50,6 +50,7 @@ package_dbus-jjk(){
 
   rm -r "${pkgdir}/var/run"
   rm -r "${pkgdir}/usr/lib/pkgconfig"
+  rm -r "${pkgdir}/usr/lib/cmake"
 
   install -Dm644 COPYING "$pkgdir/usr/share/licenses/dbus/COPYING"
 }
