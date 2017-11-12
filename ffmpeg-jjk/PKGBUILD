@@ -6,27 +6,37 @@
 _pkgname=ffmpeg
 pkgname=$_pkgname-jjk
 pkgver=3.4
-pkgrel=1
+pkgrel=2
 pkgdesc="Complete and free Internet live audio and video broadcasting solution for Linux/Unix"
 arch=('i686' 'x86_64')
 url="https://ffmpeg.org/"
 license=('GPL')
 depends=(
       'alsa-lib' 'bzip2' 'fontconfig' 'lame'
-      'libpulse' 'libva' 'libvorbis' 'libvpx'
+      'libpulse' 'libvorbis' 'libvpx'
       'openjpeg' 'sdl'
       'v4l-utils' 'libx264' 'xvidcore' 'zlib'
       'libx264.so'
+      'libva-drm.so' 'libva.so' 'libva-x11.so'
       )
 makedepends=('yasm')
 provides=($_pkgname 'libavcodec.so' 'libavdevice.so' 'libavfilter.so'
           'libavformat.so' 'libavresample.so' 'libavutil.so' 'libpostproc.so'
           'libswresample.so' 'libswscale.so')
 conflicts=($_pkgname)
-source=(https://ffmpeg.org/releases/$_pkgname-$pkgver.tar.xz{,.asc})
+source=(https://ffmpeg.org/releases/$_pkgname-$pkgver.tar.xz{,.asc}
+        fs56089.patch)
 validpgpkeys=('FCF986EA15E6E293A5644F10B4322F04D67658D8') # ffmpeg-devel
 sha256sums=('aeee06e4d8b18d852c61ebbfe5e1bb7014b1e118e8728c1c2115f91e51bffbef'
-            'SKIP')
+            'SKIP'
+            '0bfcd12d1992903f21c146ae56d9ad89b52818cfb2303197ee905347c25a5427')
+
+prepare() {
+  cd $_pkgname-$pkgver
+  # https://bugs.archlinux.org/task/56089
+  # Backport of http://git.videolan.org/?p=ffmpeg.git;a=commitdiff;h=a606f27f4c610708fa96e35eed7b7537d3d8f712
+  patch -Np1 -i ../fs56089.patch
+}
 
 build() {
   cd $_pkgname-$pkgver
