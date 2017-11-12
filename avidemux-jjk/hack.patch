@@ -1,0 +1,12 @@
+--- avidemux/ADM_core/include/ADM_default.h.org	2017-11-12 14:54:54.831381493 +0100
++++ avidemux/ADM_core/include/ADM_default.h	2017-11-12 14:57:57.341370279 +0100
+@@ -19,6 +19,9 @@
+ #ifndef ADM_DEFAULT_H
+ #define ADM_DEFAULT_H
+ 
++#include <stdlib.h>
++#define abs(x)  __builtin_labs(x)
++
+ #include "ADM_inttype.h"
+ #include "ADM_assert.h"
+ 
