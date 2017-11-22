@@ -4,7 +4,7 @@
 pkgbase=php
 pkgname=('php-jjk'
          'php-fpm-jjk')
-pkgver=7.1.9
+pkgver=7.1.11
 pkgrel=1
 arch=('i686' 'x86_64')
 license=('PHP')
@@ -15,7 +15,7 @@ source=("https://php.net/distributions/${pkgbase}-${pkgver}.tar.xz"{,.asc}
         'php.ini.patch' 'php-fpm.patch')
 validpgpkeys=('A917B1ECDA84AEC2B568FED6F50ABC807BD5DCD0'
               '528995BFEDFBA7191D46839EF9BA0ADA31CBD89E')
-sha256sums=('ec9ca348dd51f19a84dc5d33acfff1fba1f977300604bdac08ed46ae2c281e8c'
+sha256sums=('074093e9d7d21afedc5106904218a80a47b854abe368d2728ed22184c884893e'
             'SKIP'
             'e804ac9fcfb10a232d45b5075515fc2f66958831bdf68e1b061eb7dfdf2560ea'
             'b351a9c8c212d8cdd9127c973845501afba9a0d5185a1f3c4a415fb11458d589')
