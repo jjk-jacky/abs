@@ -5,7 +5,7 @@
 
 _pkgname=libxml2
 pkgname=$_pkgname-jjk
-pkgver=2.9.6
+pkgver=2.9.7
 pkgrel=1
 pkgdesc="XML parsing library, version 2"
 arch=('i686' 'x86_64')
@@ -20,7 +20,7 @@ source=(ftp://xmlsoft.org/libxml2/libxml2-$pkgver.tar.gz{,.asc}
         https://www.w3.org/XML/Test/xmlts20130923.tar.gz
         libxml2-2.9.4-remove-pyverify_fd.patch)
 validpgpkeys=('C74415BA7C9C7F78F02E1DC34606B8A5DE95BC1F')
-sha256sums=('8b9038cca7240e881d462ea391882092dfdc6d4f483f72683e817be08df5ebbc'
+sha256sums=('f63c5e7d30362ed28b38bfa1ac6313f9a80230720b7fb6c80575eeab3ff5900c'
             'SKIP'
             '9b61db9f5dbffa545f4b8d78422167083a8568c59bd1129f94138f936cf6fc1f'
             'c201b0d6364a7b9df58ce40a5fc506e58945a3fbb834af9c1193a35665789d60')
