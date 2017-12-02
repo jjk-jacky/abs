@@ -4,7 +4,7 @@
 
 pkgbase=mesa-jjk
 pkgname=('ati-dri-jjk' 'mesa-jjk' 'mesa-libgl-jjk')
-pkgver=17.2.5
+pkgver=17.2.6
 pkgrel=1
 arch=('i686' 'x86_64')
 makedepends=('python2' 'libxml2' 'libx11' 'glproto' 'libdrm' 'dri2proto'
@@ -18,7 +18,7 @@ validpgpkeys=('CEF8DDC8019CA66D4E3094F3600233BA9E54DC61'
               '8703B6700E7EE06D7A39B8D6EDAE37B02CEB490D'
               '946D09B5E4C9845E63075FF1D961C596A7203456'
               'E3E8F480C52ADD73B278EE78E1ECBE07D7D70895')
-sha256sums=('7f7f914b7b9ea0b15f2d9d01a4375e311b0e90e55683b8e8a67ce8691eb1070f'
+sha256sums=('6ad85224620330be26ab68c8fc78381b12b38b610ade2db8716b38faaa8f30de'
             'SKIP'
             '7fdc119cf53c8ca65396ea73f6d10af641ba41ea1dd2bd44a824726e01c8b3f2')
 
