@@ -3,14 +3,14 @@
 
 _pkgname=harfbuzz
 pkgname=$_pkgname-jjk
-pkgver=1.7.1
+pkgver=1.7.2
 pkgrel=1
 pkgdesc="OpenType text shaping engine."
 arch=('i686' 'x86_64')
 url="http://www.freedesktop.org/wiki/Software/HarfBuzz"
 license=('MIT')
 depends=('glib2' 'freetype2')
-makedepends=('cairo' 'glib2' 'freetype2')
+makedepends=('cairo' 'glib2' 'freetype2' 'python')
 optdepends=('cairo: hb-view program')
 provides=('harfbuzz')
 conflicts=('harfbuzz')
@@ -23,6 +23,7 @@ sha256sums=('SIGNED-MSG' 'SKIP')
 build() {
   cd "${srcdir}/${_pkgname}-${pkgver}"
 
+  export LANG=en_US.utf8
   ./configure --prefix=/usr --with-glib --with-gobject --with-cairo \
       --with-freetype
   make
