@@ -2,7 +2,7 @@
 
 _pkgname=busybox
 pkgname=$_pkgname-musl-jjk
-pkgver=1.26.2
+pkgver=1.27.2
 pkgrel=1
 pkgdesc="Combines common UNIX utilities into a single small executable, statically linked with musl libc"
 arch=('i686' 'x86_64')
@@ -13,8 +13,8 @@ conflicts=("$_pkgname")
 makedepends=('musl' 'kernel-headers-musl')
 source=("https://www.busybox.net/downloads/$_pkgname-$pkgver.tar.bz2"
         "config" "busybox.mkinitcpio")
-md5sums=('bb59d25ee2643db20f212eec539429f1'
-         'f226136c9c30d8527de47c6e9caf0e07'
+md5sums=('476186f4bab81781dab2369bfd42734e'
+         '3d3e783cb55395ef306211d9140324db'
          '4428b5e6971ffc547ad8bd9da51461b0')
 
 build() {
