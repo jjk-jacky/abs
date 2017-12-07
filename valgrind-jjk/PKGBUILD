@@ -2,20 +2,20 @@
 # Maintainer: Dan McGee <dan@archlinux.org>
 # Maintainer: Allan McRae <allan@archlinux.org>
 
-pkgname=valgrind
+_pkgname=valgrind
+pkgname=$_pkgname-jjk
 pkgver=3.13.0
-pkgrel=4
+pkgrel=1
 pkgdesc='A tool to help find memory-management problems in programs'
 arch=(x86_64)
 license=(GPL)
 url='http://valgrind.org/'
-depends=('glibc=2.26' 'lib32-glibc=2.26' perl)
-makedepends=(gdb openmpi)
-optdepends=('openmpi: MPI support')
-provides=($pkgname-multilib)
-replaces=($pkgname-multilib)
+depends=('glibc=2.26' perl)
+makedepends=(gdb)
+provides=($_pkgname)
+conflicts=($_pkgname)
 options=(!emptydirs)
-source=("https://ftp.gwdg.de/pub/linux/sources.redhat.com/$pkgname/$pkgname-$pkgver.tar.bz2")
+source=("https://ftp.gwdg.de/pub/linux/sources.redhat.com/valgrind/valgrind-$pkgver.tar.bz2")
 md5sums=('817dd08f1e8a66336b9ff206400a5369')
 sha512sums=('34e1013cd3815d30a459b86220e871bb0a6209cc9e87af968f347083693779f022e986f211bdf1a5184ad7370cde12ff2cfca8099967ff94732970bd04a97009')
 
@@ -25,12 +25,12 @@ build() {
   CFLAGS=${CFLAGS/-fstack-protector-strong/}
   CXXFLAGS=${CXXFLAGS/-fstack-protector-strong/}
 
-  cd $pkgname-$pkgver
-  ./configure --prefix=/usr --mandir=/usr/share/man --with-mpicc=mpicc
+  cd valgrind-$pkgver
+  ./configure --prefix=/usr --mandir=/usr/share/man
   make
 }
 
 package() {
-  cd $pkgname-$pkgver
+  cd valgrind-$pkgver
   make DESTDIR="$pkgdir" install
 }
