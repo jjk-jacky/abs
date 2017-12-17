@@ -1,7 +1,7 @@
-From a2185ac3504b1fdd1fbf1666fd098a11882bfce5 Mon Sep 17 00:00:00 2001
+From 6db2cd49a6d06028353c8867f81507f1060fe6ff Mon Sep 17 00:00:00 2001
 From: Jakub Kicinski <kubakici@wp.pl>
 Date: Wed, 11 Dec 2013 18:09:59 +0100
-Subject: [PATCH 01/11] Fix diff format detection.
+Subject: [PATCH 01/10] Fix diff format detection.
 
 When '-p' option is used ' @@' can be followed by function name.
 ---
@@ -9,10 +9,10 @@ When '-p' option is used ' @@' can be followed by function name.
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/src/textview.c b/src/textview.c
-index 7372a1c21..72f0efc90 100644
+index c9be5d8ad..ae93034f3 100644
 --- a/src/textview.c
 +++ b/src/textview.c
-@@ -1630,7 +1630,7 @@ static void textview_write_line(TextView *textview, const gchar *str,
+@@ -1639,7 +1639,7 @@ static void textview_write_line(TextView *textview, const gchar *str,
  			else if (buf[0] == '-')
  				fg_color = "diff-del";
  			else if (strncmp(buf, "@@ ", 3) == 0 &&
@@ -22,5 +22,5 @@ index 7372a1c21..72f0efc90 100644
  		} else if (strcmp(buf,"-- \n") == 0
  				|| strcmp(buf, "- -- \n") == 0
 -- 
-2.14.1
+2.15.1
 

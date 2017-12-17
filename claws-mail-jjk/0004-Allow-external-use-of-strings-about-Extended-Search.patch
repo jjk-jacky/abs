@@ -1,7 +1,7 @@
-From eaaac3504a6d560419de95bfd175d4b54f7123fa Mon Sep 17 00:00:00 2001
+From 04b3da6fde023be14aada0662ac7f92318226552 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 9 Jun 2017 22:37:01 +0200
-Subject: [PATCH 04/11] Allow external use of strings about Extended Search
+Subject: [PATCH 04/10] Allow external use of strings about Extended Search
 
 This will be useful for e.g. the upcoming vfolder plugin.
 ---
@@ -45,5 +45,5 @@ index c1a26bfac..fe84ee949 100644
  
  QuickSearch *quicksearch_new();
 -- 
-2.14.1
+2.15.1
 

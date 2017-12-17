@@ -1,7 +1,7 @@
-From 4a480e24ee40d97082146e2fab7b5fb56517aeb5 Mon Sep 17 00:00:00 2001
+From 98f7a34b17a2cd9a6b23af46064f4f2485601004 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sat, 3 Jun 2017 22:10:37 +0200
-Subject: [PATCH 09/11] prefs: add option "Ignore sort direction / Make sort
+Subject: [PATCH 09/10] prefs: add option "Ignore sort direction / Make sort
  order aware"
 
 When enabled, we get the old/classic claws behavior, where first means
@@ -15,14 +15,14 @@ It affects default selection when opening folder, go to previous/next
  src/prefs_common.c    |   3 +
  src/prefs_common.h    |   2 +
  src/prefs_summaries.c |  15 +++++
- src/summaryview.c     | 149 ++++++++++++++++++++++++++++----------------------
- 4 files changed, 104 insertions(+), 65 deletions(-)
+ src/summaryview.c     | 155 ++++++++++++++++++++++++++------------------------
+ 4 files changed, 101 insertions(+), 74 deletions(-)
 
 diff --git a/src/prefs_common.c b/src/prefs_common.c
-index d8d719684..2a42d62ef 100644
+index 5a5ee4fd9..5f53ee813 100644
 --- a/src/prefs_common.c
 +++ b/src/prefs_common.c
-@@ -803,6 +803,9 @@ static PrefParam param[] = {
+@@ -798,6 +798,9 @@ static PrefParam param[] = {
  #endif
  	/* {"emulate_emacs", "FALSE", &prefs_common.emulate_emacs, P_BOOL,
  	 NULL, NULL, NULL}, */
@@ -33,10 +33,10 @@ index d8d719684..2a42d62ef 100644
  	 &prefs_common.open_selected_on_folder_open,
  	 P_BOOL, NULL, NULL, NULL},
 diff --git a/src/prefs_common.h b/src/prefs_common.h
-index 2085aaddf..2825aa4fe 100644
+index b94d34ccc..cfb04bea9 100644
 --- a/src/prefs_common.h
 +++ b/src/prefs_common.h
-@@ -364,6 +364,8 @@ struct _PrefsCommon
+@@ -363,6 +363,8 @@ struct _PrefsCommon
  	gint statusbar_update_step;
  	gboolean emulate_emacs;
  
@@ -46,7 +46,7 @@ index 2085aaddf..2825aa4fe 100644
  	gboolean open_selected_on_search_results;
  	gboolean open_selected_on_prevnext;
 diff --git a/src/prefs_summaries.c b/src/prefs_summaries.c
-index ed345c2cc..d0dc4f10b 100644
+index 7e131dc58..5b11864fd 100644
 --- a/src/prefs_summaries.c
 +++ b/src/prefs_summaries.c
 @@ -64,6 +64,7 @@ typedef struct _SummariesPage
@@ -65,7 +65,7 @@ index ed345c2cc..d0dc4f10b 100644
  	GtkWidget *checkbtn_always_show_msg;
  	GtkWidget *checkbtn_show_on_folder_open;
  	GtkWidget *checkbtn_show_on_search_results;
-@@ -477,6 +479,13 @@ static void prefs_summaries_create_widget(PrefsPage *_page, GtkWindow *window,
+@@ -476,6 +478,13 @@ static void prefs_summaries_create_widget(PrefsPage *_page, GtkWindow *window,
  			  G_CALLBACK (prefs_summary_open_open),
  			  NULL);
  
@@ -79,7 +79,7 @@ index ed345c2cc..d0dc4f10b 100644
  	/* Next Unread Message Dialog */
  	hbox1 = gtk_hbox_new (FALSE, 10);
  	gtk_widget_show (hbox1);
-@@ -622,6 +631,7 @@ static void prefs_summaries_create_widget(PrefsPage *_page, GtkWindow *window,
+@@ -619,6 +628,7 @@ static void prefs_summaries_create_widget(PrefsPage *_page, GtkWindow *window,
  	prefs_summaries->checkbtn_threadsubj = checkbtn_threadsubj;
  	prefs_summaries->entry_datefmt = entry_datefmt;
  	prefs_summaries->checkbtn_reopen_last_folder = checkbtn_reopen_last_folder;
@@ -87,7 +87,7 @@ index ed345c2cc..d0dc4f10b 100644
  
  	prefs_summaries->checkbtn_always_show_msg = checkbtn_always_show_msg;
  	prefs_summaries->checkbtn_show_on_folder_open = checkbtn_show_on_folder_open;
-@@ -664,6 +674,8 @@ static void prefs_summaries_create_widget(PrefsPage *_page, GtkWindow *window,
+@@ -661,6 +671,8 @@ static void prefs_summaries_create_widget(PrefsPage *_page, GtkWindow *window,
  			prefs_common.date_format?prefs_common.date_format:"");	
  	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(checkbtn_reopen_last_folder),
  			prefs_common.goto_last_folder_on_startup);
@@ -96,7 +96,7 @@ index ed345c2cc..d0dc4f10b 100644
  
  	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(checkbtn_always_show_msg),
  			prefs_common.always_show_msg);
-@@ -723,6 +735,9 @@ static void prefs_summaries_save(PrefsPage *_page)
+@@ -720,6 +732,9 @@ static void prefs_summaries_save(PrefsPage *_page)
  	prefs_common.goto_last_folder_on_startup = gtk_toggle_button_get_active(
  		GTK_TOGGLE_BUTTON(page->checkbtn_reopen_last_folder));
  
@@ -107,10 +107,10 @@ index ed345c2cc..d0dc4f10b 100644
  		GTK_TOGGLE_BUTTON(page->checkbtn_always_show_msg));
  	prefs_common.open_selected_on_folder_open = gtk_toggle_button_get_active(
 diff --git a/src/summaryview.c b/src/summaryview.c
-index 99b7e4a5d..4ca400d04 100644
+index be44ce6df..8049f0a46 100644
 --- a/src/summaryview.c
 +++ b/src/summaryview.c
-@@ -1476,7 +1476,8 @@ gboolean summary_show(SummaryView *summaryview, FolderItem *item)
+@@ -1477,7 +1477,8 @@ gboolean summary_show(SummaryView *summaryview, FolderItem *item)
  				if (node == NULL && GTK_CMCLIST(ctree)->row_list != NULL)
  					node = gtk_cmctree_node_nth
  						(ctree,
@@ -120,7 +120,7 @@ index 99b7e4a5d..4ca400d04 100644
  						 ? 0 : GTK_CMCLIST(ctree)->rows - 1);
  				summary_unlock(summaryview);
  
-@@ -1494,7 +1495,8 @@ gboolean summary_show(SummaryView *summaryview, FolderItem *item)
+@@ -1495,7 +1496,8 @@ gboolean summary_show(SummaryView *summaryview, FolderItem *item)
  			if (GTK_CMCLIST(ctree)->row_list != NULL)
  				node = gtk_cmctree_node_nth
  					(ctree,
@@ -130,45 +130,54 @@ index 99b7e4a5d..4ca400d04 100644
  					 ? 0 : GTK_CMCLIST(ctree)->rows - 1);
  			summary_select_node(summaryview, node, OPEN_SELECTED_ON_SEARCH_RESULTS);
  		}
-@@ -1518,16 +1520,31 @@ gboolean summary_show(SummaryView *summaryview, FolderItem *item)
+@@ -1519,28 +1521,31 @@ gboolean summary_show(SummaryView *summaryview, FolderItem *item)
  			
  			switch(act) {
  			case ACTION_MARKED:
--				node = summary_find_next_flagged_msg(summaryview, NULL,
+-				if (summaryview->sort_type == SORT_ASCENDING)
+-					node = summary_find_next_flagged_msg(summaryview, NULL,
 -					     MSG_MARKED, FALSE);
 +				if (prefs_common.ignore_sort_direction
 +					&& item->sort_type == SORT_DESCENDING)
 +					node = summary_find_prev_flagged_msg
 +						(summaryview, NULL, MSG_MARKED, FALSE);
-+				else
+ 				else
+-					node = summary_find_prev_flagged_msg(summaryview, NULL,
+-					     MSG_MARKED, FALSE);
 +					node = summary_find_next_flagged_msg
 +						(summaryview, NULL, MSG_MARKED, FALSE);
  				break;
  			case ACTION_NEW:
--				node = summary_find_next_flagged_msg(summaryview, NULL,
+-				if (summaryview->sort_type == SORT_ASCENDING)
+-					node = summary_find_next_flagged_msg(summaryview, NULL,
 -					     MSG_NEW, FALSE);
 +				if (prefs_common.ignore_sort_direction &&
 +					item->sort_type == SORT_DESCENDING)
 +					node = summary_find_prev_flagged_msg
 +						(summaryview, NULL, MSG_NEW, FALSE);
-+				else
+ 				else
+-					node = summary_find_prev_flagged_msg(summaryview, NULL,
+-					     MSG_NEW, FALSE);
 +					node = summary_find_next_flagged_msg
 +						(summaryview, NULL, MSG_NEW, FALSE);
  				break;
  			case ACTION_UNREAD:
--				node = summary_find_next_flagged_msg(summaryview, NULL,
+-				if (summaryview->sort_type == SORT_ASCENDING)
+-					node = summary_find_next_flagged_msg(summaryview, NULL,
 -					     MSG_UNREAD, FALSE);
 +				if (prefs_common.ignore_sort_direction
 +					&& item->sort_type == SORT_DESCENDING)
 +					node = summary_find_prev_flagged_msg
 +						(summaryview, NULL, MSG_UNREAD, FALSE);
-+				else
+ 				else
+-					node = summary_find_prev_flagged_msg(summaryview, NULL,
+-					     MSG_UNREAD, FALSE);
 +					node = summary_find_next_flagged_msg
 +						(summaryview, NULL, MSG_UNREAD, FALSE);
  				break;
  			case ACTION_LAST_OPENED:
  				if (summaryview->folder_item) {
-@@ -1539,7 +1556,8 @@ gboolean summary_show(SummaryView *summaryview, FolderItem *item)
+@@ -1552,7 +1557,8 @@ gboolean summary_show(SummaryView *summaryview, FolderItem *item)
  				if (GTK_CMCLIST(ctree)->row_list != NULL) {
  					node = gtk_cmctree_node_nth
  						(ctree,
@@ -178,7 +187,7 @@ index 99b7e4a5d..4ca400d04 100644
  						 ? 0 : GTK_CMCLIST(ctree)->rows - 1);
  				}
  				break;
-@@ -1547,8 +1565,9 @@ gboolean summary_show(SummaryView *summaryview, FolderItem *item)
+@@ -1560,8 +1566,9 @@ gboolean summary_show(SummaryView *summaryview, FolderItem *item)
  				if (GTK_CMCLIST(ctree)->row_list != NULL) {
  					node = gtk_cmctree_node_nth
  						(ctree,
@@ -190,7 +199,7 @@ index 99b7e4a5d..4ca400d04 100644
  				}
  				break;
  			case ACTION_NOTHING:
-@@ -1828,10 +1847,10 @@ void summary_select_prev(SummaryView *summaryview)
+@@ -1841,10 +1848,10 @@ void summary_select_prev(SummaryView *summaryview)
  	GtkCMCTreeNode *node = summaryview->selected;
  	GtkCMCTree *ctree = GTK_CMCTREE(summaryview->ctree);
  
@@ -204,7 +213,7 @@ index 99b7e4a5d..4ca400d04 100644
  
  	if (node && node != summaryview->selected)
  		summary_select_node(summaryview, node, OPEN_SELECTED_ON_PREVNEXT);
-@@ -1842,10 +1861,10 @@ void summary_select_next(SummaryView *summaryview)
+@@ -1855,10 +1862,10 @@ void summary_select_next(SummaryView *summaryview)
  	GtkCMCTreeNode *node = summaryview->selected;
  	GtkCMCTree *ctree = GTK_CMCTREE(summaryview->ctree);
  
@@ -218,7 +227,7 @@ index 99b7e4a5d..4ca400d04 100644
  
  	if (node && node != summaryview->selected)
  		summary_select_node(summaryview, node, OPEN_SELECTED_ON_PREVNEXT);
-@@ -1855,11 +1874,11 @@ void summary_select_prev_unread(SummaryView *summaryview)
+@@ -1868,11 +1875,11 @@ void summary_select_prev_unread(SummaryView *summaryview)
  {
  	GtkCMCTreeNode *node;
  
@@ -233,7 +242,7 @@ index 99b7e4a5d..4ca400d04 100644
  			(summaryview, summaryview->selected, MSG_UNREAD, TRUE);
  
  	if (!node || node == summaryview->selected) {
-@@ -1883,11 +1902,11 @@ void summary_select_prev_unread(SummaryView *summaryview)
+@@ -1896,11 +1903,11 @@ void summary_select_prev_unread(SummaryView *summaryview)
   					_("Internal error: unexpected value for prefs_common.next_unread_msg_dialog\n"));
   		}
  		if (val != G_ALERTALTERNATE) return;
@@ -248,7 +257,7 @@ index 99b7e4a5d..4ca400d04 100644
  							     MSG_UNREAD, FALSE);
  	}
  
-@@ -1901,11 +1920,11 @@ void summary_select_next_unread(SummaryView *summaryview)
+@@ -1914,11 +1921,11 @@ void summary_select_next_unread(SummaryView *summaryview)
  {
  	GtkCMCTreeNode *node = summaryview->selected;
  
@@ -263,7 +272,7 @@ index 99b7e4a5d..4ca400d04 100644
  			(summaryview, node, MSG_UNREAD, TRUE);
  	
  	if (node)
-@@ -1940,11 +1959,11 @@ void summary_select_prev_new(SummaryView *summaryview)
+@@ -1953,11 +1960,11 @@ void summary_select_prev_new(SummaryView *summaryview)
  {
  	GtkCMCTreeNode *node;
  
@@ -278,7 +287,7 @@ index 99b7e4a5d..4ca400d04 100644
  			(summaryview, summaryview->selected, MSG_NEW, TRUE);
  
  	if (!node || node == summaryview->selected) {
-@@ -1968,11 +1987,11 @@ void summary_select_prev_new(SummaryView *summaryview)
+@@ -1981,11 +1988,11 @@ void summary_select_prev_new(SummaryView *summaryview)
   					_("Internal error: unexpected value for prefs_common.next_unread_msg_dialog\n"));
   		}
  		if (val != G_ALERTALTERNATE) return;
@@ -293,7 +302,7 @@ index 99b7e4a5d..4ca400d04 100644
  							     MSG_NEW, FALSE);
  	}
  
-@@ -1986,11 +2005,11 @@ void summary_select_next_new(SummaryView *summaryview)
+@@ -1999,11 +2006,11 @@ void summary_select_next_new(SummaryView *summaryview)
  {
  	GtkCMCTreeNode *node = summaryview->selected;
  
@@ -308,7 +317,7 @@ index 99b7e4a5d..4ca400d04 100644
  			(summaryview, node, MSG_NEW, TRUE);
  	
  	if (node)
-@@ -2024,11 +2043,11 @@ void summary_select_prev_marked(SummaryView *summaryview)
+@@ -2037,11 +2044,11 @@ void summary_select_prev_marked(SummaryView *summaryview)
  {
  	GtkCMCTreeNode *node;
  
@@ -323,7 +332,7 @@ index 99b7e4a5d..4ca400d04 100644
  			(summaryview, summaryview->selected, MSG_MARKED, TRUE);
  
  	if (!node) {
-@@ -2053,11 +2072,11 @@ void summary_select_next_marked(SummaryView *summaryview)
+@@ -2066,11 +2073,11 @@ void summary_select_next_marked(SummaryView *summaryview)
  {
  	GtkCMCTreeNode *node = summaryview->selected;
  
@@ -338,7 +347,7 @@ index 99b7e4a5d..4ca400d04 100644
  			(summaryview, node, MSG_MARKED, TRUE);
  	
  	if (node)
-@@ -2091,11 +2110,11 @@ void summary_select_prev_labeled(SummaryView *summaryview)
+@@ -2104,11 +2111,11 @@ void summary_select_prev_labeled(SummaryView *summaryview)
  {
  	GtkCMCTreeNode *node;
  
@@ -353,7 +362,7 @@ index 99b7e4a5d..4ca400d04 100644
  			(summaryview, summaryview->selected, MSG_CLABEL_FLAG_MASK, TRUE);
  
  	if (!node) {
-@@ -2120,11 +2139,11 @@ void summary_select_next_labeled(SummaryView *summaryview)
+@@ -2133,11 +2140,11 @@ void summary_select_next_labeled(SummaryView *summaryview)
  {
  	GtkCMCTreeNode *node;
  
@@ -368,7 +377,7 @@ index 99b7e4a5d..4ca400d04 100644
  			(summaryview, summaryview->selected, MSG_CLABEL_FLAG_MASK, TRUE);
  
  	if (!node) {
-@@ -2135,11 +2154,11 @@ void summary_select_next_labeled(SummaryView *summaryview)
+@@ -2148,11 +2155,11 @@ void summary_select_next_labeled(SummaryView *summaryview)
  				   "Search from the beginning?"),
  				 GTK_STOCK_NO, "+"GTK_STOCK_YES, NULL);
  		if (val != G_ALERTALTERNATE) return;
@@ -383,7 +392,7 @@ index 99b7e4a5d..4ca400d04 100644
  						    	     MSG_CLABEL_FLAG_MASK, TRUE);
  	}
  
-@@ -4435,14 +4454,14 @@ void summary_delete(SummaryView *summaryview)
+@@ -4477,14 +4484,14 @@ void summary_delete(SummaryView *summaryview)
  	folder_item_set_batch(summaryview->folder_item, FALSE);
  	END_LONG_OPERATION(summaryview);
  
@@ -403,7 +412,7 @@ index 99b7e4a5d..4ca400d04 100644
  	}
  	summary_select_node(summaryview, node, OPEN_SELECTED_ON_DELETEMOVE);
  	
-@@ -4592,14 +4611,14 @@ void summary_move_selected_to(SummaryView *summaryview, FolderItem *to_folder)
+@@ -4634,14 +4641,14 @@ void summary_move_selected_to(SummaryView *summaryview, FolderItem *to_folder)
  		summary_execute(summaryview);
  	} else {
  		GtkCMCTreeNode *node = NULL;
@@ -423,7 +432,7 @@ index 99b7e4a5d..4ca400d04 100644
  		}
  		summary_select_node(summaryview, node, OPEN_SELECTED_ON_DELETEMOVE);
  		summary_status_show(summaryview);
-@@ -4972,14 +4991,14 @@ gboolean summary_execute(SummaryView *summaryview)
+@@ -5014,14 +5021,14 @@ gboolean summary_execute(SummaryView *summaryview)
  		if (!new_selected &&
  		    gtkut_ctree_node_is_selected(ctree, node)) {
  			summary_unselect_all(summaryview);
@@ -444,5 +453,5 @@ index 99b7e4a5d..4ca400d04 100644
  		}
  
 -- 
-2.14.1
+2.15.1
 

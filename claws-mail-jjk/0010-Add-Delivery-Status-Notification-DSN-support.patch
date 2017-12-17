@@ -1,7 +1,7 @@
-From 661bc3705226fb7dcdd08306378d28ee90c0f3f5 Mon Sep 17 00:00:00 2001
+From 65e35c372c8bc599c3638326a58a85c255464c1b Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Mon, 5 Jun 2017 22:10:50 +0200
-Subject: [PATCH 10/11] Add Delivery Status Notification (DSN) support
+Subject: [PATCH 10/10] Add Delivery Status Notification (DSN) support
 
 New account options under Compose allow to set which (if any) DSN must
 be used: Success, Failure, Delay.
@@ -34,10 +34,10 @@ http://www.thewildbeast.co.uk/claws-mail/bugzilla/show_bug.cgi?id=3533
  create mode 100644 src/common/dsn.h
 
 diff --git a/src/account.c b/src/account.c
-index 962505682..b334e2f85 100644
+index 11840aefc..a58c9c1f9 100644
 --- a/src/account.c
 +++ b/src/account.c
-@@ -1008,6 +1008,9 @@ static void account_clone(GtkWidget *widget, gpointer data)
+@@ -1007,6 +1007,9 @@ static void account_clone(GtkWidget *widget, gpointer data)
  	ACP_FASSIGN(forward_with_format);
  	ACP_FDUP(forward_quotemark);
  	ACP_FDUP(forward_body_format);
@@ -243,11 +243,11 @@ index 706a0978a..3396a8874 100644
  
  #ifdef USE_GNUTLS
 diff --git a/src/compose.c b/src/compose.c
-index 84f951d85..ad2120399 100644
+index 3841d828b..9b5c56b43 100644
 --- a/src/compose.c
 +++ b/src/compose.c
-@@ -494,6 +494,12 @@ static void compose_use_signing(Compose *compose, gboolean use_signing);
- static void compose_use_encryption(Compose *compose, gboolean use_encryption);
+@@ -496,6 +496,12 @@ static void activate_privacy_system     (Compose *compose,
+ 					 gboolean warn);
  static void compose_toggle_return_receipt_cb(GtkToggleAction *action,
  					 gpointer	 data);
 +static void compose_toggle_dsn_success_cb(GtkToggleAction *action,
@@ -259,7 +259,7 @@ index 84f951d85..ad2120399 100644
  static void compose_toggle_remove_refs_cb(GtkToggleAction *action,
  					 gpointer	 data);
  static void compose_set_priority_cb	(GtkAction *action, GtkRadioAction *current, gpointer data);
-@@ -697,6 +703,8 @@ static GtkActionEntry compose_entries[] =
+@@ -699,6 +705,8 @@ static GtkActionEntry compose_entries[] =
  	{"Options/Encoding/Korean",       NULL, N_("Korean"), NULL, NULL, NULL },
  	{"Options/Encoding/Thai",         NULL, N_("Thai"), NULL, NULL, NULL },
  
@@ -268,7 +268,7 @@ index 84f951d85..ad2120399 100644
  /* Tools menu */
  	{"Tools/AddressBook",             NULL, N_("_Address book"), NULL, NULL, G_CALLBACK(compose_address_cb) }, 
  
-@@ -716,6 +724,9 @@ static GtkToggleActionEntry compose_toggle_entries[] =
+@@ -718,6 +726,9 @@ static GtkToggleActionEntry compose_toggle_entries[] =
  	{"Options/Sign",             NULL, N_("Si_gn"), NULL, NULL, G_CALLBACK(compose_toggle_sign_cb), FALSE }, /* Toggle */
  	{"Options/Encrypt",          NULL, N_("_Encrypt"), NULL, NULL, G_CALLBACK(compose_toggle_encrypt_cb), FALSE }, /* Toggle */
  	{"Options/RequestRetRcpt",   NULL, N_("_Request Return Receipt"), NULL, NULL, G_CALLBACK(compose_toggle_return_receipt_cb), FALSE }, /* Toggle */
@@ -278,7 +278,7 @@ index 84f951d85..ad2120399 100644
  	{"Options/RemoveReferences", NULL, N_("Remo_ve references"), NULL, NULL, G_CALLBACK(compose_toggle_remove_refs_cb), FALSE }, /* Toggle */
  	{"Tools/ShowRuler",          NULL, N_("Show _ruler"), NULL, NULL, G_CALLBACK(compose_toggle_ruler_cb), FALSE }, /* Toggle */
  };
-@@ -1108,15 +1119,36 @@ Compose *compose_generic_new(PrefsAccount *account, const gchar *mailto, FolderI
+@@ -1111,15 +1122,36 @@ Compose *compose_generic_new(PrefsAccount *account, const gchar *mailto, FolderI
  	gtk_text_buffer_place_cursor(textbuf, &iter);
  
  	if (account->protocol != A_NNTP) {
@@ -317,7 +317,7 @@ index 84f951d85..ad2120399 100644
  	} else {
  		if (mailto && *mailto != '\0') {
  			if (!strchr(mailto, '@'))
-@@ -1585,6 +1617,7 @@ static Compose *compose_generic_reply(MsgInfo *msginfo,
+@@ -1593,6 +1625,7 @@ static Compose *compose_generic_reply(MsgInfo *msginfo,
  	const gchar *qmark = NULL;
  	const gchar *body_fmt = NULL;
  	gchar *s_system = NULL;
@@ -325,7 +325,7 @@ index 84f951d85..ad2120399 100644
  	START_TIMING("");
  	cm_return_val_if_fail(msginfo != NULL, NULL);
  	cm_return_val_if_fail(msginfo->folder != NULL, NULL);
-@@ -1606,8 +1639,27 @@ static Compose *compose_generic_reply(MsgInfo *msginfo,
+@@ -1614,8 +1647,27 @@ static Compose *compose_generic_reply(MsgInfo *msginfo,
  
  	compose_extract_original_charset(compose);
  	
@@ -355,7 +355,7 @@ index 84f951d85..ad2120399 100644
  
  	/* Set save folder */
  	if (msginfo->folder && msginfo->folder->prefs && msginfo->folder->prefs->save_copy_to_folder) {
-@@ -2423,6 +2475,16 @@ Compose *compose_reedit(MsgInfo *msginfo, gboolean batch)
+@@ -2434,6 +2486,16 @@ Compose *compose_reedit(MsgInfo *msginfo, gboolean batch)
  			}
  			g_free(queueheader_buf);
  		}
@@ -372,7 +372,7 @@ index 84f951d85..ad2120399 100644
  	}
  	
  	if (compose_parse_header(compose, msginfo) < 0) {
-@@ -5531,6 +5593,7 @@ static gint compose_redirect_write_to_file(Compose *compose, FILE *fdest)
+@@ -5590,6 +5652,7 @@ static gint compose_redirect_write_to_file(Compose *compose, FILE *fdest)
  		"X-Sylpheed-Privacy",	"X-Sylpheed-Sign:",	"X-Sylpheed-Encrypt",
  		"X-Sylpheed-End-Special-Headers:", 		"X-Sylpheed-Account-Id:",
  		"X-Claws-Auto-Wrapping:", "X-Claws-Auto-Indent:",
@@ -380,7 +380,7 @@ index 84f951d85..ad2120399 100644
  		NULL
  		};
  	gint ret = 0;
-@@ -6183,6 +6246,9 @@ static gint compose_queue_sub(Compose *compose, gint *msgnum, FolderItem **item,
+@@ -6253,6 +6316,9 @@ static gint compose_queue_sub(Compose *compose, gint *msgnum, FolderItem **item,
  	if (compose->return_receipt) {
  		err |= (fprintf(fp, "RRCPT:1\n") < 0);
  	}
@@ -390,7 +390,7 @@ index 84f951d85..ad2120399 100644
  	/* Message-ID of message replying to */
  	if ((compose->replyinfo != NULL) && (compose->replyinfo->msgid != NULL)) {
  		gchar *folderid = NULL;
-@@ -7802,6 +7868,10 @@ static Compose *compose_create(PrefsAccount *account,
+@@ -7923,6 +7989,10 @@ static Compose *compose_create(PrefsAccount *account,
  
  	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "Separator3", "Options/---", GTK_UI_MANAGER_SEPARATOR)
  	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "RequestRetRcpt", "Options/RequestRetRcpt", GTK_UI_MANAGER_MENUITEM)
@@ -401,7 +401,7 @@ index 84f951d85..ad2120399 100644
  	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "Separator4", "Options/---", GTK_UI_MANAGER_SEPARATOR)
  	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "RemoveReferences", "Options/RemoveReferences", GTK_UI_MANAGER_MENUITEM)
  	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "Separator5", "Options/---", GTK_UI_MANAGER_SEPARATOR)
-@@ -10208,6 +10278,9 @@ gboolean compose_draft (gpointer data, guint action)
+@@ -10382,6 +10452,9 @@ gboolean compose_draft (gpointer data, guint action)
  	if (compose->return_receipt) {
  		err |= (fprintf(fp, "RRCPT:1\n") < 0);
  	}
@@ -411,7 +411,7 @@ index 84f951d85..ad2120399 100644
  	if (compose->privacy_system) {
  		err |= (fprintf(fp, "X-Claws-Sign:%d\n", compose->use_signing) < 0);
  		err |= (fprintf(fp, "X-Claws-Encrypt:%d\n", compose->use_encryption) < 0);
-@@ -11610,6 +11683,36 @@ static void compose_toggle_return_receipt_cb(GtkToggleAction *action, gpointer d
+@@ -11816,6 +11889,36 @@ static void compose_toggle_return_receipt_cb(GtkToggleAction *action, gpointer d
  		compose->return_receipt = FALSE;
  }
  
@@ -449,7 +449,7 @@ index 84f951d85..ad2120399 100644
  {
  	Compose *compose = (Compose *)data;
 diff --git a/src/compose.h b/src/compose.h
-index cca482d0b..358417ff5 100644
+index fee1956f5..3ec176d98 100644
 --- a/src/compose.h
 +++ b/src/compose.h
 @@ -35,6 +35,7 @@ typedef struct _AttachInfo	AttachInfo;
@@ -518,10 +518,10 @@ index 44e49985d..c0193e5bf 100644
  	gchar *default_to;
  	gboolean enable_default_reply_to;
 diff --git a/src/prefs_account.c b/src/prefs_account.c
-index 59d904927..7b866c7b9 100644
+index ec0d11516..a7367f727 100644
 --- a/src/prefs_account.c
 +++ b/src/prefs_account.c
-@@ -198,6 +198,9 @@ typedef struct ComposePage
+@@ -199,6 +199,9 @@ typedef struct ComposePage
  	GtkWidget *autobcc_entry;
  	GtkWidget *autoreplyto_checkbtn;
  	GtkWidget *autoreplyto_entry;
@@ -531,7 +531,7 @@ index 59d904927..7b866c7b9 100644
  #if USE_ENCHANT
  	GtkWidget *checkbtn_enable_default_dictionary;
  	GtkWidget *combo_default_dictionary;
-@@ -588,6 +591,18 @@ static PrefParam compose_param[] = {
+@@ -596,6 +599,18 @@ static PrefParam compose_param[] = {
  	 &compose_page.autoreplyto_entry,
  	 prefs_set_data_from_entry, prefs_set_entry},
  
@@ -550,7 +550,7 @@ index 59d904927..7b866c7b9 100644
  #if USE_ENCHANT
  	{"enable_default_dictionary", "", &tmp_ac_prefs.enable_default_dictionary, P_BOOL,
  	 &compose_page.checkbtn_enable_default_dictionary,
-@@ -1938,6 +1953,10 @@ static void compose_create_widget_func(PrefsPage * _page,
+@@ -1985,6 +2000,10 @@ static void compose_create_widget_func(PrefsPage * _page,
  	GtkWidget *autobcc_entry;
  	GtkWidget *autoreplyto_checkbtn;
  	GtkWidget *autoreplyto_entry;
@@ -561,7 +561,7 @@ index 59d904927..7b866c7b9 100644
  #if USE_ENCHANT
  	GtkWidget *frame_dict;
  	GtkWidget *table_dict;
-@@ -2068,6 +2087,23 @@ static void compose_create_widget_func(PrefsPage * _page,
+@@ -2115,6 +2134,23 @@ static void compose_create_widget_func(PrefsPage * _page,
  
  	SET_TOGGLE_SENSITIVITY (autoreplyto_checkbtn, autoreplyto_entry);
  
@@ -585,7 +585,7 @@ index 59d904927..7b866c7b9 100644
  #if USE_ENCHANT
  	PACK_FRAME (vbox1, frame_dict, _("Spell check dictionaries"));
  
-@@ -2118,6 +2154,10 @@ static void compose_create_widget_func(PrefsPage * _page,
+@@ -2165,6 +2201,10 @@ static void compose_create_widget_func(PrefsPage * _page,
  	page->autobcc_entry      = autobcc_entry;
  	page->autoreplyto_checkbtn = autoreplyto_checkbtn;
  	page->autoreplyto_entry  = autoreplyto_entry;
@@ -597,7 +597,7 @@ index 59d904927..7b866c7b9 100644
  	page->checkbtn_enable_default_dictionary = checkbtn_enable_default_dictionary;
  	page->combo_default_dictionary = combo_default_dictionary;
 diff --git a/src/prefs_account.h b/src/prefs_account.h
-index 83f6efad7..a25b9c4d6 100644
+index 39aed6fc6..bef27e988 100644
 --- a/src/prefs_account.h
 +++ b/src/prefs_account.h
 @@ -146,6 +146,9 @@ struct _PrefsAccount
@@ -611,7 +611,7 @@ index 83f6efad7..a25b9c4d6 100644
  	/* Privacy */
  	gchar	 *default_privacy_system;
 diff --git a/src/prefs_folder_item.c b/src/prefs_folder_item.c
-index 560871550..fa8e2d791 100644
+index 20f96f4f3..318279785 100644
 --- a/src/prefs_folder_item.c
 +++ b/src/prefs_folder_item.c
 @@ -115,6 +115,10 @@ struct _FolderItemComposePage
@@ -769,7 +769,7 @@ index 560871550..fa8e2d791 100644
  	      gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(page->default_to_rec_checkbtn)) ||
  	      gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(page->default_account_rec_checkbtn)) ||
 diff --git a/src/procmsg.c b/src/procmsg.c
-index c9b077eb1..2106fabd2 100644
+index 3137f5fc8..d3daaefa7 100644
 --- a/src/procmsg.c
 +++ b/src/procmsg.c
 @@ -75,6 +75,7 @@ enum
@@ -806,7 +806,7 @@ index c9b077eb1..2106fabd2 100644
  		case Q_CLAWS_HDRS:
  		case Q_CLAWS_HDRS_OLD:
  			/* end of special headers reached */
-@@ -1642,7 +1648,7 @@ send_mail:
+@@ -1643,7 +1649,7 @@ send_mail:
  			}
  
  			if (mailac) {
@@ -815,7 +815,7 @@ index c9b077eb1..2106fabd2 100644
  				if (mailval == -1 && errstr) {
  					if (*errstr) g_free(*errstr);
  					*errstr = g_strdup_printf(_("An error happened during SMTP session."));
-@@ -1656,7 +1662,7 @@ send_mail:
+@@ -1657,7 +1663,7 @@ send_mail:
  				tmp_ac.address = from;
  				tmp_ac.smtp_server = smtpserver;
  				tmp_ac.smtpport = SMTP_PORT;
@@ -825,7 +825,7 @@ index c9b077eb1..2106fabd2 100644
  					if (*errstr) g_free(*errstr);
  					*errstr = g_strdup_printf(_("No specific account has been found to "
 diff --git a/src/send_message.c b/src/send_message.c
-index 1560f9dc9..960630518 100644
+index 45fd5cf13..e88b309b2 100644
 --- a/src/send_message.c
 +++ b/src/send_message.c
 @@ -122,7 +122,7 @@ gint send_message(const gchar *file, PrefsAccount *ac_prefs, GSList *to_list)
@@ -899,5 +899,5 @@ index c0861fd47..99ae2a516 100644
  				 gboolean keep_session);
  void send_cancel	(void);
 -- 
-2.14.1
+2.15.1
 
