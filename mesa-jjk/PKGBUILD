@@ -3,9 +3,9 @@
 # Maintainer: Andreas Radke <andyrtr@archlinux.org>
 
 pkgbase=mesa-jjk
-pkgname=('ati-dri-jjk' 'mesa-jjk' 'mesa-libgl-jjk')
+pkgname=('ati-dri-jjk' 'intel-dri-jjk' 'mesa-jjk' 'mesa-libgl-jjk')
 pkgver=17.2.7
-pkgrel=1
+pkgrel=2
 arch=('i686' 'x86_64')
 makedepends=('python2' 'libxml2' 'libx11' 'glproto' 'libdrm' 'dri2proto'
              'dri3proto' 'presentproto' 'libxxf86vm' 'libxdamage' 'libelf'
@@ -31,7 +31,7 @@ build() {
     --sysconfdir=/etc \
     --with-dri-driverdir=/usr/lib/xorg/modules/dri \
     --with-gallium-drivers=r600,swrast \
-    --with-dri-drivers=radeon,swrast \
+    --with-dri-drivers=radeon,swrast,i915 \
     --with-platforms=x11,drm \
     --enable-egl \
     --enable-gbm \
@@ -61,6 +61,20 @@ package_ati-dri-jjk() {
 
   install -m755 -d "${pkgdir}/usr/share/licenses/ati-dri"
   install -m644 "${srcdir}/LICENSE" "${pkgdir}/usr/share/licenses/ati-dri/"
+}
+
+package_intel-dri-jjk() {
+  pkgdesc="Mesa drivers for Intel"
+  depends=("mesa-libgl-jjk=${pkgver}")
+  conflicts=('intel-dri' 'mesa-dri')
+  provides=('intel-dri' 'mesa-dri')
+  replaces=('intel-dri' 'mesa-dri')
+
+  install -m755 -d ${pkgdir}/usr/lib/xorg/modules/dri
+  mv -v ${srcdir}/fakeinstall/usr/lib/xorg/modules/dri/i915_dri.so ${pkgdir}/usr/lib/xorg/modules/dri/
+
+  install -m755 -d "${pkgdir}/usr/share/licenses/intel-dri"
+  install -m644 "${srcdir}/LICENSE" "${pkgdir}/usr/share/licenses/intel-dri/"
 }
 
 package_mesa-jjk() {
