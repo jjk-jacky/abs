@@ -4,7 +4,7 @@
 
 _pkgname=cairo
 pkgname=$_pkgname-jjk
-pkgver=1.14.10
+pkgver=1.14.12
 pkgrel=1
 pkgdesc="Cairo vector graphics library"
 arch=(i686 x86_64)
