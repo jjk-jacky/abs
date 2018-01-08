@@ -1,0 +1,65 @@
+From c846e2782eb67732e6e94a9b2c4f44272407c5c4 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Sun, 7 Jan 2018 22:04:36 +0100
+Subject: [PATCH] Fix $route_vpn_gateway not always set
+
+Environment variable route_vpn_gateway wasn't always set before the up script,
+specifically is wasn't set unless a route was also set/being pushed.
+Make sure it is set even without any routes defined.
+
+Trac: 668
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ src/openvpn/init.c | 36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
+
+diff --git a/src/openvpn/init.c b/src/openvpn/init.c
+index 133a9f5..d492e27 100644
+--- a/src/openvpn/init.c
++++ b/src/openvpn/init.c
+@@ -1714,6 +1714,42 @@ do_open_tun(struct context *c)
+         do_init_route_list(&c->options, c->c1.route_list,
+                            &c->c2.link_socket->info, c->c2.es);
+     }
++    else
++    {
++        const char *gw = NULL;
++        int dev = dev_type_enum(c->options.dev, c->options.dev_type);
++
++        if (dev == DEV_TYPE_TUN && (c->options.topology == TOP_NET30 || c->options.topology == TOP_P2P))
++        {
++            gw = c->options.ifconfig_remote_netmask;
++        }
++        if (c->options.route_default_gateway)
++        {
++            gw = c->options.route_default_gateway;
++        }
++        if (gw && strcmp(gw, "default"))
++        {
++            bool defined = false;
++            const in_addr_t ip = getaddr(
++                GETADDR_RESOLVE
++                | GETADDR_HOST_ORDER
++                | GETADDR_WARN_ON_SIGNAL,
++                gw,
++                0,
++                &defined,
++                NULL);
++
++            if (defined)
++            {
++                setenv_str(c->c2.es, "route_vpn_gateway", print_in_addr_t(ip, 0, &gc));
++            }
++            else
++            {
++                msg(M_WARN, PACKAGE_NAME " : failed to parse/resolve default gateway: %s",
++                    gw);
++            }
++        }
++    }
+     if (c->options.routes_ipv6 && c->c1.route_ipv6_list)
+     {
+         do_init_route_ipv6_list(&c->options, c->c1.route_ipv6_list,
+-- 
+2.15.1
+
