@@ -3,7 +3,7 @@
 
 _pkgname=glib2
 pkgname=$_pkgname-jjk
-pkgver=2.54.2
+pkgver=2.54.3
 pkgrel=1
 pkgdesc="Common C routines used by GTK+ and other libs"
 url="http://www.gtk.org/"
@@ -15,14 +15,16 @@ optdepends=('python2: for gdbus-codegen')
 provides=($_pkgname)
 conflicts=($_pkgname)
 options=('!emptydirs' '!strip' 'debug')
-source=(http://ftp.gnome.org/pub/GNOME/sources/glib/${pkgver%.*}/glib-$pkgver.tar.xz
+source=(https://ftp.gnome.org/pub/GNOME/sources/glib/${pkgver%.*}/glib-$pkgver.tar.xz
+        glib-$pkgver.tar.xz.sha256::https://ftp.gnome.org/pub/GNOME/sources/glib/${pkgver%.*}/glib-$pkgver.sha256sum
         glib-compile-schemas.hook
         gio-querymodules.hook
         noisy-glib-compile-schemas.diff
         0001-GRWLock-Tweak-doc-to-make-things-a-bit-clearer.patch
         0002-GRWLock-Tweak-re-blocking-on-g_rw_lock_reader_lock.patch
         0003-GRWLock-add-critical-warnings-for-EDEADLK.patch)
-sha256sums=('bb89e5c5aad33169a8c7f28b45671c7899c12f74caf707737f784d7102758e6c'
+sha256sums=('FILE'
+            '40687940317a1435c7cf7c47a1cfec0fbdcc4ccec069921f63886703c95cf051'
             'e1123a5d85d2445faac33f6dae1085fdd620d83279a4e130a83fe38db52b62b3'
             '5ba204a2686304b1454d401a39a9d27d09dd25e4529664e3fd565be3d439f8b6'
             '81a4df0b638730cffb7fa263c04841f7ca6b9c9578ee5045db6f30ff0c3fc531'
