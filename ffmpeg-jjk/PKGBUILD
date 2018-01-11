@@ -6,7 +6,7 @@
 _pkgname=ffmpeg
 pkgname=$_pkgname-jjk
 pkgver=3.4.1
-pkgrel=1
+pkgrel=2
 pkgdesc="Complete and free Internet live audio and video broadcasting solution for Linux/Unix"
 arch=('i686' 'x86_64')
 url="https://ffmpeg.org/"
@@ -14,7 +14,7 @@ license=('GPL')
 depends=(
       'alsa-lib' 'bzip2' 'fontconfig' 'lame'
       'libpulse' 'libvorbis' 'libvpx'
-      'openjpeg' 'sdl'
+      'openjpeg' 'sdl' 'libxml2'
       'v4l-utils' 'libx264' 'xvidcore' 'zlib'
       'libx264.so'
       'libva-drm.so' 'libva.so' 'libva-x11.so'
@@ -58,6 +58,7 @@ build() {
     --enable-libvpx \
     --enable-libx264 \
     --enable-libxvid \
+    --enable-libxml2 \
     --enable-shared \
     --enable-version3 \
     --disable-protocol=concat
