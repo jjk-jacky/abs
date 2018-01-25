@@ -3,7 +3,7 @@
 
 _pkgname=wget
 pkgname=$_pkgname-jjk
-pkgver=1.19.2
+pkgver=1.19.4
 pkgrel=1
 pkgdesc="A network utility to retrieve files from the Web"
 arch=('i686' 'x86_64')
@@ -16,9 +16,10 @@ provides=($_pkgname)
 conflicts=($_pkgname)
 backup=('etc/wgetrc')
 source=(https://ftp.gnu.org/gnu/$_pkgname/$_pkgname-$pkgver.tar.lz{,.sig})
-sha1sums=('262ddadec85b7836e2f724a4f3e47797a063f772'
+sha1sums=('8d87d3127044823df445231c4c8494724be1e75c'
           'SKIP')
 validpgpkeys=('AC404C1C0BF735C63FF4D562263D6DF2E163E1EA'
+              '7845120B07CBD8D6ECE5FF2B2A1743EDA91A35B6'
               '1CB27DBC98614B2D5841646D08302DB6A2670428' # Tim Rühsen <tim.ruehsen@gmx.de>
               )
 
