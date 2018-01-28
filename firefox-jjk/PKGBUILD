@@ -4,7 +4,7 @@
 
 _pkgname=firefox
 pkgname=$_pkgname-jjk
-pkgver=52.5.3esr
+pkgver=52.6.0esr
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=('i686' 'x86_64')
@@ -27,7 +27,7 @@ source=(https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/source/
         no-crmf.diff
         firefox-20.0.1-fixed-loading-icon.png)
 sha512sums=('FILE'
-            '9b42d676bc3f0a6c615961fc707a75d40dab816acca7debf541430ec598c14cef64607e20d1421284957af9e361803badf8376d80673405e4a737e28879b8e74'
+            'f7187c4c43a9067b84bfb3297926503ebfe4dd49c6fdc4dd0fb38eea3d5b9670c47211eb912116d086952fb446deb96a55ca77c9702095fcf2f3b1e23b14d112'
             'SKIP'
             '468ef1c8fa122f5e863ab22c2b82ee7711b62bd82d42930786c7589415a5387207161399d6bb86e66aab698cb4cf6d55bddb715653ffc1bf829705b6bbb920de'
             '6338bd399df04dcbfd2d4150c59be8716aebcb60edbfd298ba8671059c4f02ffcec3e9f750255c951fb197edf6130b0c25a4157e27fe0087dad89b3d40eb2627'
