@@ -4,18 +4,18 @@
 pkgbase=php
 pkgname=('php-jjk'
          'php-fpm-jjk')
-pkgver=7.2.1
+pkgver=7.2.2
 pkgrel=1
 arch=('i686' 'x86_64')
 license=('PHP')
-url='http://www.php.net'
+url='https://secure.php.net'
 makedepends=('db' 'gmp' 'pcre'
              'libxml2' 'bzip2' 'curl')
 source=("https://php.net/distributions/${pkgbase}-${pkgver}.tar.xz"{,.asc}
         'php.ini.patch' 'php-fpm.patch')
 validpgpkeys=('1729F83938DA44E27BA0F4D3DBDB397470D12172'
               'B1B44D8F021E4E2D6021E995DC9FF8D3EE5AF27F')
-sha256sums=('6c6cf82fda6660ed963821eb0525214bb3547e8e29f447b9c15b2d8e6efd8822'
+sha256sums=('47d7607d38a1d565fc43ea942c92229a7cd165f156737f210937e375b243cb11'
             'SKIP'
             'dc7e6a23d9ef82f044fbca8f74908b4ec1035503b9a8f767173bce9abbc8d0e4'
             '3f67a3e8cbec96f3dc921fcb2fc5e29bfd22bdf5fb34ed91bb369c27df095cb3')
@@ -61,7 +61,6 @@ build() {
         --with-db4=/usr \
         --with-freetype-dir=/usr \
         --with-gd=shared \
-        --with-gdbm \
         --with-gettext=shared \
         --with-gmp=shared \
         --with-iconv=shared \
