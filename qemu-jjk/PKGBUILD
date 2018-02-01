@@ -6,7 +6,7 @@ _pkgname=qemu
 pkgname=$_pkgname-jjk
 pkgdesc='A generic and open source processor emulator which achieves a good emulation speed by using dynamic translation'
 pkgver=2.11.0
-pkgrel=1
+pkgrel=2
 arch=('i686' 'x86_64')
 license=('GPL2' 'LGPL2.1')
 url='http://wiki.qemu.org/'
@@ -14,9 +14,9 @@ options=('!strip')
 depends=('pixman' 'libjpeg' 'libpng' 'sdl' 'alsa-lib' 'nss' 'glib2'
          'gnutls' 'vde2' 'util-linux' 'libsasl' 'libgl'
          'seabios' 'libcap' 'libcap-ng' 'libaio' 'libseccomp' 'libcacard'
-         'spice' 'usbredir' 'lzo' 'snappy' 'gcc-libs' 'zlib' 'bzip2' 'nspr'
+         'usbredir' 'lzo' 'snappy' 'gcc-libs' 'zlib' 'bzip2' 'nspr'
          'ncurses' 'libx11' 'libusb' 'libpulse' 'curl')
-makedepends=('spice-protocol' 'python2')
+makedepends=('python2')
 provides=($_pkgname)
 conflicts=($_pkgname)
 source=(http://download.qemu-project.org/${_pkgname}-${pkgver}.tar.xz{,.sig})
@@ -36,7 +36,7 @@ build ()
               --python=/usr/bin/python2 \
               --enable-docs --libexecdir=/usr/lib/qemu \
               --disable-gtk --enable-linux-aio --enable-seccomp \
-              --enable-spice --localstatedir=/var \
+              --disable-spice --localstatedir=/var \
               --enable-modules --enable-curl \
               --disable-guest-agent \
               --target-list=arm-softmmu,x86_64-softmmu
