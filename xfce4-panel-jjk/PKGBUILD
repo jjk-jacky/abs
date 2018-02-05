@@ -5,7 +5,7 @@
 _pkgname=xfce4-panel
 pkgname=$_pkgname-jjk
 pkgver=4.12.2
-pkgrel=1
+pkgrel=2
 pkgdesc="Panel for the Xfce desktop environment"
 arch=('i686' 'x86_64')
 url="https://www.xfce.org/"
@@ -37,6 +37,7 @@ build() {
     --disable-static \
     --enable-gio-unix \
     --enable-gtk-doc \
+    --enable-gtk3 \
     --disable-debug
   make
 }
