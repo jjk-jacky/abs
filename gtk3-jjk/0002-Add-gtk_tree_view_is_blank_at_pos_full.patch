@@ -1,4 +1,4 @@
-From d9d1a621f954f5b4144fc18b17440aef6b079b9a Mon Sep 17 00:00:00 2001
+From ace20611dc88c3dd748df4c4b02bd84434876ae2 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 16:33:42 +0200
 Subject: [PATCH 2/2] Add gtk_tree_view_is_blank_at_pos_full()
@@ -18,7 +18,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  5 files changed, 138 insertions(+), 3 deletions(-)
 
 diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
-index 945726e..89ec22f 100644
+index 945726e2bd..89ec22fe73 100644
 --- a/docs/reference/gtk/gtk3-sections.txt
 +++ b/docs/reference/gtk/gtk3-sections.txt
 @@ -4741,6 +4741,7 @@ gtk_tree_view_set_reorderable
@@ -30,7 +30,7 @@ index 945726e..89ec22f 100644
  gtk_tree_view_get_background_area
  gtk_tree_view_get_visible_rect
 diff --git a/gtk/gtktreeprivate.h b/gtk/gtktreeprivate.h
-index a2d6d6c..2942af2 100644
+index a2d6d6c80a..2942af29fc 100644
 --- a/gtk/gtktreeprivate.h
 +++ b/gtk/gtktreeprivate.h
 @@ -124,7 +124,8 @@ gboolean          _gtk_tree_view_column_is_blank_at_pos  (GtkTreeViewColumn  *co
@@ -44,10 +44,10 @@ index a2d6d6c..2942af2 100644
  void		  _gtk_tree_view_column_cell_render      (GtkTreeViewColumn  *tree_column,
  							  cairo_t            *cr,
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index a0b5437..ea4592f 100644
+index f8954e992d..2a9a8ad9c1 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -14157,6 +14157,9 @@ gtk_tree_view_get_visible_range (GtkTreeView  *tree_view,
+@@ -14189,6 +14189,9 @@ gtk_tree_view_get_visible_range (GtkTreeView  *tree_view,
   * likewise as for gtk_tree_view_get_path_at_pos().  Please see
   * gtk_tree_view_get_path_at_pos() for more information.
   *
@@ -57,7 +57,7 @@ index a0b5437..ea4592f 100644
   * Returns: %TRUE if the area at the given coordinates is blank,
   * %FALSE otherwise.
   *
-@@ -14194,7 +14197,123 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
+@@ -14226,7 +14229,123 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
  
    if (path)
      *path = real_path;
@@ -181,7 +181,7 @@ index a0b5437..ea4592f 100644
    if (column)
      *column = real_column;
  
-@@ -14235,7 +14354,8 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
+@@ -14267,7 +14386,8 @@ gtk_tree_view_is_blank_at_pos (GtkTreeView       *tree_view,
    return _gtk_tree_view_column_is_blank_at_pos (real_column,
                                                  &cell_area,
                                                  &background_area,
@@ -192,7 +192,7 @@ index a0b5437..ea4592f 100644
  
  static void
 diff --git a/gtk/gtktreeview.h b/gtk/gtktreeview.h
-index c3233b4..b1db098 100644
+index c3233b4f52..b1db098203 100644
 --- a/gtk/gtktreeview.h
 +++ b/gtk/gtktreeview.h
 @@ -396,6 +396,15 @@ gboolean               gtk_tree_view_is_blank_at_pos               (GtkTreeView
@@ -212,7 +212,7 @@ index c3233b4..b1db098 100644
  /* Drag-and-Drop support */
  GDK_AVAILABLE_IN_ALL
 diff --git a/gtk/gtktreeviewcolumn.c b/gtk/gtktreeviewcolumn.c
-index ab74a91..411719f 100644
+index ab74a91d56..411719fadb 100644
 --- a/gtk/gtktreeviewcolumn.c
 +++ b/gtk/gtktreeviewcolumn.c
 @@ -1530,7 +1530,8 @@ _gtk_tree_view_column_is_blank_at_pos (GtkTreeViewColumn *column,
@@ -236,5 +236,5 @@ index ab74a91..411719f 100644
      return TRUE;
  
 -- 
-2.6.1
+2.15.1
 

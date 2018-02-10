@@ -1,4 +1,4 @@
-From c34601ae1e0c784489cc545a70608fa6e98987cd Mon Sep 17 00:00:00 2001
+From e5b7c1ac561ba6819d1f99165002dfa997ae97bf Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 20 Nov 2014 11:08:35 +0100
 Subject: [PATCH] treemodel: Fix gtk_tree_path_up() making path invalid
@@ -12,7 +12,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/gtk/gtktreemodel.c b/gtk/gtktreemodel.c
-index 258363f..2026791 100644
+index 283c7f705c..e4efc242e5 100644
 --- a/gtk/gtktreemodel.c
 +++ b/gtk/gtktreemodel.c
 @@ -1100,8 +1100,9 @@ gboolean
@@ -27,5 +27,5 @@ index 258363f..2026791 100644
  
    path->depth--;
 -- 
-2.6.1
+2.15.1
 

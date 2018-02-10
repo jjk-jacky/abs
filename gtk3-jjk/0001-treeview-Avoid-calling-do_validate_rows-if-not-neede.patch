@@ -1,4 +1,4 @@
-From 54c5cb7688c3ca59f75998344fce59825d9406b0 Mon Sep 17 00:00:00 2001
+From 1f0c206a7dac49d5db7acb775b651ac3114611b8 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 31 Dec 2013 13:43:26 +0100
 Subject: [PATCH] treeview: Avoid calling do_validate_rows() if not needed
@@ -32,10 +32,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 3eec8e4..db4b031 100644
+index 0c239c6ba6..ed4de53ccf 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -2595,7 +2595,8 @@ gtk_tree_view_get_preferred_width (GtkWidget *widget,
+@@ -2606,7 +2606,8 @@ gtk_tree_view_get_preferred_width (GtkWidget *widget,
    /* we validate some rows initially just to make sure we have some size.
     * In practice, with a lot of static lists, this should get a good width.
     */
@@ -45,7 +45,7 @@ index 3eec8e4..db4b031 100644
  
    /* keep this in sync with size_allocate below */
    for (list = tree_view->priv->columns; list; list = list->next)
-@@ -6754,6 +6755,8 @@ initialize_fixed_height_mode (GtkTreeView *tree_view)
+@@ -6773,6 +6774,8 @@ initialize_fixed_height_mode (GtkTreeView *tree_view)
  
     _gtk_rbtree_set_fixed_height (tree_view->priv->tree,
                                   tree_view->priv->fixed_height, TRUE);
@@ -54,7 +54,7 @@ index 3eec8e4..db4b031 100644
  }
  
  /* Our strategy for finding nodes to validate is a little convoluted.  We find
-@@ -6979,7 +6982,7 @@ do_presize_handler (GtkTreeView *tree_view)
+@@ -7003,7 +7006,7 @@ do_presize_handler (GtkTreeView *tree_view)
        tree_view->priv->presize_handler_tick_cb = 0;
      }
  
@@ -64,5 +64,5 @@ index 3eec8e4..db4b031 100644
        GtkRequisition requisition;
  
 -- 
-2.6.1
+2.15.1
 

@@ -1,4 +1,4 @@
-From f012c307098210c498b5ab447090edc01d88878d Mon Sep 17 00:00:00 2001
+From 9b3b0c864c20fd15ab0743ff277375f21473d48f Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sun, 28 Sep 2014 15:27:15 +0200
 Subject: [PATCH 2/5] treeview: Add signal rubber-banding-active and
@@ -21,7 +21,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  3 files changed, 76 insertions(+), 12 deletions(-)
 
 diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
-index 945726e..4f7cf8e 100644
+index 945726e2bd..4f7cf8e127 100644
 --- a/docs/reference/gtk/gtk3-sections.txt
 +++ b/docs/reference/gtk/gtk3-sections.txt
 @@ -4784,7 +4784,9 @@ gtk_tree_view_get_row_separator_func
@@ -35,7 +35,7 @@ index 945726e..4f7cf8e 100644
  gtk_tree_view_set_enable_tree_lines
  GtkTreeViewGridLines
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 9d7fb00..93605e9 100644
+index f1dba57279..ebc5a50668 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -520,6 +520,7 @@ enum
@@ -54,7 +54,7 @@ index 9d7fb00..93605e9 100644
  static void     update_prelight                              (GtkTreeView        *tree_view,
                                                                int                 x,
                                                                int                 y);
-@@ -1567,6 +1567,21 @@ G_GNUC_END_IGNORE_DEPRECATIONS
+@@ -1570,6 +1570,21 @@ G_GNUC_END_IGNORE_DEPRECATIONS
  		  G_TYPE_INT,
  		  G_TYPE_INT);
  
@@ -76,7 +76,7 @@ index 9d7fb00..93605e9 100644
  
    /* Key bindings */
    gtk_tree_view_add_move_binding (binding_set, GDK_KEY_Up, 0, TRUE,
-@@ -2144,7 +2159,7 @@ gtk_tree_view_destroy (GtkWidget *widget)
+@@ -2157,7 +2172,7 @@ gtk_tree_view_destroy (GtkWidget *widget)
    GList *list;
  
    gtk_tree_view_stop_editing (tree_view, TRUE);
@@ -85,7 +85,7 @@ index 9d7fb00..93605e9 100644
  
    if (tree_view->priv->columns != NULL)
      {
-@@ -3609,7 +3624,7 @@ gtk_tree_view_drag_gesture_end (GtkGestureDrag *gesture,
+@@ -3629,7 +3644,7 @@ gtk_tree_view_drag_gesture_end (GtkGestureDrag *gesture,
                                  gdouble         offset_y,
                                  GtkTreeView    *tree_view)
  {
@@ -94,7 +94,7 @@ index 9d7fb00..93605e9 100644
  }
  
  static void
-@@ -4321,8 +4336,17 @@ gtk_tree_view_motion_drag_column (GtkTreeView *tree_view,
+@@ -4341,8 +4356,17 @@ gtk_tree_view_motion_drag_column (GtkTreeView *tree_view,
    return TRUE;
  }
  
@@ -114,7 +114,7 @@ index 9d7fb00..93605e9 100644
  {
    remove_scroll_timeout (tree_view);
  
-@@ -4347,10 +4371,13 @@ gtk_tree_view_stop_rubber_band (GtkTreeView *tree_view)
+@@ -4367,10 +4391,13 @@ gtk_tree_view_stop_rubber_band (GtkTreeView *tree_view)
        gtk_tree_path_free (tmp_path);
  
        /* ... and the cursor to the end path */
@@ -132,7 +132,7 @@ index 9d7fb00..93605e9 100644
  
        _gtk_tree_selection_emit_changed (tree_view->priv->selection);
      }
-@@ -4714,6 +4741,7 @@ gtk_tree_view_drag_gesture_update (GtkGestureDrag *gesture,
+@@ -4734,6 +4761,7 @@ gtk_tree_view_drag_gesture_update (GtkGestureDrag *gesture,
  
        tree_view->priv->rubber_band_status = RUBBER_BAND_ACTIVE;
        gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
@@ -140,7 +140,7 @@ index 9d7fb00..93605e9 100644
      }
    else if (tree_view->priv->rubber_band_status == RUBBER_BAND_ACTIVE)
      {
-@@ -5930,7 +5958,7 @@ gtk_tree_view_key_press (GtkWidget   *widget,
+@@ -5950,7 +5978,7 @@ gtk_tree_view_key_press (GtkWidget   *widget,
    if (tree_view->priv->rubber_band_status)
      {
        if (event->keyval == GDK_KEY_Escape)
@@ -149,7 +149,7 @@ index 9d7fb00..93605e9 100644
  
        return TRUE;
      }
-@@ -11456,7 +11484,7 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
+@@ -11488,7 +11516,7 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
      }
  
    if (tree_view->priv->rubber_band_status)
@@ -158,10 +158,11 @@ index 9d7fb00..93605e9 100644
  
    if (tree_view->priv->model)
      {
-@@ -15958,6 +15986,34 @@ gtk_tree_view_is_rubber_banding_active (GtkTreeView *tree_view)
+@@ -15994,6 +16022,34 @@ gtk_tree_view_is_rubber_banding_active (GtkTreeView *tree_view)
+   return FALSE;
  }
  
- /**
++/**
 + * gtk_tree_view_is_rubber_banding_pending:
 + * @tree_view: a #GtkTreeView
 + * @or_active: Whether to return %TRUE if rubber banding is active or not
@@ -189,12 +190,11 @@ index 9d7fb00..93605e9 100644
 +  return FALSE;
 +}
 +
-+/**
+ /**
   * gtk_tree_view_get_row_separator_func: (skip)
   * @tree_view: a #GtkTreeView
-  * 
 diff --git a/gtk/gtktreeview.h b/gtk/gtktreeview.h
-index 1b50bc3..bb4aad7 100644
+index 1b50bc3152..bb4aad76ca 100644
 --- a/gtk/gtktreeview.h
 +++ b/gtk/gtktreeview.h
 @@ -96,6 +96,7 @@ struct _GtkTreeViewClass
@@ -232,5 +232,5 @@ index 1b50bc3..bb4aad7 100644
  GDK_AVAILABLE_IN_ALL
  GtkTreeViewRowSeparatorFunc gtk_tree_view_get_row_separator_func (GtkTreeView               *tree_view);
 -- 
-2.6.1
+2.15.1
 

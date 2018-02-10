@@ -1,4 +1,4 @@
-From e6a4b47d27acbd3065c3aa2332616ff483659dbb Mon Sep 17 00:00:00 2001
+From 4552c240f6cf8f7e1f7bd701092e0e6472a4ead4 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sun, 28 Sep 2014 15:05:13 +0200
 Subject: [PATCH 1/5] treeview: Add signal test-rubber-banding
@@ -17,7 +17,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  2 files changed, 62 insertions(+), 13 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 3eec8e4..9d7fb00 100644
+index 0c239c6ba6..f1dba57279 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -519,6 +519,7 @@ enum
@@ -28,7 +28,7 @@ index 3eec8e4..9d7fb00 100644
    LAST_SIGNAL
  };
  
-@@ -921,6 +922,11 @@ static void gtk_tree_view_drag_gesture_end                  (GtkGestureDrag *ges
+@@ -924,6 +925,11 @@ static void gtk_tree_view_drag_gesture_end                  (GtkGestureDrag *ges
                                                               gdouble         offset_y,
                                                               GtkTreeView    *tree_view);
  
@@ -40,7 +40,7 @@ index 3eec8e4..9d7fb00 100644
  static guint tree_view_signals [LAST_SIGNAL] = { 0 };
  static GParamSpec *tree_view_props [LAST_PROP] = { NULL };
  
-@@ -998,6 +1004,7 @@ gtk_tree_view_class_init (GtkTreeViewClass *class)
+@@ -1001,6 +1007,7 @@ gtk_tree_view_class_init (GtkTreeViewClass *class)
    class->expand_collapse_cursor_row = gtk_tree_view_real_expand_collapse_cursor_row;
    class->select_cursor_parent = gtk_tree_view_real_select_cursor_parent;
    class->start_interactive_search = gtk_tree_view_start_interactive_search;
@@ -48,7 +48,7 @@ index 3eec8e4..9d7fb00 100644
  
    /* Properties */
  
-@@ -1538,6 +1545,29 @@ G_GNUC_END_IGNORE_DEPRECATIONS
+@@ -1541,6 +1548,29 @@ G_GNUC_END_IGNORE_DEPRECATIONS
  		  _gtk_marshal_BOOLEAN__VOID,
  		  G_TYPE_BOOLEAN, 0);
  
@@ -78,7 +78,7 @@ index 3eec8e4..9d7fb00 100644
    /* Key bindings */
    gtk_tree_view_add_move_binding (binding_set, GDK_KEY_Up, 0, TRUE,
  				  GTK_MOVEMENT_DISPLAY_LINES, -1);
-@@ -3309,6 +3339,20 @@ gtk_tree_view_multipress_gesture_pressed (GtkGestureMultiPress *gesture,
+@@ -3329,6 +3359,20 @@ gtk_tree_view_multipress_gesture_pressed (GtkGestureMultiPress *gesture,
      gtk_event_controller_reset (GTK_EVENT_CONTROLLER (gesture));
  }
  
@@ -99,7 +99,7 @@ index 3eec8e4..9d7fb00 100644
  static void
  gtk_tree_view_drag_gesture_begin (GtkGestureDrag *gesture,
                                    gdouble         start_x,
-@@ -3316,8 +3360,6 @@ gtk_tree_view_drag_gesture_begin (GtkGestureDrag *gesture,
+@@ -3336,8 +3380,6 @@ gtk_tree_view_drag_gesture_begin (GtkGestureDrag *gesture,
                                    GtkTreeView    *tree_view)
  {
    gint bin_x, bin_y;
@@ -108,7 +108,7 @@ index 3eec8e4..9d7fb00 100644
  
    if (tree_view->priv->tree == NULL)
      {
-@@ -3329,22 +3371,27 @@ gtk_tree_view_drag_gesture_begin (GtkGestureDrag *gesture,
+@@ -3349,22 +3391,27 @@ gtk_tree_view_drag_gesture_begin (GtkGestureDrag *gesture,
                                                       &bin_x, &bin_y);
    tree_view->priv->press_start_x = tree_view->priv->rubber_band_x = bin_x;
    tree_view->priv->press_start_y = tree_view->priv->rubber_band_y = bin_y;
@@ -147,7 +147,7 @@ index 3eec8e4..9d7fb00 100644
  }
  
 diff --git a/gtk/gtktreeview.h b/gtk/gtktreeview.h
-index c3233b4..1b50bc3 100644
+index c3233b4f52..1b50bc3152 100644
 --- a/gtk/gtktreeview.h
 +++ b/gtk/gtktreeview.h
 @@ -93,6 +93,9 @@ struct _GtkTreeViewClass
@@ -169,5 +169,5 @@ index c3233b4..1b50bc3 100644
  
  /**
 -- 
-2.6.1
+2.15.1
 

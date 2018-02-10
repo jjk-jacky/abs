@@ -1,4 +1,4 @@
-From 242fab14a73c6af86cdc31597e0fcc10128c75f4 Mon Sep 17 00:00:00 2001
+From 9099bba77964fd50fae26c5dbb937ecb3f4b6e9e Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 15:09:32 +0200
 Subject: [PATCH 3/3] treeview: Add GtkTreeBoxable
@@ -32,7 +32,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  create mode 100644 gtk/gtktreeboxable.h
 
 diff --git a/docs/reference/gtk/gtk-docs.sgml b/docs/reference/gtk/gtk-docs.sgml
-index 2198a4a..60afba3 100644
+index 2198a4a9ff..60afba332b 100644
 --- a/docs/reference/gtk/gtk-docs.sgml
 +++ b/docs/reference/gtk/gtk-docs.sgml
 @@ -150,6 +150,7 @@
@@ -44,13 +44,14 @@ index 2198a4a..60afba3 100644
        <xi:include href="xml/gtktreemodelsort.xml" />
        <xi:include href="xml/gtktreemodelfilter.xml" />
 diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
-index 9d2e7a0..8795f4b 100644
+index 9d2e7a049a..8795f4bc81 100644
 --- a/docs/reference/gtk/gtk3-sections.txt
 +++ b/docs/reference/gtk/gtk3-sections.txt
-@@ -4343,6 +4343,27 @@ gtk_tooltip_get_type
+@@ -4342,6 +4342,27 @@ GTK_TOOLTIP
+ gtk_tooltip_get_type
  </SECTION>
  
- <SECTION>
++<SECTION>
 +<FILE>gtktreeboxable</FILE>
 +<TITLE>GtkTreeBoxable</TITLE>
 +GtkTreeBoxable
@@ -71,12 +72,11 @@ index 9d2e7a0..8795f4b 100644
 +gtk_tree_boxable_get_type
 +</SECTION>
 +
-+<SECTION>
+ <SECTION>
  <FILE>gtktreemodel</FILE>
  <TITLE>GtkTreeModel</TITLE>
- GtkTreeModel
 diff --git a/docs/reference/gtk/gtk3.types.in b/docs/reference/gtk/gtk3.types.in
-index 4b20622..ce0d42b 100644
+index 4b206223e8..ce0d42b35d 100644
 --- a/docs/reference/gtk/gtk3.types.in
 +++ b/docs/reference/gtk/gtk3.types.in
 @@ -205,6 +205,7 @@ gtk_tool_button_get_type
@@ -88,7 +88,7 @@ index 4b20622..ce0d42b 100644
  gtk_tree_drag_source_get_type
  gtk_tree_model_filter_get_type
 diff --git a/gtk/Makefile.am b/gtk/Makefile.am
-index 801c3a5..4101635 100644
+index 801c3a5b87..41016355b1 100644
 --- a/gtk/Makefile.am
 +++ b/gtk/Makefile.am
 @@ -307,6 +307,7 @@ gtk_public_h_sources = 		\
@@ -108,7 +108,7 @@ index 801c3a5..4101635 100644
  	gtktreeview.c		\
  	gtktreeviewcolumn.c	\
 diff --git a/gtk/gtk.h b/gtk/gtk.h
-index 3cbd13f..bd6e119 100644
+index 3cbd13fcd5..bd6e1195a6 100644
 --- a/gtk/gtk.h
 +++ b/gtk/gtk.h
 @@ -214,6 +214,7 @@
@@ -120,13 +120,14 @@ index 3cbd13f..bd6e119 100644
  #include <gtk/gtktreemodel.h>
  #include <gtk/gtktreemodelfilter.h>
 diff --git a/gtk/gtkstylecontext.h b/gtk/gtkstylecontext.h
-index d138a76..660782d2 100644
+index d138a76750..660782d286 100644
 --- a/gtk/gtkstylecontext.h
 +++ b/gtk/gtkstylecontext.h
-@@ -954,6 +954,18 @@ struct _GtkStyleContextClass
+@@ -953,6 +953,18 @@ struct _GtkStyleContextClass
+  */
  #define GTK_STYLE_REGION_ROW "row"
  
- /**
++/**
 + * GTK_STYLE_REGION_BOXED:
 + *
 + * A widget region name to define a treeview boxed area around the expander.
@@ -138,13 +139,12 @@ index d138a76..660782d2 100644
 + */
 +#define GTK_STYLE_REGION_BOXED "boxed"
 +
-+/**
+ /**
   * GTK_STYLE_REGION_COLUMN:
   *
-  * A widget region name to define a treeview column.
 diff --git a/gtk/gtktreeboxable.c b/gtk/gtktreeboxable.c
 new file mode 100644
-index 0000000..64ec64e
+index 0000000000..64ec64ed5a
 --- /dev/null
 +++ b/gtk/gtktreeboxable.c
 @@ -0,0 +1,246 @@
@@ -396,7 +396,7 @@ index 0000000..64ec64e
 +}
 diff --git a/gtk/gtktreeboxable.h b/gtk/gtktreeboxable.h
 new file mode 100644
-index 0000000..c893c60
+index 0000000000..c893c60a8b
 --- /dev/null
 +++ b/gtk/gtktreeboxable.h
 @@ -0,0 +1,103 @@
@@ -504,7 +504,7 @@ index 0000000..c893c60
 +
 +#endif /* __GTK_TREE_BOXABLE_H__ */
 diff --git a/gtk/gtktreestore.c b/gtk/gtktreestore.c
-index 792eb77..7c2c94c 100644
+index 792eb7730c..7c2c94c036 100644
 --- a/gtk/gtktreestore.c
 +++ b/gtk/gtktreestore.c
 @@ -70,6 +70,8 @@ struct _GtkTreeStorePrivate
@@ -995,7 +995,7 @@ index 792eb77..7c2c94c 100644
  validate_gnode (GNode* node)
  {
 diff --git a/gtk/gtktreestore.h b/gtk/gtktreestore.h
-index 584376d..5493c35 100644
+index 584376d4df..5493c357ba 100644
 --- a/gtk/gtktreestore.h
 +++ b/gtk/gtktreestore.h
 @@ -25,6 +25,7 @@
@@ -1007,7 +1007,7 @@ index 584376d..5493c35 100644
  
  
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index df4b84d..6ff8187 100644
+index dbe334330f..0d27d4d396 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -55,6 +55,7 @@
@@ -1028,7 +1028,7 @@ index df4b84d..6ff8187 100644
  
  /* Incremental reflow */
  static gboolean validate_row             (GtkTreeView *tree_view,
-@@ -4957,6 +4961,7 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -4977,6 +4981,7 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
    gboolean draw_vgrid_lines, draw_hgrid_lines;
    GtkStyleContext *context;
    gboolean parity;
@@ -1036,7 +1036,7 @@ index df4b84d..6ff8187 100644
  
    rtl = (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL);
    context = gtk_widget_get_style_context (widget);
-@@ -5023,7 +5028,10 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5043,7 +5048,10 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
    draw_hgrid_lines =
      tree_view->priv->grid_lines == GTK_TREE_VIEW_GRID_LINES_HORIZONTAL
      || tree_view->priv->grid_lines == GTK_TREE_VIEW_GRID_LINES_BOTH;
@@ -1048,7 +1048,7 @@ index df4b84d..6ff8187 100644
  
    if (draw_vgrid_lines || draw_hgrid_lines)
      gtk_widget_style_get (widget, "grid-line-width", &grid_line_width, NULL);
-@@ -5057,12 +5065,19 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5077,12 +5085,19 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
    
    parity = !(_gtk_rbtree_node_get_index (tree, node) % 2);
  
@@ -1068,7 +1068,7 @@ index df4b84d..6ff8187 100644
  
        parity = !parity;
        is_separator = row_is_separator (tree_view, &iter, NULL);
-@@ -5115,10 +5130,23 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5135,10 +5150,23 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
            gboolean draw_focus;
            gboolean draw_select_highlight;
            gchar *row_class;
@@ -1092,7 +1092,7 @@ index df4b84d..6ff8187 100644
            n_col++;
            width = gtk_tree_view_column_get_width (column);
  
-@@ -5261,12 +5289,112 @@ G_GNUC_END_IGNORE_DEPRECATIONS
+@@ -5281,12 +5309,112 @@ G_GNUC_END_IGNORE_DEPRECATIONS
            draw_select_highlight = tree_view->priv->select_highlight_column == column
                && GTK_RBNODE_FLAG_SET (node, GTK_RBNODE_IS_SELECTED);
  
@@ -1211,7 +1211,7 @@ index df4b84d..6ff8187 100644
  
            /* Draw frame */
            gtk_render_frame (context, cr,
-@@ -9516,6 +9644,13 @@ gtk_tree_view_rows_reordered (GtkTreeModel *model,
+@@ -9540,6 +9668,13 @@ gtk_tree_view_rows_reordered (GtkTreeModel *model,
    gtk_tree_view_dy_to_top_row (tree_view);
  }
  
@@ -1225,7 +1225,7 @@ index df4b84d..6ff8187 100644
  
  /* Internal tree functions
   */
-@@ -11546,6 +11681,10 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
+@@ -11578,6 +11713,10 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
        g_signal_handlers_disconnect_by_func (tree_view->priv->model,
  					    gtk_tree_view_rows_reordered,
  					    tree_view);
@@ -1236,7 +1236,7 @@ index df4b84d..6ff8187 100644
  
        for (; tmplist; tmplist = tmplist->next)
  	_gtk_tree_view_column_unset_model (tmplist->data,
-@@ -11618,6 +11757,11 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
+@@ -11650,6 +11789,11 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
  			"rows-reordered",
  			G_CALLBACK (gtk_tree_view_rows_reordered),
  			tree_view);
@@ -1249,5 +1249,5 @@ index df4b84d..6ff8187 100644
        flags = gtk_tree_model_get_flags (tree_view->priv->model);
        if ((flags & GTK_TREE_MODEL_LIST_ONLY) == GTK_TREE_MODEL_LIST_ONLY)
 -- 
-2.6.1
+2.15.1
 

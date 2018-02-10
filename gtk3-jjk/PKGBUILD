@@ -3,7 +3,7 @@
 
 _pkgname=gtk3
 pkgname=$_pkgname-jjk
-pkgver=3.18.6
+pkgver=3.18.9
 pkgrel=1
 pkgdesc="GObject-based multi-platform GUI toolkit (v3)"
 arch=(i686 x86_64)
@@ -17,7 +17,7 @@ provides=($_pkgname)
 conflicts=($_pkgname)
 options=('!strip' 'debug')
 license=(LGPL)
-source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.tar.xz
+source=(https://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.tar.xz
         settings.ini
         0001-Add-class-focused-row-to-the-focused-row-regardless-.patch
         0001-Add-GTK_IS_JJK.patch
@@ -49,37 +49,37 @@ source=(http://ftp.gnome.org/pub/gnome/sources/gtk+/${pkgver%.*}/gtk+-$pkgver.ta
         0004-treeview-Add-button-in-test-rubber-banding.patch
         0005-treeview-Add-skip_next_button_press.patch
         fix-708148.patch)
-sha256sums=('78cabf0fd5a662f8723f62d5ac633072c76c557c1d700454c9c3deaa37e441ef'
+sha256sums=('783d7f8b00f9b4224cc94d7da885a67598e711c2d6d79c9c873c6b203e83acbd'
             'de961084b35507da5415640db733457161e1672ee54639828dfa399ea3d220b1'
-            '551cfe72e9b76deac2fca33580a03e71293ab8a6aa8a20c2288d279827723872'
-            'b225d99ac575ec3bde38f8513e7bdc94c739b7a6db9def5705d99059130a6d85'
-            '4622adb68574d458a2b730a5e27255ba023ecbe47d46e34309f5efd2375a067b'
-            '93209e1760dd80cc1d5c65d6bd815421daed2fb9acad0994f90b606e359bd68d'
-            '2f4ca8752864af3bd805ba6561038057038dbad102319f2105e38eaa57e8be67'
-            '112b430040c901bc70555056c7481e27d8b5136b530b7dfb384cddc304da6cc1'
-            '203975b4089da60209c7a3d1763c32fa0004b43f28171afebe87216cae4e1451'
-            'c4e4fb80fdf61e0f668e0b06d9e796a4de0ce98622d2b11697365fa4accf6d8f'
-            'a56154ea0d9052b3eb82a3bb4131516332c3bf93af338f884f0d04d0cb3cff93'
-            'd723e15c85881af0ab2c533743fb812f4155c097ed892aec3abac0dc071cd0da'
-            '7fe917eb754b63118f704dbd87bc7a0a58f72bed2e80b7b05144e16e6080217b'
-            '33278c6c68b1dab3703db7d89f0918685ed6344baddf41b6e44a6711d20b2d87'
-            '5c246d0b1d7beb09e0f9aae0e831479c564cb484a92ba9b9aaf538b866e37282'
-            'e7fd1f9f13178a3a0be0c34d913a25a6c816a55729f39af0ac1a8968df6098e3'
-            'a854d78a62c213ed93906eaf2c06e5c88886e5d3f14c500db3f5a833709fbe6a'
-            'fedaa92ed168a18d0536225c9958d72f95f146d87a52906b0f525a90cff38312'
-            'fcb8065f7c125cb599000327cc55c1cee5f88df2743e68aa2223708e40e1a1c0'
-            '21aa1550fffe7ac873429dc3345974600a9418951f52130860af9debd3a1e14a'
-            'c45e5ae4a4ebbc76be58509c648aab21707e744dcb3b318000a83fe10b8612ef'
-            'dcaaa0103c3a52db8e25ba415a03521b1595ba816fe4ce04891e8479084e037c'
-            'eddceca8ab7cdb9f20bf115d66bc895cda4c6777ab80c94c8e8676b570848cca'
-            '8de638e906451da35f4da6120745b8b905d206823945ed47ef042581a4a9c165'
-            'a4d9a3f055f220714a3582626d8583302325ea5a0ac8e2436a6d533921f8969a'
-            '93d5f7973e6d92f9432bcfc4d9e1046773399bd07ef4abc418f1869888aa3641'
-            '88a8c649f9a97f7eefe5258bc8200031b423b4c3d9afc76f7939771933f9384d'
-            '5e0b64f13fd5b7d3e5f91043fcbe488318b1839aa6045b6909236f3a891b94fe'
-            'ed8fa2172615bb889e35a809941332db0b2cce148d0367a8d75bd06e98425166'
-            'b114f0f4f134ed1c3dbe26dfba90e8eb869219997ad3e74b407ea80d19428f45'
-            'a71d8abe00c0668933090b5c9307812d909108554b9305d9cd8154575c7b8d95'
+            'f1fe182758afb90598695f9c0d6f16fc4c39154fc8d64e3c3b3cc723db87add2'
+            '73723fa3459f622da66e52419bce73d2a1547d94d77d60195d2e5766be26ccfd'
+            '143b96ccec15e5ce97472fd489fc00891a28a9c27bc76bab186ad7ccd2b06f30'
+            '3a83b56af7df886f2f2f34cf4a7ac3ee65bf6c858e85df35f34a7801d590e1d4'
+            '40432a4bf83ebc9e274368cbc2f5e78ed102e37f6284134884273abfadd62c6a'
+            'ab0fd103a93f03f6835b9638ce1505ab57a8a82ba83d83d49d396461080bdd9c'
+            'ec201cd9b99d5f6295ce87d12908e0109841c1680eea5a318155bd24d982540e'
+            '4c9803b2f85d57a05f89bcfed4add99222bbf9bcb411de791b58fb6681b95119'
+            '936fe49db4f8df2cfce7d7b9016e276d3afc165270e8a4395930f24c0704edf6'
+            '8a27f17aed1b5e92a16b4b90509f882570f1c1ce4e8c052d49bbce394a8f287b'
+            '5c6e83f12d5b45f6aee88b0012bf9157362c84ad614703ce2107b1c1540a74f7'
+            'c7f943e591aa20f5c42cf88cdcf7d4a59ac06b0273d2eef399761daa9f087d9b'
+            '3996dd62df14a3400edc45106cff6f2e94ab44a0287c5e438ec3d3bf059e8f63'
+            'c962f36917388f8ae589ee8cdb86263969665aca93ac2c409a750241f2e1b127'
+            '8bd81a500295cce8abfc9e7fa610e1fe2e232130a0d000d6c1bbcabccfd36ce0'
+            '2aca21e286c694fbc6f1805f0821f9eacb9b213afb762f5ec6ee88035087a0db'
+            'f43328b0d683a2df7ace7a6c7851b13a1c24ed79a93fea712e724c0fc78971f5'
+            '350c04283098d9d8fcb6698bb3905447f7a421a605af78905405cf0b25218cce'
+            '8fb272112abc00cdc2f284f6db7516e9504e08f144b939a655b07b52f2fbc517'
+            '413ae6abcc1e948407145c730e35196bb0817a48c67bed90f498f8d24613dcfd'
+            'fd590b51a173a1d086a98dd61960baa81585390d0d30b7f01e0dc6fb10e7e57c'
+            '12846ee64b0c88ea17abbdb34679c40f08ca5d1567c92f18cae32e35b55a47dc'
+            '48f512d5135b60940d990a51076c77f65a172ddc74be158cac13c736219520a4'
+            '5f108f7369a4cdb0a5e25e9c8fe083c93581e4f65b8496354bc6a59408df2047'
+            '40bbf01a25145df7229f8fe844448c8d4eefe880ef73deaa4fa3ee941f4f9c83'
+            'd26c54e3b759ba315d4897bdcab44114adb9f18ce2b9bb8e1e131fe5073dc941'
+            '3a5a0a8d604f319e3b1525652289f476e42d9ca705f803ac7ca681f1e8a164c3'
+            'bf3b81a922052727cb21ff8f0b9fc3aa208f3621c39a6626fe11aa44100935bb'
+            '892c66359739f9a69251b1a37025cd435e5be46c7e2101e2ef0d38ed529f75dd'
             '8a8b500f6850466b646f788ee45756bbba21dea6f75babddca1d4b32ea1b0b03')
 
 prepare() {

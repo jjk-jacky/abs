@@ -1,4 +1,4 @@
-From 1f5a1cf0fd3a2712980eaef0f915007414adef8d Mon Sep 17 00:00:00 2001
+From 9198b7669fc4d810d33a8b5875a2aec2a608f080 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 17:17:59 +0200
 Subject: [PATCH 2/3] treeview: Add gtk_tree_view_set_row_class_column
@@ -15,7 +15,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  3 files changed, 80 insertions(+), 1 deletion(-)
 
 diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
-index 36672c4..9d2e7a0 100644
+index 36672c4c62..9d2e7a049a 100644
 --- a/docs/reference/gtk/gtk3-sections.txt
 +++ b/docs/reference/gtk/gtk3-sections.txt
 @@ -4723,6 +4723,8 @@ gtk_tree_view_get_columns
@@ -28,7 +28,7 @@ index 36672c4..9d2e7a0 100644
  gtk_tree_view_get_select_highlight_column
  gtk_tree_view_set_select_row_underline
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 3df1693..df4b84d 100644
+index 5dc8881024..dbe334330f 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -431,6 +431,9 @@ struct _GtkTreeViewPrivate
@@ -41,7 +41,7 @@ index 3df1693..df4b84d 100644
    /* Row separators */
    GtkTreeViewRowSeparatorFunc row_separator_func;
    gpointer row_separator_data;
-@@ -1822,6 +1825,7 @@ gtk_tree_view_init (GtkTreeView *tree_view)
+@@ -1825,6 +1828,7 @@ gtk_tree_view_init (GtkTreeView *tree_view)
    priv->selection = _gtk_tree_selection_new_with_tree_view (tree_view);
    priv->enable_search = TRUE;
    priv->search_column = -1;
@@ -49,7 +49,7 @@ index 3df1693..df4b84d 100644
    priv->search_position_func = gtk_tree_view_search_position_func;
    priv->search_equal_func = gtk_tree_view_search_equal_func;
    priv->search_custom_entry_set = FALSE;
-@@ -5110,6 +5114,7 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
+@@ -5130,6 +5134,7 @@ gtk_tree_view_bin_draw (GtkWidget      *widget,
            gint width;
            gboolean draw_focus;
            gboolean draw_select_highlight;
@@ -57,7 +57,7 @@ index 3df1693..df4b84d 100644
  
  	  if (!gtk_tree_view_column_get_visible (column))
              continue;
-@@ -5230,6 +5235,18 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+@@ -5250,6 +5255,18 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
            gtk_style_context_add_region (context, GTK_STYLE_REGION_COLUMN, column_flags);
  G_GNUC_END_IGNORE_DEPRECATIONS
  
@@ -76,7 +76,7 @@ index 3df1693..df4b84d 100644
  	  if (node == tree_view->priv->cursor_node && has_can_focus_cell
                && ((column == tree_view->priv->focus_column
                     && tree_view->priv->draw_keyfocus &&
-@@ -11551,6 +11568,7 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
+@@ -11583,6 +11600,7 @@ gtk_tree_view_set_model (GtkTreeView  *tree_view,
        g_object_unref (tree_view->priv->model);
  
        tree_view->priv->search_column = -1;
@@ -84,10 +84,11 @@ index 3df1693..df4b84d 100644
        tree_view->priv->fixed_height_check = 0;
        tree_view->priv->fixed_height = -1;
        tree_view->priv->dy = tree_view->priv->top_row_dy = 0;
-@@ -12534,6 +12552,61 @@ gtk_tree_view_get_expander_column (GtkTreeView *tree_view)
+@@ -12565,6 +12583,61 @@ gtk_tree_view_get_expander_column (GtkTreeView *tree_view)
+   return NULL;
  }
  
- /**
++/**
 + * gtk_tree_view_set_row_class_column:
 + * @tree_view: A #GtkTreeView
 + * @column: the column of the model holding the rows class names
@@ -142,11 +143,10 @@ index 3df1693..df4b84d 100644
 +  return tree_view->priv->row_class_column;
 +}
 +
-+/**
+ /**
   * gtk_tree_view_set_select_highlight_column:
   * @tree_view: A #GtkTreeView
-  * @column: %NULL, or the column to have the select highlight drawn into
-@@ -12633,7 +12706,6 @@ gtk_tree_view_get_select_row_underline (GtkTreeView *tree_view)
+@@ -12665,7 +12738,6 @@ gtk_tree_view_get_select_row_underline (GtkTreeView *tree_view)
    return tree_view->priv->select_row_underline;
  }
  
@@ -155,7 +155,7 @@ index 3df1693..df4b84d 100644
   * gtk_tree_view_set_column_drag_function:
   * @tree_view: A #GtkTreeView.
 diff --git a/gtk/gtktreeview.h b/gtk/gtktreeview.h
-index 8c5bb4d..b7f19a1 100644
+index 8c5bb4dc41..b7f19a1e0b 100644
 --- a/gtk/gtktreeview.h
 +++ b/gtk/gtktreeview.h
 @@ -296,6 +296,11 @@ void                   gtk_tree_view_set_expander_column           (GtkTreeView
@@ -171,5 +171,5 @@ index 8c5bb4d..b7f19a1 100644
  								    GtkTreeViewColumn         *column);
  GDK_AVAILABLE_IN_3_10
 -- 
-2.6.1
+2.15.1
 

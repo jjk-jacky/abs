@@ -1,4 +1,4 @@
-From 679216bcd1d7f3761cff675a1da909c484eac5d1 Mon Sep 17 00:00:00 2001
+From b5044f0d2b9fe897a21b358fb23c7967d062845f Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 23 Oct 2014 14:46:45 +0200
 Subject: [PATCH 5/5] treeview: Add skip_next_button_press
@@ -22,7 +22,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  3 files changed, 36 insertions(+)
 
 diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
-index 4f7cf8e..5138570 100644
+index 4f7cf8e127..51385705a5 100644
 --- a/docs/reference/gtk/gtk3-sections.txt
 +++ b/docs/reference/gtk/gtk3-sections.txt
 @@ -4784,6 +4784,7 @@ gtk_tree_view_get_row_separator_func
@@ -34,7 +34,7 @@ index 4f7cf8e..5138570 100644
  gtk_tree_view_is_rubber_banding_active
  gtk_tree_view_is_rubber_banding_pending
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 2824a17..ddf5629 100644
+index ceb3633122..ff088ecbd4 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -476,6 +476,7 @@ struct _GtkTreeViewPrivate
@@ -45,7 +45,7 @@ index 2824a17..ddf5629 100644
  
    guint in_grab : 1;
  
-@@ -3117,6 +3118,14 @@ gtk_tree_view_multipress_gesture_pressed (GtkGestureMultiPress *gesture,
+@@ -3137,6 +3138,14 @@ gtk_tree_view_multipress_gesture_pressed (GtkGestureMultiPress *gesture,
    GList *list;
    gboolean rtl;
  
@@ -60,10 +60,11 @@ index 2824a17..ddf5629 100644
    rtl = (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL);
    gtk_tree_view_stop_editing (tree_view, FALSE);
    gtk_widget_style_get (widget,
-@@ -4364,6 +4373,30 @@ gtk_tree_view_motion_drag_column (GtkTreeView *tree_view,
+@@ -4383,6 +4392,30 @@ gtk_tree_view_motion_drag_column (GtkTreeView *tree_view,
+   return TRUE;
  }
  
- /**
++/**
 + * gtk_tree_view_skip_next_button_press:
 + * @tree_view: A #GtkTreeView
 + *
@@ -87,12 +88,11 @@ index 2824a17..ddf5629 100644
 +    tree_view->priv->skip_next_button_press = 1;
 +}
 +
-+/**
+ /**
   * gtk_tree_view_stop_rubber_banding:
   * @tree_view: A #GtkTreeView
-  * @set_cursor: Whether to set cursor to the last row in band or not
 diff --git a/gtk/gtktreeview.h b/gtk/gtktreeview.h
-index d7fdcf8..5894b94 100644
+index d7fdcf854e..5894b94af1 100644
 --- a/gtk/gtktreeview.h
 +++ b/gtk/gtktreeview.h
 @@ -538,6 +538,8 @@ GDK_AVAILABLE_IN_ALL
@@ -105,5 +105,5 @@ index d7fdcf8..5894b94 100644
                                                gboolean              set_cursor);
  GDK_AVAILABLE_IN_ALL
 -- 
-2.6.1
+2.15.1
 

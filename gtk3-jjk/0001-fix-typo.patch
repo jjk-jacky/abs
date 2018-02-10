@@ -1,4 +1,4 @@
-From 0e289017ff3c6eebc99920c14f721f5c82256afe Mon Sep 17 00:00:00 2001
+From b80be19aededec9ac4cceb720dfa731959b114d4 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Wed, 31 Dec 2014 14:30:32 +0100
 Subject: [PATCH] fix typo?
@@ -9,7 +9,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/gtk/gtktooltip.c b/gtk/gtktooltip.c
-index 45e3e59..b4e9e67 100644
+index 45e3e59f26..b4e9e679bd 100644
 --- a/gtk/gtktooltip.c
 +++ b/gtk/gtktooltip.c
 @@ -1632,7 +1632,7 @@ _gtk_tooltip_handle_event (GdkEvent *event)
@@ -22,5 +22,5 @@ index 45e3e59..b4e9e67 100644
  	    /* Is the pointer above another widget now? */
  	    if (GTK_TOOLTIP_VISIBLE (current_tooltip))
 -- 
-2.6.1
+2.15.1
 

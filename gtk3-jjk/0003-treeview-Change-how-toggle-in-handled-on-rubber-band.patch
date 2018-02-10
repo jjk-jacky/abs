@@ -1,4 +1,4 @@
-From 40ec2c465c39445cdcd0d6d3b9469a9e5fe7233b Mon Sep 17 00:00:00 2001
+From bf47d67dc6d883f365e40b570b845f06a7a24a5e Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sun, 28 Sep 2014 15:42:11 +0200
 Subject: [PATCH 3/5] treeview: Change how toggle in handled on rubber banding
@@ -17,10 +17,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 19 insertions(+), 3 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 93605e9..75906e2 100644
+index ebc5a50668..017e3b96b2 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -926,6 +926,7 @@ static void gtk_tree_view_drag_gesture_end                  (GtkGestureDrag *ges
+@@ -929,6 +929,7 @@ static void gtk_tree_view_drag_gesture_end                  (GtkGestureDrag *ges
  static gboolean gtk_tree_view_test_rubber_banding           (GtkTreeView    *tree_view,
                                                               gint            bin_x,
                                                               gint            bin_y);
@@ -28,7 +28,7 @@ index 93605e9..75906e2 100644
  
  static guint tree_view_signals [LAST_SIGNAL] = { 0 };
  static GParamSpec *tree_view_props [LAST_PROP] = { NULL };
-@@ -1005,6 +1006,7 @@ gtk_tree_view_class_init (GtkTreeViewClass *class)
+@@ -1008,6 +1009,7 @@ gtk_tree_view_class_init (GtkTreeViewClass *class)
    class->select_cursor_parent = gtk_tree_view_real_select_cursor_parent;
    class->start_interactive_search = gtk_tree_view_start_interactive_search;
    class->test_rubber_banding = gtk_tree_view_test_rubber_banding;
@@ -36,10 +36,11 @@ index 93605e9..75906e2 100644
  
    /* Properties */
  
-@@ -3369,6 +3371,23 @@ gtk_tree_view_test_rubber_banding (GtkTreeView *tree_view,
+@@ -3388,6 +3390,23 @@ gtk_tree_view_test_rubber_banding (GtkTreeView *tree_view,
+   return GTK_RBNODE_FLAG_SET (node, GTK_RBNODE_IS_SELECTED);
  }
  
- static void
++static void
 +gtk_tree_view_rubber_banding_active (GtkTreeView *tree_view)
 +{
 +  GtkTreeViewPrivate *priv = tree_view->priv;
@@ -56,11 +57,10 @@ index 93605e9..75906e2 100644
 +    }
 +}
 +
-+static void
+ static void
  gtk_tree_view_drag_gesture_begin (GtkGestureDrag *gesture,
                                    gdouble         start_x,
-                                   gdouble         start_y,
-@@ -4403,9 +4422,6 @@ gtk_tree_view_update_rubber_band_selection_range (GtkTreeView *tree_view,
+@@ -4423,9 +4442,6 @@ gtk_tree_view_update_rubber_band_selection_range (GtkTreeView *tree_view,
  						 gboolean     skip_start,
  						 gboolean     skip_end)
  {
@@ -71,5 +71,5 @@ index 93605e9..75906e2 100644
    if (skip_start)
      goto skip_first;
 -- 
-2.6.1
+2.15.1
 

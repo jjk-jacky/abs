@@ -1,4 +1,4 @@
-From d008436533bda6d12d08355421115002a96737c3 Mon Sep 17 00:00:00 2001
+From c220679bb6464e9cfa94d7f890efe0a144b7cba8 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 16:42:05 +0200
 Subject: [PATCH] Add gtk_tree_selection_invert_range()
@@ -14,7 +14,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  3 files changed, 40 insertions(+), 2 deletions(-)
 
 diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
-index 945726e..2ea8515 100644
+index 945726e2bd..2ea8515231 100644
 --- a/docs/reference/gtk/gtk3-sections.txt
 +++ b/docs/reference/gtk/gtk3-sections.txt
 @@ -4507,6 +4507,7 @@ gtk_tree_selection_select_all
@@ -26,7 +26,7 @@ index 945726e..2ea8515 100644
  GTK_TREE_SELECTION
  GTK_IS_TREE_SELECTION
 diff --git a/gtk/gtktreeselection.c b/gtk/gtktreeselection.c
-index d83ea43..12c7575 100644
+index d83ea43342..12c757591d 100644
 --- a/gtk/gtktreeselection.c
 +++ b/gtk/gtktreeselection.c
 @@ -1285,7 +1285,8 @@ gtk_tree_selection_unselect_all (GtkTreeSelection *selection)
@@ -88,7 +88,7 @@ index d83ea43..12c7575 100644
  _gtk_tree_selection_row_is_selectable (GtkTreeSelection *selection,
  				       GtkRBNode        *node,
 diff --git a/gtk/gtktreeselection.h b/gtk/gtktreeselection.h
-index be1567f..a792cd7 100644
+index be1567f0df..a792cd71de 100644
 --- a/gtk/gtktreeselection.h
 +++ b/gtk/gtktreeselection.h
 @@ -169,6 +169,10 @@ GDK_AVAILABLE_IN_ALL
@@ -103,5 +103,5 @@ index be1567f..a792cd7 100644
  
  G_END_DECLS
 -- 
-2.6.1
+2.15.1
 

@@ -1,4 +1,4 @@
-From 3f78cfff8cab10cfa420992f8b28d4c4e30652ee Mon Sep 17 00:00:00 2001
+From c45932e16a32f98a00d60b42410164180ea692b9 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 23 Oct 2014 14:40:38 +0200
 Subject: [PATCH 4/5] treeview: Add button in test-rubber-banding
@@ -13,10 +13,10 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  2 files changed, 13 insertions(+), 4 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 75906e2..2824a17 100644
+index 017e3b96b2..ceb3633122 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -924,6 +924,7 @@ static void gtk_tree_view_drag_gesture_end                  (GtkGestureDrag *ges
+@@ -927,6 +927,7 @@ static void gtk_tree_view_drag_gesture_end                  (GtkGestureDrag *ges
  
  /* rubber banding */
  static gboolean gtk_tree_view_test_rubber_banding           (GtkTreeView    *tree_view,
@@ -24,7 +24,7 @@ index 75906e2..2824a17 100644
                                                               gint            bin_x,
                                                               gint            bin_y);
  static void gtk_tree_view_rubber_banding_active             (GtkTreeView    *tree_view);
-@@ -1564,8 +1565,9 @@ G_GNUC_END_IGNORE_DEPRECATIONS
+@@ -1567,8 +1568,9 @@ G_GNUC_END_IGNORE_DEPRECATIONS
  		  G_SIGNAL_RUN_LAST,
  		  G_STRUCT_OFFSET (GtkTreeViewClass, test_rubber_banding),
  		  _gtk_boolean_handled_accumulator, NULL,
@@ -36,7 +36,7 @@ index 75906e2..2824a17 100644
  		  G_TYPE_INT,
  		  G_TYPE_INT);
  
-@@ -1881,6 +1883,7 @@ gtk_tree_view_init (GtkTreeView *tree_view)
+@@ -1884,6 +1886,7 @@ gtk_tree_view_init (GtkTreeView *tree_view)
                                                GTK_PHASE_CAPTURE);
  
    priv->drag_gesture = gtk_gesture_drag_new (GTK_WIDGET (tree_view));
@@ -44,7 +44,7 @@ index 75906e2..2824a17 100644
    g_signal_connect (priv->drag_gesture, "drag-begin",
                      G_CALLBACK (gtk_tree_view_drag_gesture_begin), tree_view);
    g_signal_connect (priv->drag_gesture, "drag-update",
-@@ -3358,15 +3361,18 @@ gtk_tree_view_multipress_gesture_pressed (GtkGestureMultiPress *gesture,
+@@ -3378,15 +3381,18 @@ gtk_tree_view_multipress_gesture_pressed (GtkGestureMultiPress *gesture,
  
  static gboolean
  gtk_tree_view_test_rubber_banding (GtkTreeView *tree_view,
@@ -64,7 +64,7 @@ index 75906e2..2824a17 100644
    return GTK_RBNODE_FLAG_SET (node, GTK_RBNODE_IS_SELECTED);
  }
  
-@@ -3409,10 +3415,12 @@ gtk_tree_view_drag_gesture_begin (GtkGestureDrag *gesture,
+@@ -3429,10 +3435,12 @@ gtk_tree_view_drag_gesture_begin (GtkGestureDrag *gesture,
    if (tree_view->priv->rubber_banding_enable
        && gtk_tree_selection_get_mode (tree_view->priv->selection) == GTK_SELECTION_MULTIPLE)
      {
@@ -79,7 +79,7 @@ index 75906e2..2824a17 100644
        if (!no_rubber)
          {
 diff --git a/gtk/gtktreeview.h b/gtk/gtktreeview.h
-index bb4aad7..d7fdcf8 100644
+index bb4aad76ca..d7fdcf854e 100644
 --- a/gtk/gtktreeview.h
 +++ b/gtk/gtktreeview.h
 @@ -94,6 +94,7 @@ struct _GtkTreeViewClass
@@ -91,5 +91,5 @@ index bb4aad7..d7fdcf8 100644
                                             gint               bin_y);
    void     (* rubber_banding_active)      (GtkTreeView       *tree_view);
 -- 
-2.6.1
+2.15.1
 

@@ -1,4 +1,4 @@
-From 051d220af9cbdee3cac91230b2563eef74664f97 Mon Sep 17 00:00:00 2001
+From 649aa00d7a872c15b7dbf58b0df815450e4800d8 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Wed, 16 Oct 2013 19:52:35 +0200
 Subject: [PATCH 1/2] Revert "treeview: Store editable position differently"
@@ -12,11 +12,11 @@ This reverts commit 6f9dc0ffd73ba2be7f457b1311f024d1bed0e1db.
 
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
- gtk/gtktreeview.c | 221 ++++++++++++++++++++++++++++++++++++++----------------
- 1 file changed, 155 insertions(+), 66 deletions(-)
+ gtk/gtktreeview.c | 230 ++++++++++++++++++++++++++++++++++++------------------
+ 1 file changed, 155 insertions(+), 75 deletions(-)
 
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 3eec8e4..9ccd6d7 100644
+index 0c239c6ba6..492a964360 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -248,10 +248,10 @@ typedef struct _GtkTreeViewChild GtkTreeViewChild;
@@ -34,7 +34,7 @@ index 3eec8e4..9ccd6d7 100644
  };
  
  
-@@ -835,9 +835,10 @@ static void     gtk_tree_view_search_init               (GtkWidget        *entry
+@@ -838,9 +838,10 @@ static void     gtk_tree_view_search_init               (GtkWidget        *entry
  							 GtkTreeView      *tree_view);
  static void     gtk_tree_view_put                       (GtkTreeView      *tree_view,
  							 GtkWidget        *child_widget,
@@ -48,7 +48,7 @@ index 3eec8e4..9ccd6d7 100644
  static gboolean gtk_tree_view_start_editing             (GtkTreeView      *tree_view,
  							 GtkTreePath      *cursor_path,
  							 gboolean          edit_only);
-@@ -2828,6 +2829,23 @@ gtk_tree_view_size_allocate (GtkWidget     *widget,
+@@ -2839,6 +2840,23 @@ gtk_tree_view_size_allocate (GtkWidget     *widget,
  
    gtk_widget_set_allocation (widget, allocation);
  
@@ -72,7 +72,7 @@ index 3eec8e4..9ccd6d7 100644
    /* We size-allocate the columns first because the width of the
     * tree view (used in updating the adjustments below) might change.
     */
-@@ -2933,40 +2951,6 @@ gtk_tree_view_size_allocate (GtkWidget     *widget,
+@@ -2944,49 +2962,6 @@ gtk_tree_view_size_allocate (GtkWidget     *widget,
            tree_view->priv->prev_width_before_expander = width_before_expander;
          }
      }
@@ -82,6 +82,7 @@ index 3eec8e4..9ccd6d7 100644
 -      GtkTreeViewChild *child = tmp_list->data;
 -      GtkTreePath *path;
 -      GdkRectangle child_rect;
+-      int min_x, max_x, min_y, max_y;
 -      int size;
 -
 -      path = _gtk_tree_path_new_from_rbtree (child->tree, child->node);
@@ -107,13 +108,21 @@ index 3eec8e4..9ccd6d7 100644
 -          child_rect.height += size;
 -        }
 -
+-      /* push the rect back in the visible area if needed, preferring the top left corner */
+-      min_x = gtk_adjustment_get_value (tree_view->priv->hadjustment);
+-      max_x = min_x + allocation->width - child_rect.width;
+-      min_y = 0;
+-      max_y = min_y + allocation->height - gtk_tree_view_get_effective_header_height (tree_view) - child_rect.height;
+-      child_rect.x = MAX (min_x, MIN (child_rect.x, max_x));
+-      child_rect.y = MAX (min_y, MIN (child_rect.y, max_y));
+-
 -      gtk_tree_path_free (path);
 -      gtk_widget_size_allocate (child->widget, &child_rect);
 -    }
  }
  
  /* Grabs the focus and unsets the GTK_TREE_VIEW_DRAW_KEYFOCUS flag */
-@@ -8884,11 +8868,13 @@ gtk_tree_view_real_move_cursor (GtkTreeView       *tree_view,
+@@ -8908,11 +8883,13 @@ gtk_tree_view_real_move_cursor (GtkTreeView       *tree_view,
  }
  
  static void
@@ -132,7 +141,7 @@ index 3eec8e4..9ccd6d7 100644
  {
    GtkTreeViewChild *child;
    
-@@ -8898,15 +8884,10 @@ gtk_tree_view_put (GtkTreeView       *tree_view,
+@@ -8922,15 +8899,10 @@ gtk_tree_view_put (GtkTreeView       *tree_view,
    child = g_slice_new (GtkTreeViewChild);
  
    child->widget = child_widget;
@@ -152,7 +161,7 @@ index 3eec8e4..9ccd6d7 100644
  
    tree_view->priv->children = g_list_append (tree_view->priv->children, child);
  
-@@ -11294,6 +11275,80 @@ gtk_tree_view_start_interactive_search (GtkTreeView *tree_view)
+@@ -11326,6 +11298,80 @@ gtk_tree_view_start_interactive_search (GtkTreeView *tree_view)
                                                        TRUE);
  }
  
@@ -233,7 +242,7 @@ index 3eec8e4..9ccd6d7 100644
  /* Callbacks */
  static void
  gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
-@@ -11310,6 +11365,30 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
+@@ -11342,6 +11388,30 @@ gtk_tree_view_adjustment_changed (GtkAdjustment *adjustment,
  		       - gtk_adjustment_get_value (tree_view->priv->hadjustment),
  		       0);
        dy = tree_view->priv->dy - (int) gtk_adjustment_get_value (tree_view->priv->vadjustment);
@@ -264,7 +273,7 @@ index 3eec8e4..9ccd6d7 100644
        tree_view->priv->in_scroll = TRUE;
        gdk_window_scroll (tree_view->priv->bin_window, 0, dy);
        tree_view->priv->in_scroll = FALSE;
-@@ -15713,26 +15792,36 @@ _gtk_tree_view_add_editable (GtkTreeView       *tree_view,
+@@ -15750,26 +15820,36 @@ _gtk_tree_view_add_editable (GtkTreeView       *tree_view,
                               GtkCellEditable   *cell_editable,
                               GdkRectangle      *cell_area)
  {
@@ -313,5 +322,5 @@ index 3eec8e4..9ccd6d7 100644
  
  static void
 -- 
-2.6.1
+2.15.1
 

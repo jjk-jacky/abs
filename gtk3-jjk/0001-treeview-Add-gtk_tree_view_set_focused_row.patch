@@ -1,4 +1,4 @@
-From 09b493ef1825b6d93d10688afed4f8115a37c533 Mon Sep 17 00:00:00 2001
+From 8d353d34cdbe701f1f0e3adeb8c1b88dbbaf4a0d Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Tue, 15 Oct 2013 16:42:45 +0200
 Subject: [PATCH] treeview: Add gtk_tree_view_set_focused_row()
@@ -14,7 +14,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  3 files changed, 36 insertions(+)
 
 diff --git a/docs/reference/gtk/gtk3-sections.txt b/docs/reference/gtk/gtk3-sections.txt
-index 945726e..74e158a 100644
+index 945726e2bd..74e158aefd 100644
 --- a/docs/reference/gtk/gtk3-sections.txt
 +++ b/docs/reference/gtk/gtk3-sections.txt
 @@ -4729,6 +4729,7 @@ gtk_tree_view_scroll_to_cell
@@ -26,13 +26,14 @@ index 945726e..74e158a 100644
  gtk_tree_view_expand_all
  gtk_tree_view_collapse_all
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 3eec8e4..1f08a34 100644
+index 0c239c6ba6..95322c435a 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
-@@ -13472,6 +13472,38 @@ gtk_tree_view_set_cursor_on_cell (GtkTreeView       *tree_view,
+@@ -13503,6 +13503,38 @@ gtk_tree_view_set_cursor_on_cell (GtkTreeView       *tree_view,
+     }
  }
  
- /**
++/**
 + * gtk_tree_view_set_focused_row:
 + * @tree_view: A #GtkTreeView
 + * @path: A #GtkTreePath
@@ -64,12 +65,11 @@ index 3eec8e4..1f08a34 100644
 +  gtk_tree_view_queue_draw_path (tree_view, path, NULL);
 +}
 +
-+/**
+ /**
   * gtk_tree_view_get_bin_window:
   * @tree_view: A #GtkTreeView
-  *
 diff --git a/gtk/gtktreeview.h b/gtk/gtktreeview.h
-index c3233b4..7ae4d13 100644
+index c3233b4f52..7ae4d13d48 100644
 --- a/gtk/gtktreeview.h
 +++ b/gtk/gtktreeview.h
 @@ -358,6 +358,9 @@ GDK_AVAILABLE_IN_ALL
@@ -83,5 +83,5 @@ index c3233b4..7ae4d13 100644
  
  /* Layout information */
 -- 
-2.6.1
+2.15.1
 

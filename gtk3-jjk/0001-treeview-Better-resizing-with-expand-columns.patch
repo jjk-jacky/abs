@@ -1,4 +1,4 @@
-From a3fcbb0b64caeb47944dbd33deefbf1565b87ca6 Mon Sep 17 00:00:00 2001
+From 96cced3b5ea80bdf4edd66aaedb0a8dadeb709f4 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 28 Nov 2014 15:22:47 +0100
 Subject: [PATCH] treeview: Better resizing with expand columns
@@ -41,7 +41,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  3 files changed, 171 insertions(+), 93 deletions(-)
 
 diff --git a/gtk/gtktreeprivate.h b/gtk/gtktreeprivate.h
-index a2d6d6c..b1bbc78 100644
+index a2d6d6c80a..b1bbc7853e 100644
 --- a/gtk/gtktreeprivate.h
 +++ b/gtk/gtktreeprivate.h
 @@ -100,9 +100,13 @@ void _gtk_tree_view_column_unrealize_button (GtkTreeViewColumn *column);
@@ -60,7 +60,7 @@ index a2d6d6c..b1bbc78 100644
  					     GtkTreeModel      *old_model);
  void _gtk_tree_view_column_unset_tree_view  (GtkTreeViewColumn *column);
 diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index 3eec8e4..4d61094 100644
+index 0c239c6ba6..88db0b220e 100644
 --- a/gtk/gtktreeview.c
 +++ b/gtk/gtktreeview.c
 @@ -367,9 +367,7 @@ struct _GtkTreeViewPrivate
@@ -83,7 +83,7 @@ index 3eec8e4..4d61094 100644
    /* Whether our key press handler is to avoid sending an unhandled binding to the search entry */
    guint search_entry_avoid_unhandled_binding : 1;
  
-@@ -1809,8 +1805,6 @@ gtk_tree_view_init (GtkTreeView *tree_view)
+@@ -1812,8 +1808,6 @@ gtk_tree_view_init (GtkTreeView *tree_view)
  
    priv->tooltip_column = -1;
  
@@ -92,7 +92,7 @@ index 3eec8e4..4d61094 100644
    priv->event_last_x = -10000;
    priv->event_last_y = -10000;
  
-@@ -2651,19 +2645,24 @@ gtk_tree_view_size_allocate_columns (GtkWidget *widget,
+@@ -2662,19 +2656,24 @@ gtk_tree_view_size_allocate_columns (GtkWidget *widget,
  				     gboolean  *width_changed)
  {
    GtkTreeView *tree_view;
@@ -121,7 +121,7 @@ index 3eec8e4..4d61094 100644
         last_column &&
         !(gtk_tree_view_column_get_visible (GTK_TREE_VIEW_COLUMN (last_column->data)));
         last_column = last_column->prev)
-@@ -2671,7 +2670,7 @@ gtk_tree_view_size_allocate_columns (GtkWidget *widget,
+@@ -2682,7 +2681,7 @@ gtk_tree_view_size_allocate_columns (GtkWidget *widget,
    if (last_column == NULL)
      return;
  
@@ -130,7 +130,7 @@ index 3eec8e4..4d61094 100644
         first_column &&
         !(gtk_tree_view_column_get_visible (GTK_TREE_VIEW_COLUMN (first_column->data)));
         first_column = first_column->next)
-@@ -2683,108 +2682,135 @@ gtk_tree_view_size_allocate_columns (GtkWidget *widget,
+@@ -2694,108 +2693,135 @@ gtk_tree_view_size_allocate_columns (GtkWidget *widget,
    rtl = (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL);
  
    /* find out how many extra space and expandable columns we have */
@@ -334,7 +334,7 @@ index 3eec8e4..4d61094 100644
        if (width_changed)
          *width_changed = TRUE;
      }
-@@ -3420,6 +3446,7 @@ gtk_tree_view_column_drag_gesture_begin (GtkGestureDrag *gesture,
+@@ -3440,6 +3466,7 @@ gtk_tree_view_column_drag_gesture_begin (GtkGestureDrag *gesture,
          break;
  
        tree_view->priv->in_column_resize = TRUE;
@@ -342,7 +342,7 @@ index 3eec8e4..4d61094 100644
  
        /* block attached dnd signal handler */
        drag_data = g_object_get_data (G_OBJECT (tree_view), "gtk-site-data");
-@@ -3430,9 +3457,6 @@ gtk_tree_view_column_drag_gesture_begin (GtkGestureDrag *gesture,
+@@ -3450,9 +3477,6 @@ gtk_tree_view_column_drag_gesture_begin (GtkGestureDrag *gesture,
                                           drag_data);
  
        column_width = gtk_tree_view_column_get_width (column);
@@ -352,7 +352,7 @@ index 3eec8e4..4d61094 100644
        tree_view->priv->drag_pos = i;
        tree_view->priv->x_drag = start_x + (rtl ? column_width : -column_width);
  
-@@ -3529,6 +3553,7 @@ gtk_tree_view_button_release_column_resize (GtkTreeView *tree_view)
+@@ -3549,6 +3573,7 @@ gtk_tree_view_button_release_column_resize (GtkTreeView *tree_view)
  				       drag_data);
  
    tree_view->priv->in_column_resize = FALSE;
@@ -360,7 +360,7 @@ index 3eec8e4..4d61094 100644
    return TRUE;
  }
  
-@@ -4125,23 +4150,55 @@ gtk_tree_view_motion_draw_column_motion_arrow (GtkTreeView *tree_view)
+@@ -4145,23 +4170,55 @@ gtk_tree_view_motion_draw_column_motion_arrow (GtkTreeView *tree_view)
    gdk_window_raise (tree_view->priv->drag_highlight_window);
  }
  
@@ -421,7 +421,7 @@ index 3eec8e4..4d61094 100644
  
    return FALSE;
  }
-@@ -5941,8 +5998,9 @@ gtk_tree_view_key_press (GtkWidget   *widget,
+@@ -5961,8 +6018,9 @@ gtk_tree_view_key_press (GtkWidget   *widget,
  	      column_width = column_width + 2;
              }
  
@@ -433,7 +433,7 @@ index 3eec8e4..4d61094 100644
            return TRUE;
          }
  
-@@ -6350,7 +6408,6 @@ validate_row (GtkTreeView *tree_view,
+@@ -6369,7 +6427,6 @@ validate_row (GtkTreeView *tree_view,
        _gtk_rbtree_node_set_height (tree, node, height);
      }
    _gtk_rbtree_node_mark_valid (tree, node);
@@ -442,7 +442,7 @@ index 3eec8e4..4d61094 100644
    return retval;
  }
 diff --git a/gtk/gtktreeviewcolumn.c b/gtk/gtktreeviewcolumn.c
-index 7b154bd..feeb875 100644
+index 7b154bd10e..feeb875f8c 100644
 --- a/gtk/gtktreeviewcolumn.c
 +++ b/gtk/gtktreeviewcolumn.c
 @@ -144,6 +144,7 @@ struct _GtkTreeViewColumnPrivate
@@ -496,5 +496,5 @@ index 7b154bd..feeb875 100644
    if (priv->visible &&
        priv->tree_view != NULL &&
 -- 
-2.6.1
+2.15.1
 

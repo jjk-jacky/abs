@@ -1,4 +1,4 @@
-From 33f305805053666cc0aa1a54807020a0c58c3502 Mon Sep 17 00:00:00 2001
+From 8e2537373d265236a2e612d09e5ba14faa0ce63e Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Thu, 16 Jan 2014 17:09:32 +0100
 Subject: [PATCH 1/2] menu: Fix possible leak on destroy
@@ -18,7 +18,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  2 files changed, 4 insertions(+), 15 deletions(-)
 
 diff --git a/gtk/gtkmenu.c b/gtk/gtkmenu.c
-index 61f8541..094d157 100644
+index 61f8541950..094d1578f5 100644
 --- a/gtk/gtkmenu.c
 +++ b/gtk/gtkmenu.c
 @@ -1087,6 +1087,8 @@ gtk_menu_init (GtkMenu *menu)
@@ -61,7 +61,7 @@ index 61f8541..094d157 100644
    if (priv->toplevel)
      gtk_widget_destroy (priv->toplevel);
 diff --git a/gtk/gtkmenuprivate.h b/gtk/gtkmenuprivate.h
-index f1a40d8..6e4f911 100644
+index f1a40d8a8e..6e4f9111e9 100644
 --- a/gtk/gtkmenuprivate.h
 +++ b/gtk/gtkmenuprivate.h
 @@ -74,7 +74,6 @@ struct _GtkMenuPrivate
@@ -73,5 +73,5 @@ index f1a40d8..6e4f911 100644
    /* The tearoff is active when it is torn off and the not-torn-off
     * menu is not popped up.
 -- 
-2.6.1
+2.15.1
 
