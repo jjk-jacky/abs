@@ -4,20 +4,20 @@
 
 _pkgname=gdb
 pkgname=$_pkgname-jjk
-pkgver=8.0.1
+pkgver=8.1
 pkgrel=1
 pkgdesc="The GNU Debugger"
 arch=('i686' 'x86_64')
-url="http://www.gnu.org/software/gdb/"
+url="https://www.gnu.org/software/gdb/"
 license=('GPL3')
-depends=('ncurses' 'expat' 'python' 'xz')
+depends=('ncurses' 'expat' 'python' 'xz' 'mpfr')
 makedepends=('texinfo')
 provides=($_pkgname)
 conflicts=($_pkgname)
 backup=('etc/gdb/gdbinit')
-source=(http://ftp.gnu.org/gnu/gdb/${_pkgname}-${pkgver}.tar.xz{,.sig})
+source=(https://ftp.gnu.org/gnu/gdb/${_pkgname}-${pkgver}.tar.xz{,.sig})
 validpgpkeys=('F40ADB902B24264AA42E50BF92EDB04BFF325CF3')
-md5sums=('48cac527e6f3018b865ece021e9723ac'
+md5sums=('f46487561f9a16916a8102316f7fd105'
          'SKIP')
 validpgpkeys=('F40ADB902B24264AA42E50BF92EDB04BFF325CF3') # Joel Brobecker
 
