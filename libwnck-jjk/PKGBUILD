@@ -1,6 +1,7 @@
 # $Id$
 # Maintainer: Jan de Groot  <jgc@archlinux.org>
-pkgname=libwnck
+_pkgname=libwnck
+pkgname=$_pkgname-jjk
 pkgver=2.31.0
 pkgrel=1
 pkgdesc="Window Navigator Construction Kit"
@@ -8,29 +9,37 @@ arch=('x86_64')
 license=('LGPL')
 depends=('gtk2' 'startup-notification' 'libxres')
 makedepends=('libxt' 'intltool' 'gobject-introspection' 'python2')
+provides=($_pkgname)
+conflicts=($_pkgname)
 url="http://www.gnome.org/"
-source=(https://download.gnome.org/sources/${pkgname}/${pkgver:0:4}/${pkgname}-${pkgver}.tar.xz
-        WindowActionMenu-unset-window-and-stop-async-events-on-dispose.patch)
-sha256sums=('83f732d20781fc88b22cdc6aaf2d4f388db6d3d4ff28d1a8fd45be9fb7743a9e'
-            'a4a359027f3297847e7d3c9d8cefc6404a927ad6fb5aed864f58524834c60980')
+source=(https://download.gnome.org/sources/libwnck/${pkgver:0:4}/libwnck-$pkgver.tar.xz
+        libwnck-$pkgver.tar.xz.sha256::https://download.gnome.org/sources/libwnck/${pkgver:0:4}/libwnck-$pkgver.sha256sum
+        WindowActionMenu-unset-window-and-stop-async-events-on-dispose.patch
+        0001-window-action-menu-Add-item-to-send-SIGSTOP-SIGCONT.patch)
+sha256sums=('FILE'
+            '723397314d68ba371c777927fafc91934a440c0f739cf3bd8180e666e4bbbcb3'
+            'a4a359027f3297847e7d3c9d8cefc6404a927ad6fb5aed864f58524834c60980'
+            'b2d2e3abb84b022620e8c834b321ec9ef7aa5b434216bdad2e8215b6d5baf066')
 
 prepare() {
-  cd $pkgname-$pkgver
-  patch -Np1 -i ../WindowActionMenu-unset-window-and-stop-async-events-on-dispose.patch
+    cd libwnck-$pkgver
+    patch -Np1 -i ../WindowActionMenu-unset-window-and-stop-async-events-on-dispose.patch
+    patch -Np1 -i ../0001-window-action-menu-Add-item-to-send-SIGSTOP-SIGCONT.patch
 }
+
 build() {
-    cd "${srcdir}/${pkgname}-${pkgver}"
+    cd libwnck-$pkgver
     ./configure --prefix=/usr --sysconfdir=/etc \
         --localstatedir=/var --disable-static
     make
 }
 
 package() {
-    cd "${srcdir}/${pkgname}-${pkgver}"
-    make DESTDIR="${pkgdir}" install
+    cd libwnck-${pkgver}
+    make DESTDIR="$pkgdir" install
 
     #The binaries are shipped in libwnck3
-    rm -f "${pkgdir}/usr/bin/wnckprop"
-    rm -f "${pkgdir}/usr/bin/wnck-urgency-monitor"
-    rmdir "${pkgdir}/usr/bin"
+    rm -f "$pkgdir/usr/bin/wnckprop"
+    rm -f "$pkgdir/usr/bin/wnck-urgency-monitor"
+    rmdir "$pkgdir/usr/bin"
 }

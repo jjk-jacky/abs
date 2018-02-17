@@ -1,0 +1,131 @@
+From 5472815c0d869aa2db3c21c7cb333d20a5b71ca1 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Sat, 17 Feb 2018 18:46:59 +0100
+Subject: [PATCH] window-action-menu: Add item to send SIGSTOP/SIGCONT
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ libwnck/window-action-menu.c | 51 +++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 50 insertions(+), 1 deletion(-)
+
+diff --git a/libwnck/window-action-menu.c b/libwnck/window-action-menu.c
+index e687cff..9862d65 100644
+--- a/libwnck/window-action-menu.c
++++ b/libwnck/window-action-menu.c
+@@ -29,6 +29,9 @@
+ #include <stdio.h>
+ #include <glib/gi18n-lib.h>
+ 
++#include <sys/types.h>
++#include <signal.h>
++
+ #include "window-action-menu.h"
+ #include "private.h"
+ 
+@@ -73,7 +76,8 @@ typedef enum
+   RIGHT,
+   UP,
+   DOWN,
+-  MOVE_TO_WORKSPACE
++  MOVE_TO_WORKSPACE,
++  STOP_CONT,
+ } WindowAction;
+ 
+ struct _WnckActionMenuPrivate
+@@ -85,6 +89,7 @@ struct _WnckActionMenuPrivate
+   GtkWidget *move_item;
+   GtkWidget *resize_item;
+   GtkWidget *close_item;
++  GtkWidget *stop_item;
+   GtkWidget *workspace_separator;
+   GtkWidget *pin_item;
+   GtkWidget *unpin_item;
+@@ -153,6 +158,24 @@ get_action_menu (GtkWidget *widget)
+   return NULL;
+ }
+ 
++static int
++is_pid_stopped (int pid)
++{
++  char filename[256];
++  FILE *f;
++  char state = '?';
++
++  snprintf (filename, 256, "/proc/%d/stat", pid);
++
++  f = fopen (filename, "r");
++  if (f) {
++    fscanf (f, "%*d %*s %c", &state);
++    fclose(f);
++  }
++
++  return state == 'T';
++}
++
+ static void
+ item_activated_callback (GtkWidget *menu_item,
+                          gpointer   data)
+@@ -162,6 +185,7 @@ item_activated_callback (GtkWidget *menu_item,
+   WindowAction action = GPOINTER_TO_INT (data);
+   WnckScreen *screen;
+   gboolean viewport_mode;
++  int pid;
+ 
+   menu = get_action_menu (menu_item);
+   if (menu == NULL)
+@@ -347,6 +371,10 @@ item_activated_callback (GtkWidget *menu_item,
+                                     ww, hw);
+         }
+       break;
++    case STOP_CONT:
++      pid = wnck_application_get_pid (wnck_window_get_application (window));
++      kill ((pid_t) pid, (is_pid_stopped (pid)) ? SIGCONT : SIGSTOP);
++      break;
+     default:
+       g_assert_not_reached ();
+     }
+@@ -444,6 +472,11 @@ update_menu_state (WnckActionMenu *menu)
+                                 (actions & WNCK_WINDOW_ACTION_MAXIMIZE) != 0);
+     }
+ 
++  if (is_pid_stopped (wnck_application_get_pid (wnck_window_get_application (priv->window))))
++    set_item_text (priv->stop_item, _("Send SIGCONT"));
++  else
++    set_item_text (priv->stop_item, _("Send SIGSTOP"));
++
+   g_signal_handlers_block_by_func (G_OBJECT (priv->above_item),
+                                    item_activated_callback,
+                                    GINT_TO_POINTER (ABOVE));
+@@ -991,6 +1024,7 @@ wnck_action_menu_init (WnckActionMenu *menu)
+   menu->priv->move_item = NULL;
+   menu->priv->resize_item = NULL;
+   menu->priv->close_item = NULL;
++  menu->priv->stop_item = NULL;
+   menu->priv->workspace_separator = NULL;
+   menu->priv->pin_item = NULL;
+   menu->priv->unpin_item = NULL;
+@@ -1056,6 +1090,21 @@ wnck_action_menu_constructor (GType                  type,
+   set_item_text (priv->resize_item, _("_Resize"));
+   set_item_stock (priv->move_item, NULL);
+ 
++  separator = gtk_separator_menu_item_new ();
++  gtk_widget_show (separator);
++  gtk_menu_shell_append (GTK_MENU_SHELL (menu),
++                         separator);
++
++  priv->stop_item = make_menu_item (STOP_CONT);
++
++  gtk_menu_shell_append (GTK_MENU_SHELL (menu),
++                         priv->stop_item);
++
++  if (is_pid_stopped (wnck_application_get_pid (wnck_window_get_application (priv->window))))
++    set_item_text (priv->stop_item, _("Send SIGCONT"));
++  else
++    set_item_text (priv->stop_item, _("Send SIGSTOP"));
++
+   priv->workspace_separator = separator = gtk_separator_menu_item_new ();
+   gtk_widget_show (separator);
+   gtk_menu_shell_append (GTK_MENU_SHELL (menu),
+-- 
+2.15.1
+
