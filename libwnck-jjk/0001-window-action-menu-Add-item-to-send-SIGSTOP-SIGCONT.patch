@@ -1,15 +1,15 @@
-From 5472815c0d869aa2db3c21c7cb333d20a5b71ca1 Mon Sep 17 00:00:00 2001
+From db8fd794d8f3a89298d847ce5ec12a8fa490b1eb Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sat, 17 Feb 2018 18:46:59 +0100
 Subject: [PATCH] window-action-menu: Add item to send SIGSTOP/SIGCONT
 
 Signed-off-by: Olivier Brunel <jjk@jjacky.com>
 ---
- libwnck/window-action-menu.c | 51 +++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 50 insertions(+), 1 deletion(-)
+ libwnck/window-action-menu.c | 52 +++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 51 insertions(+), 1 deletion(-)
 
 diff --git a/libwnck/window-action-menu.c b/libwnck/window-action-menu.c
-index e687cff..9862d65 100644
+index e687cff..085a107 100644
 --- a/libwnck/window-action-menu.c
 +++ b/libwnck/window-action-menu.c
 @@ -29,6 +29,9 @@
@@ -73,18 +73,19 @@ index e687cff..9862d65 100644
  
    menu = get_action_menu (menu_item);
    if (menu == NULL)
-@@ -347,6 +371,10 @@ item_activated_callback (GtkWidget *menu_item,
+@@ -347,6 +371,11 @@ item_activated_callback (GtkWidget *menu_item,
                                      ww, hw);
          }
        break;
 +    case STOP_CONT:
 +      pid = wnck_application_get_pid (wnck_window_get_application (window));
-+      kill ((pid_t) pid, (is_pid_stopped (pid)) ? SIGCONT : SIGSTOP);
++      if (pid > 0)
++        kill ((pid_t) pid, (is_pid_stopped (pid)) ? SIGCONT : SIGSTOP);
 +      break;
      default:
        g_assert_not_reached ();
      }
-@@ -444,6 +472,11 @@ update_menu_state (WnckActionMenu *menu)
+@@ -444,6 +473,11 @@ update_menu_state (WnckActionMenu *menu)
                                  (actions & WNCK_WINDOW_ACTION_MAXIMIZE) != 0);
      }
  
@@ -96,7 +97,7 @@ index e687cff..9862d65 100644
    g_signal_handlers_block_by_func (G_OBJECT (priv->above_item),
                                     item_activated_callback,
                                     GINT_TO_POINTER (ABOVE));
-@@ -991,6 +1024,7 @@ wnck_action_menu_init (WnckActionMenu *menu)
+@@ -991,6 +1025,7 @@ wnck_action_menu_init (WnckActionMenu *menu)
    menu->priv->move_item = NULL;
    menu->priv->resize_item = NULL;
    menu->priv->close_item = NULL;
@@ -104,7 +105,7 @@ index e687cff..9862d65 100644
    menu->priv->workspace_separator = NULL;
    menu->priv->pin_item = NULL;
    menu->priv->unpin_item = NULL;
-@@ -1056,6 +1090,21 @@ wnck_action_menu_constructor (GType                  type,
+@@ -1056,6 +1091,21 @@ wnck_action_menu_constructor (GType                  type,
    set_item_text (priv->resize_item, _("_Resize"));
    set_item_stock (priv->move_item, NULL);
  

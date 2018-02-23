@@ -3,7 +3,7 @@
 _pkgname=libwnck
 pkgname=$_pkgname-jjk
 pkgver=2.31.0
-pkgrel=1
+pkgrel=2
 pkgdesc="Window Navigator Construction Kit"
 arch=('x86_64')
 license=('LGPL')
@@ -19,7 +19,7 @@ source=(https://download.gnome.org/sources/libwnck/${pkgver:0:4}/libwnck-$pkgver
 sha256sums=('FILE'
             '723397314d68ba371c777927fafc91934a440c0f739cf3bd8180e666e4bbbcb3'
             'a4a359027f3297847e7d3c9d8cefc6404a927ad6fb5aed864f58524834c60980'
-            'b2d2e3abb84b022620e8c834b321ec9ef7aa5b434216bdad2e8215b6d5baf066')
+            '595f702ef8f0c2f559461288de8ec0b0a58bdb794c91a576dfef65dae65375c5')
 
 prepare() {
     cd libwnck-$pkgver
