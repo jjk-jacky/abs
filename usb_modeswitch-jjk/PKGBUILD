@@ -1,0 +1,37 @@
+pkgname=usb_modeswitch-jjk
+pkgver=2.5.2
+pkgrel=1
+pkgdesc="Activating switchable USB devices on Linux."
+arch=('x86_64')
+url="http://www.draisberghof.de/usb_modeswitch/"
+license=('GPL')
+depends=('libusb')
+backup=("etc/usb_modeswitch.conf")
+source=("http://www.draisberghof.de/usb_modeswitch/usb-modeswitch-$pkgver.tar.bz2")
+sha256sums=('abffac09c87eacd78e101545967dc25af7e989745b4276756d45dbf4008a2ea6')
+
+prepare() {
+  cd usb-modeswitch-$pkgver
+  sed -i 's|/usr/sbin/usb_mode|/usr/bin/usb_mode|g' usb_modeswitch.{conf,tcl,sh}
+}
+
+build() {
+  cd usb-modeswitch-$pkgver
+  make clean
+  make SBINDIR=/usr/bin
+}
+
+package() {
+  cd usb-modeswitch-$pkgver
+
+  mkdir -p "$pkgdir"/{tmp,etc,usr/share/man/man1}
+
+  make \
+    DESTDIR="$pkgdir" \
+    SBINDIR="$pkgdir"/usr/bin \
+    UDEVDIR="$pkgdir"/tmp \
+    SYSDIR="$pkgdir"/tmp \
+    install
+
+    rm -rf "$pkgdir"/{tmp,var}
+}
