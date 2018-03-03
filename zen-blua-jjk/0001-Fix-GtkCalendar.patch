@@ -1,0 +1,38 @@
+From 556bacd24c05144e05719e651541f77ae8da3909 Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Sat, 3 Mar 2018 13:27:08 +0100
+Subject: [PATCH] Fix GtkCalendar
+
+Signed-off-by: Olivier Brunel <jjk@jjacky.com>
+---
+ gtk-3.0/gtk-widgets.css | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/gtk-3.0/gtk-widgets.css b/gtk-3.0/gtk-widgets.css
+index ea4c4e0..41b327c 100644
+--- a/gtk-3.0/gtk-widgets.css
++++ b/gtk-3.0/gtk-widgets.css
+@@ -216,6 +216,20 @@ GtkDrawingArea {
+ 
+ GtkCalendar {
+     color: @text_color;
++    padding: 2px;
++}
++
++GtkCalendar .header {
++    background: @bg_color;
++}
++
++GtkCalendar .highlight {
++    color: @selected_fg_color;
++    background: @selected_bg_color;
++}
++
++GtkCalendar :inconsistent {
++    color: rgb(192,192,192);
+ }
+ 
+ GtkCalendar:selected {
+-- 
+2.15.1
+
