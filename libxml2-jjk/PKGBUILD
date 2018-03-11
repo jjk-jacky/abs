@@ -5,7 +5,7 @@
 
 _pkgname=libxml2
 pkgname=$_pkgname-jjk
-pkgver=2.9.7
+pkgver=2.9.8
 pkgrel=1
 pkgdesc="XML parsing library, version 2"
 arch=('i686' 'x86_64')
@@ -17,49 +17,41 @@ provides=($_pkgname=$pkgver)
 conflicts=($_pkgname)
 url="http://www.xmlsoft.org/"
 source=(ftp://xmlsoft.org/libxml2/libxml2-$pkgver.tar.gz{,.asc}
-        https://www.w3.org/XML/Test/xmlts20130923.tar.gz
-        libxml2-2.9.4-remove-pyverify_fd.patch)
+        https://www.w3.org/XML/Test/xmlts20130923.tar.gz)
 validpgpkeys=('C74415BA7C9C7F78F02E1DC34606B8A5DE95BC1F')
-sha256sums=('f63c5e7d30362ed28b38bfa1ac6313f9a80230720b7fb6c80575eeab3ff5900c'
+sha256sums=('0b74e51595654f958148759cfef0993114ddccccbb6f31aee018f3558e8e2732'
             'SKIP'
-            '9b61db9f5dbffa545f4b8d78422167083a8568c59bd1129f94138f936cf6fc1f'
-            'c201b0d6364a7b9df58ce40a5fc506e58945a3fbb834af9c1193a35665789d60')
+            '9b61db9f5dbffa545f4b8d78422167083a8568c59bd1129f94138f936cf6fc1f')
 
 prepare() {
-  mkdir build-py3
-  mkdir build-py2
-  mv xmlconf build-py2/
+  mkdir build-py{2,3}
   cd $_pkgname-$pkgver
-  patch -Np1 -i ../libxml2-2.9.4-remove-pyverify_fd.patch
   NOCONFIGURE=1 ./autogen.sh
 }
 
-build() {
-  cd build-py2
+_build() {
+  cd build-py$1
   ../$_pkgname-$pkgver/configure --prefix=/usr --with-threads --with-history \
-      --with-python=/usr/bin/python2
-  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0 /g' libtool
-  make
-
-  cd ../build-py3
-  ../$_pkgname-$pkgver/configure --prefix=/usr --with-threads --with-history \
-      --with-python=/usr/bin/python
+      --with-python=/usr/bin/python$1
   sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0 /g' libtool
   PYTHONHASHSEED=0 make
+  find doc -type f -exec chmod 0644 {} \;
+  cd ..
+}
+
+build() {
+  _build 2
+  _build 3
 }
 
 check() {
   cd build-py2
+  ln -s ../xmlconf
   make check
 }
 
 package() {
-  cd build-py2
-  find doc -type f -exec chmod 0644 {} \;
-
-  make DESTDIR="$pkgdir" install
-  install -Dm644 COPYING "$pkgdir/usr/share/licenses/$_pkgname/COPYING"
-
-  cd ../build-py3/python
-  PYTHONHASHSEED=0 make DESTDIR="$pkgdir" install
+  make -C build-py2 DESTDIR="$pkgdir" install
+  make -C build-py3/python DESTDIR="$pkgdir" install
+  install -Dt "$pkgdir/usr/share/licenses/$_pkgname" -m644 build-py2/COPYING
 }
