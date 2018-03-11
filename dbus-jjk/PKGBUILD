@@ -5,7 +5,7 @@
 
 pkgbase=dbus
 pkgname=('dbus-jjk' 'libdbus-jjk')
-pkgver=1.12.4
+pkgver=1.12.6
 pkgrel=1
 pkgdesc="Freedesktop.org message bus system"
 url="http://www.freedesktop.org/Software/dbus"
@@ -15,7 +15,7 @@ makedepends=('libx11' 'xmlto' 'docbook-xsl'
              'dbus' # hack to get user/group inside chroot
              )
 source=(https://dbus.freedesktop.org/releases/dbus/dbus-$pkgver.tar.gz{,.asc})
-md5sums=('89745b5a6c45c26751dcf673d912f745'
+md5sums=('32a607e47b82ab11702355bf02502f20'
          'SKIP')
 validpgpkeys=('DA98F25C0871C49A59EAFF2C4DE8FF2A63C7CC90'
               '3C8672A0F49637FE064AC30F52A43A1E4B77B059') # Simon McVittie <simon.mcvittie@collabora.co.uk>
