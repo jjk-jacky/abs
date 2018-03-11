@@ -8,7 +8,7 @@
 
 pkgbase=vim
 pkgname=(vim-runtime-jjk gvim-jjk)
-pkgver=8.0.1531
+pkgver=8.0.1542
 _versiondir=80
 pkgrel=1
 arch=(i686 x86_64)
@@ -19,9 +19,9 @@ source=(vim-$pkgver.tar.gz::http://github.com/vim/vim/archive/v$pkgver.tar.gz
         vimrc
         archlinux.vim
         vimdoc.hook)
-sha1sums=('22a4d3afe189383852514e41d9489c3b04d1e604'
+sha1sums=('d0c028334f70df398511c7437ea0b7371e91316e'
           '539bfaa0517dfff6d61c37f9c2d81a0db756a4c9'
-          'bbec3de97867502e8a1efe741cd5feae1a54b5e7'
+          '98d4713c6312732bd6a360786a02bae3a93037f6'
           'adc4c82b6c4097944e5a767270a772721455eb8c')
 
 prepare() {
@@ -129,9 +129,6 @@ package_gvim-jjk() {
 
     # need to remove since this is provided by vim-runtime
     rm -r "$pkgdir"/usr/share/vim
-
-    # keep gvim desktop file only, remove vim
-    rm "$pkgdir"/usr/share/applications/vim.desktop
 
     # license
     install -Dm644 runtime/doc/uganda.txt \
