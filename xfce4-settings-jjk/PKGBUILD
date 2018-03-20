@@ -5,7 +5,7 @@
 
 _pkgname=xfce4-settings
 pkgname=$_pkgname-jjk
-pkgver=4.12.2
+pkgver=4.12.3
 pkgrel=1
 pkgdesc="Settings manager for xfce"
 arch=('i686' 'x86_64')
@@ -20,7 +20,7 @@ provides=($_pkgname)
 conflicts=($_pkgname)
 source=(https://archive.xfce.org/src/xfce/$_pkgname/${pkgver%.*}/$_pkgname-$pkgver.tar.bz2
         default-xsettings-xml.patch)
-sha256sums=('af0e3c0a6501fc99e874103f2597abd1723f06c98f4d9e19a9aabf1842cc2f0d'
+sha256sums=('0869a9fb29ff51e8225320ed3c621d922f1e4a99a325a3a35c3b2d7bee700ba2'
             '3c4cab2c046e8992028c914ab74fdc37a88f29c08a5b0d389a572b6efaa2f2d8')
 prepare() {
   cd "$srcdir/$_pkgname-$pkgver"
