@@ -3,7 +3,7 @@
 
 _pkgname=glib2
 pkgname=$_pkgname-jjk
-pkgver=2.54.3
+pkgver=2.56.1
 pkgrel=1
 pkgdesc="Common C routines used by GTK+ and other libs"
 url="http://www.gtk.org/"
@@ -21,16 +21,14 @@ source=(https://ftp.gnome.org/pub/GNOME/sources/glib/${pkgver%.*}/glib-$pkgver.t
         gio-querymodules.hook
         noisy-glib-compile-schemas.diff
         0001-GRWLock-Tweak-doc-to-make-things-a-bit-clearer.patch
-        0002-GRWLock-Tweak-re-blocking-on-g_rw_lock_reader_lock.patch
-        0003-GRWLock-add-critical-warnings-for-EDEADLK.patch)
-sha256sums=('FILE'
-            '40687940317a1435c7cf7c47a1cfec0fbdcc4ccec069921f63886703c95cf051'
+        0002-GRWLock-Tweak-re-blocking-on-g_rw_lock_reader_lock.patch)
+sha256sums=('40ef3f44f2c651c7a31aedee44259809b6f03d3d20be44545cd7d177221c0b8d'
+            '47235b9404c223539fec6e27dfb474419a96990f2896a48167612aa97ecfcf0a'
             'e1123a5d85d2445faac33f6dae1085fdd620d83279a4e130a83fe38db52b62b3'
             '5ba204a2686304b1454d401a39a9d27d09dd25e4529664e3fd565be3d439f8b6'
             '81a4df0b638730cffb7fa263c04841f7ca6b9c9578ee5045db6f30ff0c3fc531'
-            '34663c6c16ee4d7b9aa092223da315dab679e0ccabe131bb83bda63d1fdbdbf7'
-            'a628db5b48a8c7c1d00550026dfe5a348837b3c50873ece878b017270b62f3f6'
-            '1639b4626796e3dadcf9851d09dccb3fe5c6c819dedc7b37049af1ee305aad5f')
+            '6ead7518c2e543ed459e6e4239939f43f14304d152c7591879dc82bee0d61a08'
+            '974f512987e44103745890ca7327d855a5b81d0b7729cb0082adf30d8ea016fd')
 
 prepare() {
   cd "glib-$pkgver"
@@ -38,7 +36,6 @@ prepare() {
   patch -p1 -i ../noisy-glib-compile-schemas.diff
   patch -p1 -i ../0001-GRWLock-Tweak-doc-to-make-things-a-bit-clearer.patch
   patch -p1 -i ../0002-GRWLock-Tweak-re-blocking-on-g_rw_lock_reader_lock.patch
-  patch -p1 -i ../0003-GRWLock-add-critical-warnings-for-EDEADLK.patch
 }
 
 build() {
