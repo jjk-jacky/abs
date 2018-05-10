@@ -5,7 +5,7 @@
 _pkgname=qemu
 pkgname=$_pkgname-jjk
 pkgdesc='A generic and open source processor emulator which achieves a good emulation speed by using dynamic translation'
-pkgver=2.11.1
+pkgver=2.12.0
 pkgrel=1
 arch=('i686' 'x86_64')
 license=('GPL2' 'LGPL2.1')
@@ -21,7 +21,7 @@ provides=($_pkgname)
 conflicts=($_pkgname)
 source=(http://download.qemu-project.org/${_pkgname}-${pkgver}.tar.xz{,.sig})
 validpgpkeys=('CEACC9E15534EBABB82D3FA03353C9CEF108B584')
-md5sums=('0ee48c0f0cae47cc5d05408e03cd199e'
+md5sums=('ca553eb04c933f58111c304452fc4cc5'
          'SKIP')
 
 build ()
@@ -51,7 +51,7 @@ package() {
 
   # provided by seabios package
   rm usr/share/qemu/bios.bin
-  rm usr/share/qemu/acpi-dsdt.aml
+#  rm usr/share/qemu/acpi-dsdt.aml
   rm usr/share/qemu/bios-256k.bin
   rm usr/share/qemu/vgabios-cirrus.bin
   rm usr/share/qemu/vgabios-qxl.bin
