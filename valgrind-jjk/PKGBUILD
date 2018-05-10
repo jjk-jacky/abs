@@ -5,12 +5,12 @@
 _pkgname=valgrind
 pkgname=$_pkgname-jjk
 pkgver=3.13.0
-pkgrel=1
+pkgrel=2
 pkgdesc='A tool to help find memory-management problems in programs'
 arch=(x86_64)
 license=(GPL)
 url='http://valgrind.org/'
-depends=('glibc=2.26' perl)
+depends=('glibc' perl)
 makedepends=(gdb)
 provides=($_pkgname)
 conflicts=($_pkgname)
