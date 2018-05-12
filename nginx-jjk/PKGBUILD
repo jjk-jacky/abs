@@ -5,11 +5,14 @@
 
 _pkgname=nginx
 pkgname=$_pkgname-jjk
-pkgver=1.12.2
+pkgver=1.14.0
 pkgrel=1
 pkgdesc="Lightweight HTTP server and IMAP/POP3 proxy server"
 arch=('i686' 'x86_64')
 depends=('pcre' 'zlib' 'openssl')
+makedepends=(mercurial)
+checkdepends=(perl perl-gd perl-io-socket-ssl perl-fcgi perl-cache-memcached
+              memcached ffmpeg inetutils)
 provides=('nginx')
 conflicts=('nginx')
 url="https://nginx.org"
@@ -25,11 +28,13 @@ backup=('etc/nginx/fastcgi.conf'
         'etc/nginx/win-utf'
         'etc/logrotate.d/nginx')
 source=(https://nginx.org/download/nginx-$pkgver.tar.gz{,.asc}
+        hg+http://hg.nginx.org/nginx-tests#revision=d6daf03478ad
         service
         logrotate)
 install=install
 validpgpkeys=('B0F4253373F8F6F510D42178520A9993A1C052F8')
-md5sums=('4d2fc76211435f029271f1cf6d7eeae3'
+md5sums=('2d856aca3dfe1d32e3c9f8c4cac0cc95'
+         'SKIP'
          'SKIP'
          '09862c34cd9593bc40da81f88c5fc4b2'
          'eb413ea0eddbfd25b8134e616b47b831')
@@ -76,6 +81,11 @@ build() {
         #--with-http_perl_module \
 
     make
+}
+
+check() {
+    cd nginx-tests
+    TEST_NGINX_BINARY="$srcdir/$_pkgname-$pkgver/objs/nginx" prove .
 }
 
 package() {
