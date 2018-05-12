@@ -4,7 +4,7 @@
 pkgbase=php
 pkgname=('php-jjk'
          'php-fpm-jjk')
-pkgver=7.2.3
+pkgver=7.2.5
 pkgrel=1
 arch=('i686' 'x86_64')
 license=('PHP')
@@ -15,10 +15,10 @@ source=("https://php.net/distributions/${pkgbase}-${pkgver}.tar.xz"{,.asc}
         'php.ini.patch' 'php-fpm.patch')
 validpgpkeys=('1729F83938DA44E27BA0F4D3DBDB397470D12172'
               'B1B44D8F021E4E2D6021E995DC9FF8D3EE5AF27F')
-sha256sums=('b3a94f1b562f413c0b96f54bc309706d83b29ac65d9b172bc7ed9fb40a5e651f'
+sha256sums=('af70a33b3f7a51510467199b39af151333fbbe4cc21923bad9c7cf64268cddb2'
             'SKIP'
-            'dc7e6a23d9ef82f044fbca8f74908b4ec1035503b9a8f767173bce9abbc8d0e4'
-            '3f67a3e8cbec96f3dc921fcb2fc5e29bfd22bdf5fb34ed91bb369c27df095cb3')
+            'c41a5bec7a8f6c84c6f27bf037f6882fdca46a469651c2cd3be7286aa8de11dd'
+            '9d2e72a0279711b9c1b256937d8decacc0c9793f5cfc20094e7875b2a59e16a4')
 
 prepare() {
     cd "${srcdir}/${pkgbase}-${pkgver}"
