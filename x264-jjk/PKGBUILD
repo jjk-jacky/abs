@@ -7,7 +7,7 @@
 
 pkgname=('x264-jjk' 'libx264-jjk')
 pkgver=152.20171224
-pkgrel=1
+pkgrel=2
 arch=('i686' 'x86_64')
 url='http://www.videolan.org/developers/x264.html'
 license=('GPL')
