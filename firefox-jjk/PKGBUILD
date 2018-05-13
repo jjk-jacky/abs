@@ -4,7 +4,7 @@
 
 _pkgname=firefox
 pkgname=$_pkgname-jjk
-pkgver=52.7.2esr
+pkgver=52.8.0esr
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=('i686' 'x86_64')
@@ -24,16 +24,17 @@ source=(https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/source/
         firefox-$pkgver.source.tar.xz.sha512::https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/SHA512SUMS
         firefox-$pkgver.source.tar.xz.sha512.asc::https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/SHA512SUMS.asc
         mozconfig firefox.desktop firefox-install-dir.patch vendor.js
-        no-crmf.diff
+        no-crmf.diff use_noexcept_in_mozalloc.patch
         firefox-20.0.1-fixed-loading-icon.png)
 sha512sums=('FILE'
-            '840c8565627541f1eecc5a748b155f0a3ab84b4355530a80a2924c2fc2ac2c6f5228dffb0ab31096857fab78d839b5b28d79c8ffd4b3ded24cbdfe86b3d88ffa'
+            '59a60ae8cc4fc90381375211a22cdecab93538d1116a90d144f654f70242f5729f1479596aebb32a7ec084a659f7223f948c6304b46d54ca878b6f96e7e3c41e'
             'SKIP'
             '82142488f36dff31496df484b547382c6913539d33bd60ca49450473b792407c3179c538f51e8a4618f0c3223a1b5887f0e709d9f579889b66bee6477aff780b'
             '6338bd399df04dcbfd2d4150c59be8716aebcb60edbfd298ba8671059c4f02ffcec3e9f750255c951fb197edf6130b0c25a4157e27fe0087dad89b3d40eb2627'
             '266989b0c4a37254a40836a6193284a186230b48716907e4d249d73616f58382b258c41baa8c1ffc98d405f77bfafcd3438f749edcf391c7bd22185399adf4bd'
             'd927e5e882115c780aa0d45034cb1652eaa191d95c15013639f9172ae734245caae070018465d73fdf86a01601d08c9e65f28468621422d799fe8451e6175cb7'
             '091a150750bfd4382ed06a3d79c7029d2a64de52af62fa0d25de56e1e823ddb7f14d8daaf71b0069b845845067a4d1b98da1a8b8250606c352ceca9ae3777193'
+            'a1c59949b4d9226fba5ad7d06970248ab513af7b04515efaae099e087f5b81b6d5847b4cb23835b7b3506ef737c32d688942253ca865125de7c762d84ff014c9'
             'd51119170cc8fb99c50610a8e5e94f38a31722c1c1a2260ca32d8e376732e30c8e1deac7d8c599348892e783fb4c75ce8c38bbd238282b0c9da21608d902ba28')
 validpgpkeys=('2B90598A745E992F315E22C58AB132963A06537A'
               '14F26682D0916CDD81E37B6D61B7B526D98F0353')
@@ -52,6 +53,8 @@ prepare() {
 
   # https://bugzilla.mozilla.org/show_bug.cgi?id=1371991
   patch -Np1 -i ../no-crmf.diff
+  # https://hg.mozilla.org/mozilla-central/rev/ae7e3082d862
+  patch -Np1 -i ../use_noexcept_in_mozalloc.patch
 
   echo -n "$_google_api_key" >google-api-key
   echo "ac_add_options --with-google-api-keyfile=\"$PWD/google-api-key\"" >>.mozconfig
