@@ -5,7 +5,7 @@
 _pkgname=firefox
 pkgname=$_pkgname-jjk
 pkgver=52.8.0esr
-pkgrel=1
+pkgrel=2
 pkgdesc="Standalone web browser from mozilla.org"
 arch=('i686' 'x86_64')
 license=('MPL' 'GPL' 'LGPL')
@@ -25,6 +25,7 @@ source=(https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/source/
         firefox-$pkgver.source.tar.xz.sha512.asc::https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/SHA512SUMS.asc
         mozconfig firefox.desktop firefox-install-dir.patch vendor.js
         no-crmf.diff use_noexcept_in_mozalloc.patch
+        0001-Bug-1435212-Add-support-for-FFmpeg-4.0.-r-bryce.patch.xz
         firefox-20.0.1-fixed-loading-icon.png)
 sha512sums=('FILE'
             '59a60ae8cc4fc90381375211a22cdecab93538d1116a90d144f654f70242f5729f1479596aebb32a7ec084a659f7223f948c6304b46d54ca878b6f96e7e3c41e'
@@ -35,6 +36,7 @@ sha512sums=('FILE'
             'd927e5e882115c780aa0d45034cb1652eaa191d95c15013639f9172ae734245caae070018465d73fdf86a01601d08c9e65f28468621422d799fe8451e6175cb7'
             '091a150750bfd4382ed06a3d79c7029d2a64de52af62fa0d25de56e1e823ddb7f14d8daaf71b0069b845845067a4d1b98da1a8b8250606c352ceca9ae3777193'
             'a1c59949b4d9226fba5ad7d06970248ab513af7b04515efaae099e087f5b81b6d5847b4cb23835b7b3506ef737c32d688942253ca865125de7c762d84ff014c9'
+            '5898a167c6f86deb66891ee2c9467aa36a273045908fb8d9571021e0295d227ed66e6c052c1432a43dded9cab185d565717d44f6b1afb8054cf5337df8e0a57d'
             'd51119170cc8fb99c50610a8e5e94f38a31722c1c1a2260ca32d8e376732e30c8e1deac7d8c599348892e783fb4c75ce8c38bbd238282b0c9da21608d902ba28')
 validpgpkeys=('2B90598A745E992F315E22C58AB132963A06537A'
               '14F26682D0916CDD81E37B6D61B7B526D98F0353')
@@ -55,6 +57,8 @@ prepare() {
   patch -Np1 -i ../no-crmf.diff
   # https://hg.mozilla.org/mozilla-central/rev/ae7e3082d862
   patch -Np1 -i ../use_noexcept_in_mozalloc.patch
+  # # https://bugzilla.mozilla.org/show_bug.cgi?id=1435212
+  patch -Np1 -i ../0001-Bug-1435212-Add-support-for-FFmpeg-4.0.-r-bryce.patch
 
   echo -n "$_google_api_key" >google-api-key
   echo "ac_add_options --with-google-api-keyfile=\"$PWD/google-api-key\"" >>.mozconfig
