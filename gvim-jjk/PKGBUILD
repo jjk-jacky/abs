@@ -8,8 +8,8 @@
 
 pkgbase=vim
 pkgname=(vim-runtime-jjk gvim-jjk)
-pkgver=8.0.1815
-_versiondir=80
+pkgver=8.1.0022
+_versiondir=81
 pkgrel=1
 arch=(i686 x86_64)
 license=('custom:vim')
@@ -19,7 +19,7 @@ source=(vim-$pkgver.tar.gz::http://github.com/vim/vim/archive/v$pkgver.tar.gz
         vimrc
         archlinux.vim
         vimdoc.hook)
-sha1sums=('82f2c69203ffaf6626ab7ae00ee7afde14ba2dc0'
+sha1sums=('ee363efbe08bb5931a68b8cc446c0c9e1946e4ee'
           '539bfaa0517dfff6d61c37f9c2d81a0db756a4c9'
           'b6f56bd81cf20c86392354f055e956f1064025c6'
           'adc4c82b6c4097944e5a767270a772721455eb8c')
