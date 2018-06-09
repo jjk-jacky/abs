@@ -3,7 +3,7 @@
 
 _pkgname=harfbuzz
 pkgname=$_pkgname-jjk
-pkgver=1.7.6
+pkgver=1.8.0
 pkgrel=1
 pkgdesc="OpenType text shaping engine."
 arch=('i686' 'x86_64')
