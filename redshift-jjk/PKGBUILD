@@ -6,7 +6,7 @@
 
 _pkgname=redshift
 pkgname=$_pkgname-jjk
-pkgver=1.11
+pkgver=1.12
 pkgrel=1
 pkgdesc='Adjusts the color temperature of your screen according to your surroundings.'
 arch=('i686' 'x86_64')
@@ -17,7 +17,7 @@ makedepends=('intltool' 'python')
 provides=('redshift')
 conflicts=('redshift')
 source=("https://github.com/jonls/${_pkgname}/releases/download/v${pkgver}/${_pkgname}-${pkgver}.tar.xz")
-md5sums=('a31d768b0348c5202e58612855a9027e')
+md5sums=('5d04f2413dacdf3434cb86f373842462')
 
 build() {
   cd "${srcdir}/${_pkgname}-${pkgver}"
