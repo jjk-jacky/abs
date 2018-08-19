@@ -6,7 +6,7 @@
 _pkgname=libxml2
 pkgname=$_pkgname-jjk
 pkgver=2.9.8
-pkgrel=1
+pkgrel=2
 pkgdesc="XML parsing library, version 2"
 arch=('i686' 'x86_64')
 license=('MIT')
