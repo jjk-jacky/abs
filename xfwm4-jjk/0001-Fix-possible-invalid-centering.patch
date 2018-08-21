@@ -1,4 +1,4 @@
-From 3f7482a392102286721db890deed61ef4082b6aa Mon Sep 17 00:00:00 2001
+From a98eab04638824a15f03010b21777574a8bf3349 Mon Sep 17 00:00:00 2001
 From: jjacky <i.am.jack.mail@gmail.com>
 Date: Sat, 18 May 2013 14:10:01 +0200
 Subject: [PATCH] Fix possible invalid centering
@@ -29,7 +29,7 @@ Signed-off-by: Olivier Brunel <jjk@jjacky.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/src/placement.c b/src/placement.c
-index e9a32c72..664f84ce 100644
+index 9090a3f2..f7702aae 100644
 --- a/src/placement.c
 +++ b/src/placement.c
 @@ -495,7 +495,7 @@ clientKeepVisible (Client * c, gint n_monitors, GdkRectangle *monitor_rect)
@@ -42,5 +42,5 @@ index e9a32c72..664f84ce 100644
      }
      if (centered)
 -- 
-2.12.0
+2.15.1
 
