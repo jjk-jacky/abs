@@ -4,7 +4,7 @@
 
 pkgbase=xorg-server
 pkgname=(xorg-server-jjk xorg-server-xephyr-jjk)
-pkgver=1.20.0
+pkgver=1.20.1
 pkgrel=1 # build first with 0.1 and then rebuild it after xf86-input-evdev rebuild
 arch=('i686' 'x86_64')
 license=('custom')
@@ -23,7 +23,7 @@ validpgpkeys=('7B27A3F1A6E18CD9588B4AE8310180050905E40C'
               'C383B778255613DFDB409D91DB221A6900000011'
               'DD38563A8A8224537D1F90E45B8A2D50A0ECD0D3'
               '995ED5C8A6138EB0961F18474C09DD83CAAA50B2')
-sha256sums=('9d967d185f05709274ee0c4f861a4672463986e550ca05725ce27974f550d3e6'
+sha256sums=('59c99fe86fe75b8164c6567bfc6e982aecc2e4a51e6fbac1b842d5d00549e918'
             'SKIP'
             '2198b9e635bb4e52bf986e678a702ec74f781b5b10c5713e1eeaa16cc9af078c'
             '2460adccd3362fefd4cdc5f1c70f332d7b578091fb9167bf88b5f91265bbd776'
