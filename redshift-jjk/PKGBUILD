@@ -13,7 +13,7 @@ arch=('i686' 'x86_64')
 url='http://jonls.dk/redshift/'
 license=('GPL3')
 depends=('libxxf86vm')
-makedepends=('intltool' 'python')
+makedepends=('intltool')
 provides=('redshift')
 conflicts=('redshift')
 source=("https://github.com/jonls/${_pkgname}/releases/download/v${pkgver}/${_pkgname}-${pkgver}.tar.xz")
@@ -22,7 +22,7 @@ md5sums=('5d04f2413dacdf3434cb86f373842462')
 build() {
   cd "${srcdir}/${_pkgname}-${pkgver}"
 
-  PYTHON=/usr/bin/python ./configure --prefix=/usr \
+  ./configure --prefix=/usr \
       --disable-gui --disable-drm
   make
 }
