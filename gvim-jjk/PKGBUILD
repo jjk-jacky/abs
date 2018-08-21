@@ -8,20 +8,20 @@
 
 pkgbase=vim
 pkgname=(vim-runtime-jjk gvim-jjk)
-pkgver=8.1.0022
+pkgver=8.1.0279
 _versiondir=81
 pkgrel=1
 arch=(i686 x86_64)
 license=('custom:vim')
 url='http://www.vim.org'
 makedepends=(gpm python2 python libxt gtk2 gawk)
-source=(vim-$pkgver.tar.gz::http://github.com/vim/vim/archive/v$pkgver.tar.gz
+source=(vim-$pkgver.tar.gz::https://github.com/vim/vim/archive/v$pkgver.tar.gz
         vimrc
         archlinux.vim
         vimdoc.hook)
-sha1sums=('ee363efbe08bb5931a68b8cc446c0c9e1946e4ee'
+sha1sums=('3f54035a5cf5b9c04350bd146b9db108e7bef6cf'
           '539bfaa0517dfff6d61c37f9c2d81a0db756a4c9'
-          'b6f56bd81cf20c86392354f055e956f1064025c6'
+          '5cd40949fc31495db18a53a31c22a4aeb90c0ff5'
           'adc4c82b6c4097944e5a767270a772721455eb8c')
 
 prepare() {
