@@ -4,8 +4,8 @@
 
 _pkgname=pam
 pkgname=$_pkgname-jjk
-pkgver=1.3.0
-pkgrel=2
+pkgver=1.3.1
+pkgrel=1
 pkgdesc="PAM (Pluggable Authentication Modules) library"
 arch=('i686' 'x86_64')
 license=('GPL2')
@@ -15,9 +15,13 @@ makedepends=('flex' 'w3m' 'docbook-xml>=4.4' 'docbook-xsl')
 conflicts=($_pkgname)
 provides=($_pkgname)
 backup=(etc/security/{access.conf,group.conf,limits.conf,namespace.conf,namespace.init,pam_env.conf,time.conf} etc/default/passwd etc/environment)
-source=(http://linux-pam.org/library/Linux-PAM-$pkgver.tar.bz2)
+source=(https://github.com/linux-pam/linux-pam/releases/download/v$pkgver/Linux-PAM-$pkgver.tar.xz{,.asc})
+validpgpkeys=('AF7402BC38CC10E6885C1FCA421784ABD41A6DF2' # Andrew G. Morgan <morgan@kernel.org>
+              '8C6BFD92EE0F42EDF91A6A736D1A7F052E5924BB' # Thorsten Kukuk (privat) <kukuk@thkukuk.de>
+             )
 options=('!emptydirs')
-md5sums=('da4b2289b7cfb19583d54e9eaaef1c3a')
+md5sums=('558ff53b0fc0563ca97f79e911822165'
+         'SKIP')
 
 build() {
   cd "$srcdir/Linux-PAM-$pkgver"
