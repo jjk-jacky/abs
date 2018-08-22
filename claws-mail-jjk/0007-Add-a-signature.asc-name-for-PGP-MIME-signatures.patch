@@ -1,7 +1,7 @@
-From 5ab8b0cd9535c2e44a2b8885b4bdd0f7cf60743c Mon Sep 17 00:00:00 2001
+From 7a656b386bb3802d22c126316fea6fea07e6258e Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Mon, 3 Jul 2017 19:43:07 +0200
-Subject: [PATCH 07/10] Add a 'signature.asc' name for PGP MIME signatures
+Subject: [PATCH 07/12] Add a 'signature.asc' name for PGP MIME signatures
 
 http://www.thewildbeast.co.uk/claws-mail/bugzilla/show_bug.cgi?id=3836
 ---

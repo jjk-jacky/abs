@@ -3,7 +3,7 @@
 
 _pkgname=claws-mail
 pkgname=$_pkgname-jjk
-pkgver=3.16.0
+pkgver=3.17.0
 pkgrel=1
 pkgdesc="A GTK+ based e-mail client."
 arch=('i686' 'x86_64')
@@ -33,19 +33,23 @@ source=(http://www.claws-mail.org/download.php?file=releases/claws-mail-$pkgver.
         0007-Add-a-signature.asc-name-for-PGP-MIME-signatures.patch
         0008-Speed-up-searches-in-References-via-x.patch
         0009-prefs-add-option-Ignore-sort-direction-Make-sort-ord.patch
-        0010-Add-Delivery-Status-Notification-DSN-support.patch)
-sha256sums=('c212133d3d962129d8c7995c1c7d973faef2a8914481c0c74578217bf4c897ab'
+        0010-Add-Delivery-Status-Notification-DSN-support.patch
+        0011-action-Keep-selection-set-afterwards.patch
+        0012-Preserve-flags-tags-when-re-editing-a-message.patch)
+sha256sums=('1543e9b160e603922059b5514fb19c4914954268f8cd457117957f7413363e85'
             'SKIP'
-            'dfe835c372ae08808374e2f468d4c2b43eeab3d52894ce873812cd8649327abf'
-            '2572b48196ac633a08a809353b483b4381430467faca85f959b16e0dfe7d60ce'
-            'c0cb84ee50202eb9cea25585e396123027e26bd6d7364a76c10dbfd309496073'
-            '0f6cc31867fd5f1e693a2a445fc10bd8978920f2733de09a1182a547d64e2bcb'
-            '997f42afa4af1f1b6d26142eaa5c939f247cf1849e4f27a04d457ead77f7e57f'
-            '23db8ab10908306d010e71d480ed624d6c2d592fa0b8ff0d115d1810c1b45e21'
-            '452564426bdb1dbe0f40ee5eb2018260a67f37a392ea55d921a44563efe1d9d9'
-            '6e69e4ab28ccffb42ccd3356c95ce2f91ccd603bfbca8bd1caaca2c06899c84e'
-            'cec2888c7f167e29a20c93ad802ad38a694ec207ad373653f24993d24443acc8'
-            'ebeb325037cbfd7ae6d4500d5ee3e2040510c75305edc53228947f018db4e4c0')
+            'e3a29401054e81c9b76e2a0607a364571a945fc2a88e1a2d9c7ef523a73656aa'
+            '8d229fe392c6699c7bff769872ee07ba1da3bd1371e2cb7784236fc317ab90e9'
+            'a27ec811b997b6cd86e6d87a5f7ca24df7ae4e06217b6eaca624e931a933f941'
+            '75a97a889f95ed4b7627055dc7c8d336e1c3e36ab2b367198a192aa2560c2f83'
+            'fe9017da938e078b9b9720b3ad5e279f49827d7f5e0250622c9025851928d108'
+            '353ddb7bc8ffdae927afecccbbe70be140db4a414e3ccfd96245c925df75b5ad'
+            'dc7e0762cd20e9350a2c90b67bf9f0f6893008f948f3134e9abf90224457a838'
+            '7e01afc7aa5a0abdf6fc93ae7324476f1824a9dbe1e82991a7e328d8fec527e7'
+            '7aa45eaa31f746eb2ffdc3223cdbc8eb6e0645b3e02be17b61302fb6e1273aba'
+            'd517c3c7b061ceab3494a12d53e5678ab25fff179de9834bacecc4cf1860faeb'
+            'bae66fcdaf4d3b0cadf6193a47aa20b35c11db961980d7b8d15503cdc44885d7'
+            '7eb3a8367a9d3363db489ac1805992631b4f22a1487848315a3d778511e9357d')
 validpgpkeys=('8B3B297A03468356692F8D592CD716D654D6BBD4') # Paul <paul@claws-mail.org>
 
 prepare() {

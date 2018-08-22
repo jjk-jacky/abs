@@ -1,7 +1,7 @@
-From c1140f8ef41d708f59e23ce003acab4b4c1234b3 Mon Sep 17 00:00:00 2001
+From 886a0a13d91532ee1e65963eae8490629cc43373 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sun, 17 Dec 2017 14:03:35 +0100
-Subject: [PATCH 05/10] Add vfolder plugin
+Subject: [PATCH 05/12] Add vfolder plugin
 
 This adds support for "Virtual folders" aka folders that show search
 results. Unlike elsewhere in Claws, such folders can include messages
@@ -61,6 +61,7 @@ v10:- Fix use after free (since v9)
 v11:- Some optimization in auto-refresh
 v12:- Use regexp to search faster
 v13:- Rebase on 3.16.0
+v14:- Update to new alertpanel() API
 ---
  configure.ac                             |   15 +
  src/plugins/Makefile.am                  |    3 +-
@@ -89,10 +90,10 @@ v13:- Rebase on 3.16.0
  create mode 100644 src/plugins/vfolder/vfolder_prefs.h
 
 diff --git a/configure.ac b/configure.ac
-index f67d7a455..865d2985e 100644
+index 35e3b139e..30e33adf5 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1094,6 +1094,10 @@ AC_ARG_ENABLE(vcalendar-plugin,
+@@ -1093,6 +1093,10 @@ AC_ARG_ENABLE(vcalendar-plugin,
  		[  --disable-vcalendar-plugin      Do not build vcalendar plugin],
  		[enable_vcalendar_plugin=$enableval], [enable_vcalendar_plugin=auto])
  
@@ -103,7 +104,7 @@ index f67d7a455..865d2985e 100644
  dnl disabled by default
  AC_ARG_ENABLE(demo-plugin,
  		[  --enable-demo-plugin		Build demo plugin],
-@@ -1959,6 +1963,15 @@ else
+@@ -1980,6 +1984,15 @@ else
  	AC_MSG_RESULT(no)
  fi
  
@@ -119,7 +120,7 @@ index f67d7a455..865d2985e 100644
  dnl And finally the automake conditionals.
  
  AM_CONDITIONAL(BUILD_ACPI_NOTIFIER_PLUGIN,	test x"$enable_acpi_notifier_plugin" != xno)
-@@ -1992,6 +2005,7 @@ AM_CONDITIONAL(BUILD_SPAMASSASSIN_PLUGIN,	test x"$enable_spamassassin_plugin" !=
+@@ -2013,6 +2026,7 @@ AM_CONDITIONAL(BUILD_SPAMASSASSIN_PLUGIN,	test x"$enable_spamassassin_plugin" !=
  AM_CONDITIONAL(BUILD_SPAM_REPORT_PLUGIN,	test x"$enable_spam_report_plugin" != xno)
  AM_CONDITIONAL(BUILD_TNEF_PARSE_PLUGIN,		test x"$enable_tnef_parse_plugin" != xno)
  AM_CONDITIONAL(BUILD_VCALENDAR_PLUGIN,		test x"$enable_vcalendar_plugin" != xno)
@@ -127,7 +128,7 @@ index f67d7a455..865d2985e 100644
  
  
  dnl ****************************
-@@ -2044,6 +2058,7 @@ src/plugins/spamassassin/Makefile
+@@ -2065,6 +2079,7 @@ src/plugins/spamassassin/Makefile
  src/plugins/spam_report/Makefile
  src/plugins/tnef_parse/Makefile
  src/plugins/vcalendar/Makefile
@@ -469,7 +470,7 @@ index 000000000..cfab7ace4
 +#endif /* __VFOLDER_PLUGIN_H__ */
 diff --git a/src/plugins/vfolder/plugin_gtk.c b/src/plugins/vfolder/plugin_gtk.c
 new file mode 100644
-index 000000000..249a033fe
+index 000000000..8da88be1c
 --- /dev/null
 +++ b/src/plugins/vfolder/plugin_gtk.c
 @@ -0,0 +1,1152 @@
@@ -643,8 +644,8 @@ index 000000000..249a033fe
 +			"then go into 'Properties' and page 'Content'"),
 +		mailbox, newfolder);
 +	alertpanel_full(_("Congratulations!"), s,
-+		GTK_STOCK_OK, NULL, NULL, FALSE,
-+		NULL, ALERT_NOTICE, G_ALERTDEFAULT);
++		GTK_STOCK_OK, NULL, NULL, ALERTFOCUS_FIRST, FALSE,
++		NULL, ALERT_NOTICE);
 +	g_free(s);
 +
 +	gtk_widget_destroy(window);
@@ -1164,8 +1165,8 @@ index 000000000..249a033fe
 +			"(The messages are NOT deleted from the disk)"),
 +		item->name);
 +	av = alertpanel_full(_("Remove mailbox"), s,
-+		GTK_STOCK_CANCEL, _("_Remove"), NULL, FALSE,
-+		NULL, ALERT_WARNING, G_ALERTDEFAULT);
++		GTK_STOCK_CANCEL, _("_Remove"), NULL, ALERTFOCUS_FIRST, FALSE,
++		NULL, ALERT_WARNING);
 +	g_free(s);
 +	if (av != G_ALERTALTERNATE)
 +		return;
@@ -1357,8 +1358,8 @@ index 000000000..249a033fe
 +
 +	s = g_strdup_printf(_("Do you really want to delete '%s'?"), item->name);
 +	av = alertpanel_full(_("Delete folder"), s,
-+		GTK_STOCK_CANCEL, GTK_STOCK_DELETE, NULL, FALSE,
-+		NULL, ALERT_NOTICE, G_ALERTDEFAULT);
++		GTK_STOCK_CANCEL, GTK_STOCK_DELETE, NULL, ALERTFOCUS_FIRST, FALSE,
++		NULL, ALERT_NOTICE);
 +	g_free(s);
 +	if (av != G_ALERTALTERNATE)
 +		return;
@@ -3340,7 +3341,7 @@ index 000000000..826dd82c1
 +#endif /* __VFOLDER_FOLDER_H__ */
 diff --git a/src/plugins/vfolder/vfolder_item_prefs.c b/src/plugins/vfolder/vfolder_item_prefs.c
 new file mode 100644
-index 000000000..2aaf85d9e
+index 000000000..5866fa815
 --- /dev/null
 +++ b/src/plugins/vfolder/vfolder_item_prefs.c
 @@ -0,0 +1,1279 @@
@@ -4283,7 +4284,7 @@ index 000000000..2aaf85d9e
 +
 +	if (alertpanel(_("Delete search"),
 +			_("Do you really want to delete this search?"),
-+			GTK_STOCK_CANCEL, "+"GTK_STOCK_DELETE, NULL) == G_ALERTDEFAULT)
++			GTK_STOCK_CANCEL, GTK_STOCK_DELETE, NULL, ALERTFOCUS_SECOND) == G_ALERTDEFAULT)
 +		return;
 +
 +	if (!gtk_tree_model_iter_nth_child(GTK_TREE_MODEL(list_store), &iter, NULL, row))
@@ -4296,7 +4297,7 @@ index 000000000..2aaf85d9e
 +{
 +	if (alertpanel(_("Delete all searches"),
 +			_("Do you really want to delete all the searches?"),
-+			GTK_STOCK_CANCEL, "+"GTK_STOCK_DELETE, NULL) == G_ALERTDEFAULT)
++			GTK_STOCK_CANCEL, GTK_STOCK_DELETE, NULL, ALERTFOCUS_SECOND) == G_ALERTDEFAULT)
 +		return;
 +
 +	prefs_clear_list_store();

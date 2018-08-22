@@ -1,7 +1,7 @@
-From 4e70d7eb510ffe754a6aa93c108c59c1ef37d7fc Mon Sep 17 00:00:00 2001
+From a438275fc4554cda119909f2689cc5bd55e4a84c Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sun, 15 Nov 2015 17:53:30 +0100
-Subject: [PATCH 03/10] Always sort by date ASC within a thread when by thread
+Subject: [PATCH 03/12] Always sort by date ASC within a thread when by thread
  date
 
 When using thread view & sorting by date descendingly, it doesn't really
@@ -16,10 +16,10 @@ thread by date ascendingly, regardless of current sort order.
  1 file changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/src/summaryview.c b/src/summaryview.c
-index ebb344f29..be44ce6df 100644
+index d6f179ee7..a29984e0a 100644
 --- a/src/summaryview.c
 +++ b/src/summaryview.c
-@@ -7519,8 +7519,13 @@ static gint summary_cmp_by_thread_date(GtkCMCList *clist,
+@@ -7656,8 +7656,13 @@ static gint summary_cmp_by_thread_date(GtkCMCList *clist,
  	
  	if (msginfo1->thread_date > 0 && msginfo2->thread_date > 0)
  		return thread_diff;

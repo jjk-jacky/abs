@@ -1,7 +1,7 @@
-From 04b3da6fde023be14aada0662ac7f92318226552 Mon Sep 17 00:00:00 2001
+From 7f916cacec177be9677c5f46d8f2af2eb3d79403 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 9 Jun 2017 22:37:01 +0200
-Subject: [PATCH 04/10] Allow external use of strings about Extended Search
+Subject: [PATCH 04/12] Allow external use of strings about Extended Search
 
 This will be useful for e.g. the upcoming vfolder plugin.
 ---
@@ -10,7 +10,7 @@ This will be useful for e.g. the upcoming vfolder plugin.
  2 files changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/src/gtk/quicksearch.c b/src/gtk/quicksearch.c
-index 0e79a664b..52829cb2d 100644
+index 33c883ed2..6859f662c 100644
 --- a/src/gtk/quicksearch.c
 +++ b/src/gtk/quicksearch.c
 @@ -474,7 +474,7 @@ static gboolean searchtype_autorun_changed(GtkMenuItem *widget, gpointer data)
@@ -32,7 +32,7 @@ index 0e79a664b..52829cb2d 100644
  
  static void search_description_cb(GtkWidget *widget)
 diff --git a/src/gtk/quicksearch.h b/src/gtk/quicksearch.h
-index c1a26bfac..fe84ee949 100644
+index 9aada6e1f..5ac71d9e0 100644
 --- a/src/gtk/quicksearch.h
 +++ b/src/gtk/quicksearch.h
 @@ -26,6 +26,8 @@

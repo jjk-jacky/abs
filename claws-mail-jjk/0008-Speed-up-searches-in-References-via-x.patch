@@ -1,7 +1,7 @@
-From 2ef5be10bd358b2ed6ace6d1cda2fad4d4ddbf57 Mon Sep 17 00:00:00 2001
+From 36b0ff7c7847b01f2f5031300bae161d05e01474 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Wed, 2 Aug 2017 20:48:58 +0200
-Subject: [PATCH 08/10] Speed-up searches in References via "x"
+Subject: [PATCH 08/12] Speed-up searches in References via "x"
 
 Since commit 5c9f9e47 (in 2001!) the header "References" is actually
 cached in MsgInfo, so searching it can be substantially faster if "x"
@@ -12,7 +12,7 @@ expands to 'references' instead of 'header "References"', much like with
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/src/advsearch.c b/src/advsearch.c
-index 94e010e13..f2d8af0f1 100644
+index 3abbeaa58..6b29720aa 100644
 --- a/src/advsearch.c
 +++ b/src/advsearch.c
 @@ -184,7 +184,7 @@ gchar *advsearch_expand_search_string(const gchar *search_string)

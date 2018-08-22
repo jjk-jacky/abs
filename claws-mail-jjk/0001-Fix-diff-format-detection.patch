@@ -1,7 +1,7 @@
-From 6db2cd49a6d06028353c8867f81507f1060fe6ff Mon Sep 17 00:00:00 2001
+From fb065219283c14a30912f6c6d41500734e252d3e Mon Sep 17 00:00:00 2001
 From: Jakub Kicinski <kubakici@wp.pl>
 Date: Wed, 11 Dec 2013 18:09:59 +0100
-Subject: [PATCH 01/10] Fix diff format detection.
+Subject: [PATCH 01/12] Fix diff format detection.
 
 When '-p' option is used ' @@' can be followed by function name.
 ---
@@ -9,18 +9,18 @@ When '-p' option is used ' @@' can be followed by function name.
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/src/textview.c b/src/textview.c
-index c9be5d8ad..ae93034f3 100644
+index fb72094e8..80c720035 100644
 --- a/src/textview.c
 +++ b/src/textview.c
-@@ -1639,7 +1639,7 @@ static void textview_write_line(TextView *textview, const gchar *str,
+@@ -1661,7 +1661,7 @@ static void textview_write_line(TextView *textview, const gchar *str,
  			else if (buf[0] == '-')
  				fg_color = "diff-del";
  			else if (strncmp(buf, "@@ ", 3) == 0 &&
 -					strcmp(buf+strlen(buf)-4, " @@\n") == 0)
 +				 strstr(&buf[3], " @@"))
  				fg_color = "diff-hunk";
- 		} else if (strcmp(buf,"-- \n") == 0
- 				|| strcmp(buf, "- -- \n") == 0
+ 		} else if (account_signatures_matchlist_str_found(buf,"%s\n")
+ 				|| account_signatures_matchlist_str_found(buf, "- %s\n")
 -- 
 2.15.1
 

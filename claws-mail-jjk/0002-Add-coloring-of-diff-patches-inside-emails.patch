@@ -1,7 +1,7 @@
-From f49e1f05139ea5316b1f121b45a9528a0588d1ce Mon Sep 17 00:00:00 2001
+From 73611b24ed96ff131ce5a4b2f52d45755214b0b7 Mon Sep 17 00:00:00 2001
 From: Jakub Kicinski <kubakici@wp.pl>
 Date: Wed, 11 Dec 2013 18:12:05 +0100
-Subject: [PATCH 02/10] Add coloring of diff patches inside emails.
+Subject: [PATCH 02/12] Add coloring of diff patches inside emails.
 
 ---
  src/textview.c | 11 ++++++++++-
@@ -9,10 +9,10 @@ Subject: [PATCH 02/10] Add coloring of diff patches inside emails.
  2 files changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/src/textview.c b/src/textview.c
-index ae93034f3..2ac617df0 100644
+index 80c720035..fbe218c20 100644
 --- a/src/textview.c
 +++ b/src/textview.c
-@@ -1074,6 +1074,7 @@ static void textview_write_body(TextView *textview, MimeInfo *mimeinfo)
+@@ -1077,6 +1077,7 @@ static void textview_write_body(TextView *textview, MimeInfo *mimeinfo)
  	
  	textview->is_in_signature = FALSE;
  	textview->is_diff = FALSE;
@@ -20,7 +20,7 @@ index ae93034f3..2ac617df0 100644
  	textview->is_attachment = FALSE;;
  
  	procmime_decode_content(mimeinfo);
-@@ -1629,7 +1630,7 @@ static void textview_write_line(TextView *textview, const gchar *str,
+@@ -1651,7 +1652,7 @@ static void textview_write_line(TextView *textview, const gchar *str,
  	}
  
  	if (prefs_common.enable_color) {
@@ -29,7 +29,7 @@ index ae93034f3..2ac617df0 100644
  			if (strncmp(buf, "+++ ", 4) == 0)
  				fg_color = "diff-add-file";
  			else if (buf[0] == '+')
-@@ -1641,11 +1642,19 @@ static void textview_write_line(TextView *textview, const gchar *str,
+@@ -1663,11 +1664,19 @@ static void textview_write_line(TextView *textview, const gchar *str,
  			else if (strncmp(buf, "@@ ", 3) == 0 &&
  				 strstr(&buf[3], " @@"))
  				fg_color = "diff-hunk";
@@ -39,8 +39,8 @@ index ae93034f3..2ac617df0 100644
 +				textview->is_in_signature = TRUE;
 +				fg_color = "signature";
 +			}
- 		} else if (strcmp(buf,"-- \n") == 0
- 				|| strcmp(buf, "- -- \n") == 0
+ 		} else if (account_signatures_matchlist_str_found(buf,"%s\n")
+ 				|| account_signatures_matchlist_str_found(buf, "- %s\n")
  				|| textview->is_in_signature) {
  			fg_color = "signature";
  			textview->is_in_signature = TRUE;

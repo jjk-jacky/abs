@@ -1,0 +1,26 @@
+From a658a7e363a6e06a277ae81e3aaa304d982eebda Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Wed, 27 Dec 2017 21:53:17 +0100
+Subject: [PATCH 11/12] action: Keep selection set afterwards
+
+Upon running (filtering) actions, the current selection was lost (due to
+refreshing the current folder); Let's restore it.
+---
+ src/action.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/action.c b/src/action.c
+index c6dd10f19..af62f3703 100644
+--- a/src/action.c
++++ b/src/action.c
+@@ -627,6 +627,7 @@ static void mainwin_actions_execute(MainWindow *mainwin, guint action_nb,
+ 
+ 	msg_list = summary_get_selected_msg_list(mainwin->summaryview);
+ 	message_actions_execute(mainwin->messageview, action_nb, msg_list);
++	summary_select_by_msg_list(mainwin->summaryview, msg_list);
+ 	g_slist_free(msg_list);
+ }
+ 
+-- 
+2.15.1
+
