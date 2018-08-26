@@ -7,6 +7,7 @@ arch=('i686' 'x86_64')
 url="http://mtcelledit.sourceforge.net"
 license=('GPL3+')
 depends=('qt4' 'cairo' 'pango' 'giflib')
+makedepends=('git')
 source=("git+https://github.com/matyler/mtCellEdit.git#commit=f43660cdf13852da57c69a4079346d72b73bd367")
 sha256sums=('SKIP')
 dirs=('libmtkit' 'libmtcelledit' 'libmtpixy' 'libmtcedui' 'libmtqex'

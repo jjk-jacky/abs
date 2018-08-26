@@ -8,7 +8,7 @@ arch=('i686' 'x86_64')
 url="http://jjacky.com/anopa"
 license=('GPL3+')
 depends=('execline-musl' 's6-musl')
-makedepends=('musl' 'skalibs-musl')
+makedepends=('git' 'musl' 'skalibs-musl')
 options=('staticlibs')
 source=("git+https://github.com/jjk-jacky/${_pkgname}.git#branch=next")
 sha256sums=('SKIP')
