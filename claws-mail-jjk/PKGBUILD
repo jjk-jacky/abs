@@ -3,7 +3,7 @@
 
 _pkgname=claws-mail
 pkgname=$_pkgname-jjk
-pkgver=3.17.0
+pkgver=3.17.1
 pkgrel=1
 pkgdesc="A GTK+ based e-mail client."
 arch=('i686' 'x86_64')
@@ -36,7 +36,7 @@ source=(http://www.claws-mail.org/download.php?file=releases/claws-mail-$pkgver.
         0010-Add-Delivery-Status-Notification-DSN-support.patch
         0011-action-Keep-selection-set-afterwards.patch
         0012-Preserve-flags-tags-when-re-editing-a-message.patch)
-sha256sums=('1543e9b160e603922059b5514fb19c4914954268f8cd457117957f7413363e85'
+sha256sums=('757b5f4163fb44f772b1453d1cc0b83387bb6b67ad55cc0694bdd4eff9ea76f2'
             'SKIP'
             'e3a29401054e81c9b76e2a0607a364571a945fc2a88e1a2d9c7ef523a73656aa'
             '8d229fe392c6699c7bff769872ee07ba1da3bd1371e2cb7784236fc317ab90e9'
