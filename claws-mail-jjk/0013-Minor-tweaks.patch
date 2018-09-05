@@ -1,0 +1,120 @@
+From 39d8f5c5c1654e73734eba69fe98f73ba101bafb Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Wed, 29 Aug 2018 19:57:49 +0200
+Subject: [PATCH 13/14] Minor tweaks
+
+Just makes it easier to turn on/off (at compile time) some debug messages
+---
+ src/gtk/manage_window.c | 50 +++++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 38 insertions(+), 12 deletions(-)
+
+diff --git a/src/gtk/manage_window.c b/src/gtk/manage_window.c
+index 47f786ae6..1a6fb14ec 100644
+--- a/src/gtk/manage_window.c
++++ b/src/gtk/manage_window.c
+@@ -23,64 +23,90 @@
+ #include "manage_window.h"
+ #include "utils.h"
+ 
++#define DEBUG		0
++
+ GtkWidget *focus_window;
+ 
+ gint manage_window_focus_in(GtkWidget *widget, GdkEventFocus *event,
+ 			    gpointer data)
+ {
+-/*	const gchar *title = NULL; */
++#if DEBUG
++	const gchar *title = NULL;
++#endif
+ 
+ 	if (!GTK_IS_WINDOW(widget))
+ 		return FALSE;
+-	
+-/*	title = gtk_window_get_title(GTK_WINDOW(widget));
++
++#if DEBUG
++	title = gtk_window_get_title(GTK_WINDOW(widget));
+ 	 debug_print("Focus in event: window: %p - %s\n", widget,
+-		    title ? title : "no title"); */
++		    title ? title : "no title"); 
++#endif
+ 
+ 	focus_window = widget;
+ 
++#if DEBUG
++	debug_print("focus_window = %p\n", focus_window);
++#endif
+ 	return FALSE;
+ }
+ 
+ gint manage_window_focus_out(GtkWidget *widget, GdkEventFocus *event,
+ 			     gpointer data)
+ {
+-/*	const gchar *title = NULL; */
++#if DEBUG
++	const gchar *title = NULL;
++#endif
+ 
+ 	if (!GTK_IS_WINDOW(widget))
+ 		return FALSE;
+ 
+-/*	title = gtk_window_get_title(GTK_WINDOW(widget));
++#if DEBUG
++	title = gtk_window_get_title(GTK_WINDOW(widget));
+ 	 debug_print("Focus out event: window: %p - %s\n", widget,
+-		    title ? title : "no title"); */
++		    title ? title : "no title"); 
++#endif
+ 
+ 	if (focus_window == widget)
+ 		focus_window = NULL;
+ 
++#if DEBUG
++	debug_print("focus_window = %p\n", focus_window);
++#endif
+ 	return FALSE;
+ }
+ 
+ gint manage_window_unmap(GtkWidget *widget, GdkEventAny *event, gpointer data)
+ {
+-/*	const gchar *title = gtk_window_get_title(GTK_WINDOW(widget));
++#if DEBUG
++	const gchar *title = gtk_window_get_title(GTK_WINDOW(widget));
+ 	 debug_print("Unmap event: window: %p - %s\n", widget,
+-		    title ? title : "no title"); */
++		    title ? title : "no title"); 
++#endif
+ 
+ 	if (focus_window == widget)
+ 		focus_window = NULL;
+ 
++#if DEBUG
++	debug_print("focus_window = %p\n", focus_window);
++#endif
+ 	return FALSE;
+ }
+ 
+ void manage_window_destroy(GtkWidget *widget, gpointer data)
+ {
+-/*	const gchar *title = gtk_window_get_title(GTK_WINDOW(widget));
++#if DEBUG
++	const gchar *title = gtk_window_get_title(GTK_WINDOW(widget));
+ 	 debug_print("Destroy event: window: %p - %s\n", widget,
+-		    title ? title : "no title"); */
+-
++		    title ? title : "no title"); 
++#endif
+ 
+ 	if (focus_window == widget)
+ 		focus_window = NULL;
++
++#if DEBUG
++	debug_print("focus_window = %p\n", focus_window);
++#endif
+ }
+ 
+ void manage_window_set_transient(GtkWindow *window)
+-- 
+2.15.1
+

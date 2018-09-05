@@ -1,7 +1,7 @@
 From 7f916cacec177be9677c5f46d8f2af2eb3d79403 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 9 Jun 2017 22:37:01 +0200
-Subject: [PATCH 04/12] Allow external use of strings about Extended Search
+Subject: [PATCH 04/14] Allow external use of strings about Extended Search
 
 This will be useful for e.g. the upcoming vfolder plugin.
 ---

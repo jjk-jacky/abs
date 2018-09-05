@@ -1,7 +1,7 @@
 From fb065219283c14a30912f6c6d41500734e252d3e Mon Sep 17 00:00:00 2001
 From: Jakub Kicinski <kubakici@wp.pl>
 Date: Wed, 11 Dec 2013 18:09:59 +0100
-Subject: [PATCH 01/12] Fix diff format detection.
+Subject: [PATCH 01/14] Fix diff format detection.
 
 When '-p' option is used ' @@' can be followed by function name.
 ---

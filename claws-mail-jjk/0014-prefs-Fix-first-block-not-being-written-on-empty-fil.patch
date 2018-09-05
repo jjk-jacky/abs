@@ -1,0 +1,43 @@
+From e0e7a7f3ae80b75cabd11b48768273dfcb84867c Mon Sep 17 00:00:00 2001
+From: Olivier Brunel <jjk@jjacky.com>
+Date: Wed, 29 Aug 2018 20:00:29 +0200
+Subject: [PATCH 14/14] prefs: Fix first block not being written on empty file
+
+When calling prefs_set_block_label() on an empty file, the block would
+not be written to file, resulting in all params being written outside of
+any block, and thus "lost".
+---
+ src/common/prefs.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/src/common/prefs.c b/src/common/prefs.c
+index d621a7a22..6428172b4 100644
+--- a/src/common/prefs.c
++++ b/src/common/prefs.c
+@@ -318,14 +318,15 @@ gint prefs_set_block_label(PrefFile *pfile, const gchar *label)
+ 				pfile->orig_fp = NULL;
+ 			}
+ 			
+-			if (fputs(block_label, pfile->fp) == EOF ||
+-			    fputc('\n', pfile->fp) == EOF) {
+-				g_warning("failed to write configuration to file");
+-				prefs_file_close_revert(pfile);
+-				g_free(block_label);
+-						
+-				return -1;
+-			}
++		}
++
++		if (fputs(block_label, pfile->fp) == EOF ||
++			fputc('\n', pfile->fp) == EOF) {
++			g_warning("failed to write configuration to file");
++			prefs_file_close_revert(pfile);
++			g_free(block_label);
++
++			return -1;
+ 		}
+ 	}
+ 
+-- 
+2.15.1
+

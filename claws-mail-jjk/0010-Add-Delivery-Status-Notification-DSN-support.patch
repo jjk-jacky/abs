@@ -1,7 +1,7 @@
-From 67f42a6ffddc679372ad4470a1d3e1e4b0ece42e Mon Sep 17 00:00:00 2001
+From b998124f11dd100833a88288f14206bbe0cebac4 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Mon, 5 Jun 2017 22:10:50 +0200
-Subject: [PATCH 10/12] Add Delivery Status Notification (DSN) support
+Subject: [PATCH 10/14] Add Delivery Status Notification (DSN) support
 
 New account options under Compose allow to set which (if any) DSN must
 be used: Success, Failure, Delay.
@@ -14,15 +14,20 @@ as well as allow to set them on a per-message basis.
 Based on a patch by Alex Fedorov.
 
 http://www.thewildbeast.co.uk/claws-mail/bugzilla/show_bug.cgi?id=3533
+
+---
+
+v2: Set proper defaults on folder property
+v3: compose: Update current options when changing account
 ---
  src/account.c           |   3 ++
  src/common/Makefile.am  |   1 +
- src/common/dsn.h        |  32 ++++++++++++++
- src/common/smtp.c       |  64 ++++++++++++++++++++++++++--
+ src/common/dsn.h        |  36 ++++++++++++++++
+ src/common/smtp.c       |  64 +++++++++++++++++++++++++--
  src/common/smtp.h       |   4 ++
- src/compose.c           | 111 ++++++++++++++++++++++++++++++++++++++++++++++--
+ src/compose.c           | 112 ++++++++++++++++++++++++++++++++++++++++++++++--
  src/compose.h           |   2 +
- src/folder_item_prefs.c |   4 ++
+ src/folder_item_prefs.c |   5 +++
  src/folder_item_prefs.h |   2 +
  src/prefs_account.c     |  40 +++++++++++++++++
  src/prefs_account.h     |   3 ++
@@ -30,7 +35,7 @@ http://www.thewildbeast.co.uk/claws-mail/bugzilla/show_bug.cgi?id=3533
  src/procmsg.c           |  10 ++++-
  src/send_message.c      |  10 +++--
  src/send_message.h      |   3 ++
- 15 files changed, 359 insertions(+), 14 deletions(-)
+ 15 files changed, 365 insertions(+), 14 deletions(-)
  create mode 100644 src/common/dsn.h
 
 diff --git a/src/account.c b/src/account.c
@@ -61,10 +66,10 @@ index f9ad434ad..bbf25ab79 100644
  	md5.h \
 diff --git a/src/common/dsn.h b/src/common/dsn.h
 new file mode 100644
-index 000000000..cc037b1e8
+index 000000000..2320775d6
 --- /dev/null
 +++ b/src/common/dsn.h
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,36 @@
 +/*
 + * Claws Mail -- a GTK+ based, lightweight, and fast e-mail client
 + * Copyright (C) 2017 the Claws Mail team
@@ -86,6 +91,10 @@ index 000000000..cc037b1e8
 +#ifndef __DSN_H__
 +#define __DSN_H__
 +
++/* XXX : Note that the folder properties option has a default of 6 meant for
++ * DSN_FAILURE | DSN_DELAY -- Any change here thus requires to adjust
++ * folder_item_prefs.c accordingly. */
++
 +typedef enum {
 +	DSN_SUCCESS	= 1 << 0,
 +	DSN_FAILURE	= 1 << 1,
@@ -93,7 +102,7 @@ index 000000000..cc037b1e8
 +
 +	/* indicates that values should be used, used for folder properties to
 +	 * be able to override account defaults by not setting any DSN */
-+	DSN_IS_SET	= 1 << 8
++	DSN_IS_SET	= 1 << 7
 +} DsnType;
 +
 +#endif /* __DSN_H__ */
@@ -243,7 +252,7 @@ index 706a0978a..3396a8874 100644
  
  #ifdef USE_GNUTLS
 diff --git a/src/compose.c b/src/compose.c
-index 5583ba4b4..d237c4d41 100644
+index 5583ba4b4..2f3df6980 100644
 --- a/src/compose.c
 +++ b/src/compose.c
 @@ -496,6 +496,12 @@ static void activate_privacy_system     (Compose *compose,
@@ -355,24 +364,32 @@ index 5583ba4b4..d237c4d41 100644
  
  	/* Set save folder */
  	if (msginfo->folder && msginfo->folder->prefs && msginfo->folder->prefs->save_copy_to_folder) {
-@@ -2387,6 +2439,16 @@ Compose *compose_reedit(MsgInfo *msginfo, gboolean batch)
+@@ -2387,6 +2439,13 @@ Compose *compose_reedit(MsgInfo *msginfo, gboolean batch)
  			}
  			g_free(queueheader_buf);
  		}
 +		if (!procheader_get_header_from_msginfo(msginfo, &queueheader_buf, "DSN:")) {
 +			gint dsn = atoi(&queueheader_buf[strlen("DSN:")]);
-+			if (dsn & DSN_SUCCESS)
-+				cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Success", TRUE);
-+			if (dsn & DSN_FAILURE)
-+				cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Failure", TRUE);
-+			if (dsn & DSN_DELAY)
-+				cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Delay", TRUE);
++			cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Success", dsn & DSN_SUCCESS);
++			cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Failure", dsn & DSN_FAILURE);
++			cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Delay", dsn & DSN_DELAY);
 +			g_free(queueheader_buf);
 +		}
  	}
  	
  	if (compose_parse_header(compose, msginfo) < 0) {
-@@ -5551,6 +5613,7 @@ static gint compose_redirect_write_to_file(Compose *compose, FILE *fdest)
+@@ -4941,6 +5000,10 @@ static void compose_select_account(Compose *compose, PrefsAccount *account,
+ 
+ 	compose_set_title(compose);
+ 
++	cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Success", account->dsn_success);
++	cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Failure", account->dsn_failure);
++	cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Dsn/Delay", account->dsn_delay);
++
+ 	if (account->default_sign && compose->mode != COMPOSE_REDIRECT)
+ 		cm_toggle_menu_set_active_full(compose->ui_manager, "Menu/Options/Sign", TRUE);
+ 	else
+@@ -5551,6 +5614,7 @@ static gint compose_redirect_write_to_file(Compose *compose, FILE *fdest)
  		"X-Sylpheed-Privacy",	"X-Sylpheed-Sign:",	"X-Sylpheed-Encrypt",
  		"X-Sylpheed-End-Special-Headers:", 		"X-Sylpheed-Account-Id:",
  		"X-Claws-Auto-Wrapping:", "X-Claws-Auto-Indent:",
@@ -380,7 +397,7 @@ index 5583ba4b4..d237c4d41 100644
  		NULL
  		};
  	gint ret = 0;
-@@ -6214,6 +6277,9 @@ static ComposeQueueResult compose_queue_sub(Compose *compose, gint *msgnum, Fold
+@@ -6214,6 +6278,9 @@ static ComposeQueueResult compose_queue_sub(Compose *compose, gint *msgnum, Fold
  	if (compose->return_receipt) {
  		err |= (fprintf(fp, "RRCPT:1\n") < 0);
  	}
@@ -390,7 +407,7 @@ index 5583ba4b4..d237c4d41 100644
  	/* Message-ID of message replying to */
  	if ((compose->replyinfo != NULL) && (compose->replyinfo->msgid != NULL)) {
  		gchar *folderid = NULL;
-@@ -7871,6 +7937,10 @@ static Compose *compose_create(PrefsAccount *account,
+@@ -7871,6 +7938,10 @@ static Compose *compose_create(PrefsAccount *account,
  
  	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "Separator3", "Options/---", GTK_UI_MANAGER_SEPARATOR)
  	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "RequestRetRcpt", "Options/RequestRetRcpt", GTK_UI_MANAGER_MENUITEM)
@@ -401,7 +418,7 @@ index 5583ba4b4..d237c4d41 100644
  	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "Separator4", "Options/---", GTK_UI_MANAGER_SEPARATOR)
  	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "RemoveReferences", "Options/RemoveReferences", GTK_UI_MANAGER_MENUITEM)
  	MENUITEM_ADDUI_MANAGER(compose->ui_manager, "/Menu/Options", "Separator5", "Options/---", GTK_UI_MANAGER_SEPARATOR)
-@@ -10307,6 +10377,9 @@ gboolean compose_draft (gpointer data, guint action)
+@@ -10307,6 +10378,9 @@ gboolean compose_draft (gpointer data, guint action)
  	if (compose->return_receipt) {
  		err |= (fprintf(fp, "RRCPT:1\n") < 0);
  	}
@@ -411,7 +428,7 @@ index 5583ba4b4..d237c4d41 100644
  	if (compose->privacy_system) {
  		err |= (fprintf(fp, "X-Claws-Sign:%d\n", compose->use_signing) < 0);
  		err |= (fprintf(fp, "X-Claws-Encrypt:%d\n", compose->use_encryption) < 0);
-@@ -11739,6 +11812,36 @@ static void compose_toggle_return_receipt_cb(GtkToggleAction *action, gpointer d
+@@ -11739,6 +11813,36 @@ static void compose_toggle_return_receipt_cb(GtkToggleAction *action, gpointer d
  		compose->return_receipt = FALSE;
  }
  
@@ -469,27 +486,28 @@ index d0d920aee..43cd2f8ff 100644
  	gboolean batch;
  	
 diff --git a/src/folder_item_prefs.c b/src/folder_item_prefs.c
-index d65423bab..ce076ae29 100644
+index d65423bab..f403bba6d 100644
 --- a/src/folder_item_prefs.c
 +++ b/src/folder_item_prefs.c
-@@ -120,6 +120,8 @@ static PrefParam param[] = {
+@@ -120,6 +120,9 @@ static PrefParam param[] = {
  	 NULL, NULL, NULL},
  	{"forward_body_format", NULL, &tmp_prefs.forward_body_format, P_STRING,
  	 NULL, NULL, NULL},
-+	{"dsn", NULL, &tmp_prefs.dsn, P_INT,
++	/* 6 : DSN_FAILURE | DSN_DELAY */
++	{"dsn", "6", &tmp_prefs.dsn, P_INT,
 +	 NULL, NULL, NULL},
  	{NULL, NULL, NULL, P_OTHER, NULL, NULL, NULL}
  };
  
-@@ -200,6 +202,7 @@ static FolderItemPrefs *folder_item_prefs_clear(FolderItemPrefs *prefs)
+@@ -200,6 +203,7 @@ static FolderItemPrefs *folder_item_prefs_clear(FolderItemPrefs *prefs)
  #endif
  	prefs->save_copy_to_folder = FALSE;
  	prefs->color = 0;
-+	prefs->dsn = 0;
++	prefs->dsn = 6; /* DSN_FAILURE | DSN_DELAY */
  
  	prefs->enable_processing = FALSE;
  	prefs->enable_processing_when_opening = FALSE;
-@@ -307,6 +310,7 @@ void folder_item_prefs_copy_prefs(FolderItem * src, FolderItem * dest)
+@@ -307,6 +311,7 @@ void folder_item_prefs_copy_prefs(FolderItem * src, FolderItem * dest)
  #endif
  	tmp_prefs.save_copy_to_folder		= src->prefs->save_copy_to_folder;
  	tmp_prefs.color				= src->prefs->color;

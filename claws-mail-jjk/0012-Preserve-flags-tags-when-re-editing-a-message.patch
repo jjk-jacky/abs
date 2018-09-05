@@ -1,7 +1,7 @@
-From 20b9c368179eaa25813d5e920c79a0682b43b3b4 Mon Sep 17 00:00:00 2001
+From 58267cc285382299d94b281ade40c0df18362ffd Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Wed, 27 Dec 2017 21:59:40 +0100
-Subject: [PATCH 12/12] Preserve flags & tags when re-editing a message
+Subject: [PATCH 12/14] Preserve flags & tags when re-editing a message
 
 When re-editing a message, let's preserve its flags (color labels, etc)
 and tags. Can be especially useful for those who use such things on queued
@@ -12,7 +12,7 @@ actually sending them.
  1 file changed, 15 insertions(+)
 
 diff --git a/src/compose.c b/src/compose.c
-index d237c4d41..a64b31a04 100644
+index 2f3df6980..a686affd1 100644
 --- a/src/compose.c
 +++ b/src/compose.c
 @@ -2418,6 +2418,7 @@ Compose *compose_reedit(MsgInfo *msginfo, gboolean batch)
@@ -23,7 +23,7 @@ index d237c4d41..a64b31a04 100644
  
  	compose_extract_original_charset(compose);
  
-@@ -6366,6 +6367,20 @@ static ComposeQueueResult compose_queue_sub(Compose *compose, gint *msgnum, Fold
+@@ -6367,6 +6368,20 @@ static ComposeQueueResult compose_queue_sub(Compose *compose, gint *msgnum, Fold
  	} else
  		*msgpath = tmp;
  

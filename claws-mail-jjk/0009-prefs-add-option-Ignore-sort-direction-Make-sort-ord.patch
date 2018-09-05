@@ -1,7 +1,7 @@
-From 7e56706a380dd2b71f55163a4e2966f461d93277 Mon Sep 17 00:00:00 2001
+From 134040cc484248965b730a4eab70439917f50808 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sat, 3 Jun 2017 22:10:37 +0200
-Subject: [PATCH 09/12] prefs: add option "Ignore sort direction / Make sort
+Subject: [PATCH 09/14] prefs: add option "Ignore sort direction / Make sort
  order aware"
 
 When enabled, we get the old/classic claws behavior, where first means

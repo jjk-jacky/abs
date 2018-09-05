@@ -1,7 +1,7 @@
 From a438275fc4554cda119909f2689cc5bd55e4a84c Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sun, 15 Nov 2015 17:53:30 +0100
-Subject: [PATCH 03/12] Always sort by date ASC within a thread when by thread
+Subject: [PATCH 03/14] Always sort by date ASC within a thread when by thread
  date
 
 When using thread view & sorting by date descendingly, it doesn't really

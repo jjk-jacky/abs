@@ -1,7 +1,7 @@
-From a658a7e363a6e06a277ae81e3aaa304d982eebda Mon Sep 17 00:00:00 2001
+From f446519ab59fbb47acdd121992e76697c281c17f Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Wed, 27 Dec 2017 21:53:17 +0100
-Subject: [PATCH 11/12] action: Keep selection set afterwards
+Subject: [PATCH 11/14] action: Keep selection set afterwards
 
 Upon running (filtering) actions, the current selection was lost (due to
 refreshing the current folder); Let's restore it.

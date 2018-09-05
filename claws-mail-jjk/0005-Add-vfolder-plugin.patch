@@ -1,7 +1,7 @@
-From 886a0a13d91532ee1e65963eae8490629cc43373 Mon Sep 17 00:00:00 2001
+From 3e493872b6c40ff158612eee4f55de46d0daac0a Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Sun, 17 Dec 2017 14:03:35 +0100
-Subject: [PATCH 05/12] Add vfolder plugin
+Subject: [PATCH 05/14] Add vfolder plugin
 
 This adds support for "Virtual folders" aka folders that show search
 results. Unlike elsewhere in Claws, such folders can include messages
@@ -62,13 +62,15 @@ v11:- Some optimization in auto-refresh
 v12:- Use regexp to search faster
 v13:- Rebase on 3.16.0
 v14:- Update to new alertpanel() API
+v15:- Fix build w/ enchant
+    - Make first-time window transient for main window
 ---
  configure.ac                             |   15 +
  src/plugins/Makefile.am                  |    3 +-
- src/plugins/vfolder/Makefile.am          |   37 +
+ src/plugins/vfolder/Makefile.am          |   38 +
  src/plugins/vfolder/plugin.c             |  202 ++++
  src/plugins/vfolder/plugin.h             |   64 ++
- src/plugins/vfolder/plugin_gtk.c         | 1152 +++++++++++++++++++++
+ src/plugins/vfolder/plugin_gtk.c         | 1151 +++++++++++++++++++++
  src/plugins/vfolder/plugin_gtk.h         |   31 +
  src/plugins/vfolder/vfolder.c            | 1595 ++++++++++++++++++++++++++++++
  src/plugins/vfolder/vfolder.h            |   69 ++
@@ -149,10 +151,10 @@ index 28abfdb67..c800d43ca 100644
 +	vfolder
 diff --git a/src/plugins/vfolder/Makefile.am b/src/plugins/vfolder/Makefile.am
 new file mode 100644
-index 000000000..67f01a8c3
+index 000000000..394b5ffe3
 --- /dev/null
 +++ b/src/plugins/vfolder/Makefile.am
-@@ -0,0 +1,37 @@
+@@ -0,0 +1,38 @@
 +# Copyright 1999-2014 the Claws Mail team.
 +# This file is part of Claws Mail package, and distributed under the
 +# terms of the General Public License version 3 (or later).
@@ -189,7 +191,8 @@ index 000000000..67f01a8c3
 +	-I$(top_builddir)/src/common \
 +	-I$(top_srcdir)/src/gtk \
 +	$(GLIB_CFLAGS) \
-+	$(GTK_CFLAGS)
++	$(GTK_CFLAGS) \
++	$(ENCHANT_CFLAGS)
 diff --git a/src/plugins/vfolder/plugin.c b/src/plugins/vfolder/plugin.c
 new file mode 100644
 index 000000000..acd3d2af1
@@ -470,10 +473,10 @@ index 000000000..cfab7ace4
 +#endif /* __VFOLDER_PLUGIN_H__ */
 diff --git a/src/plugins/vfolder/plugin_gtk.c b/src/plugins/vfolder/plugin_gtk.c
 new file mode 100644
-index 000000000..8da88be1c
+index 000000000..f3811b4b0
 --- /dev/null
 +++ b/src/plugins/vfolder/plugin_gtk.c
-@@ -0,0 +1,1152 @@
+@@ -0,0 +1,1151 @@
 +/* vfolder -- Claws Mail plugin to add virtual folders
 + * Copyright (C) 2017 Olivier Brunel and the Claws Mail Team
 + *
@@ -675,8 +678,7 @@ index 000000000..8da88be1c
 +	gtk_window_set_title (GTK_WINDOW(window), _("Virtual Folders"));
 +	gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL, &geometry,
 +		GDK_HINT_MIN_SIZE);
-+	MANAGE_WINDOW_SIGNALS_CONNECT (window);
-+	manage_window_set_transient(GTK_WINDOW(window));
++	gtk_window_set_transient_for (GTK_WINDOW(window), GTK_WINDOW(mainwindow_get_mainwindow()->window));
 +
 +	box = gtk_vbox_new (FALSE, 8);
 +	gtk_widget_show (box);

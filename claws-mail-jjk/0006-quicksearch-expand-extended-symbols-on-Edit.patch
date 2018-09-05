@@ -1,7 +1,7 @@
-From 9300a87b6866b84ca3ad351a74f4d8d30cf66a5a Mon Sep 17 00:00:00 2001
+From 400acebbabe5e0911dbb4758bdb6087ee8113868 Mon Sep 17 00:00:00 2001
 From: Olivier Brunel <jjk@jjacky.com>
 Date: Fri, 9 Jun 2017 22:40:42 +0200
-Subject: [PATCH 06/12] quicksearch: expand extended symbols on "Edit"
+Subject: [PATCH 06/14] quicksearch: expand extended symbols on "Edit"
 
 Instead of silently ignoring the current string when it used extended
 symbols, expand it into condition expressions to allow editing it.
