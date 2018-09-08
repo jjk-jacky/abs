@@ -4,8 +4,8 @@
 
 _pkgname=firefox
 pkgname=$_pkgname-jjk
-pkgver=52.8.0esr
-pkgrel=2
+pkgver=52.9.0esr
+pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=('i686' 'x86_64')
 license=('MPL' 'GPL' 'LGPL')
@@ -28,7 +28,7 @@ source=(https://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$pkgver/source/
         0001-Bug-1435212-Add-support-for-FFmpeg-4.0.-r-bryce.patch.xz
         firefox-20.0.1-fixed-loading-icon.png)
 sha512sums=('FILE'
-            '59a60ae8cc4fc90381375211a22cdecab93538d1116a90d144f654f70242f5729f1479596aebb32a7ec084a659f7223f948c6304b46d54ca878b6f96e7e3c41e'
+            '7420023c8c7363914bc8f5ef48b1164d035f0d6161dff0de9551bc40becb0896e69d7bd20ce75e0397e6793301695cfcbfb6cf2bdc3ad9ce04cf9efd626c86d4'
             'SKIP'
             '82142488f36dff31496df484b547382c6913539d33bd60ca49450473b792407c3179c538f51e8a4618f0c3223a1b5887f0e709d9f579889b66bee6477aff780b'
             '6338bd399df04dcbfd2d4150c59be8716aebcb60edbfd298ba8671059c4f02ffcec3e9f750255c951fb197edf6130b0c25a4157e27fe0087dad89b3d40eb2627'
