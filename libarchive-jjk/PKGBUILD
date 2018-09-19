@@ -2,25 +2,27 @@
 # Maintainer: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
 # Maintainer: Dan McGee <dan@archlinux.org>
 
-pkgname=libarchive
+_pkgname=libarchive
+pkgname=$_pkgname-jjk
 pkgver=3.3.3
 pkgrel=1
 pkgdesc='Multi-format archive and compression library'
 arch=(x86_64)
-url='http://libarchive.org/'
+url='https://libarchive.org/'
 license=(BSD)
-depends=(acl attr bzip2 expat lz4 openssl xz zlib zstd)
-provides=(libarchive.so)
-source=("$pkgname-$pkgver.tar.gz::https://github.com/$pkgname/$pkgname/archive/v$pkgver.tar.gz")
-sha256sums=('720da414e7aebb255fcdaee106894e4d30e2472ac1390c2c15b70c84c7479658')
+depends=(acl attr bzip2 expat lz4 openssl xz zlib)
+provides=($_pkgname libarchive.so)
+conflicts=($_pkgname)
+source=("https://libarchive.org/downloads/libarchive-$pkgver.tar.gz")
+sha512sums=('9d12b47d6976efa9f98e62c25d8b85fd745d4e9ca7b7e6d36bfe095dfe5c4db017d4e785d110f3758f5938dad6f1a1b009267fd7e82cb7212e93e1aea237bab7')
 
 prepare() {
-  cd $pkgname-$pkgver 
+  cd libarchive-$pkgver
   autoreconf -fi
 }
 
 build() {
-  cd $pkgname-$pkgver 
+  cd libarchive-$pkgver
 
   ./configure \
       --prefix=/usr \
@@ -32,12 +34,12 @@ build() {
 }
 
 check() {
-  cd $pkgname-$pkgver
+  cd libarchive-$pkgver
   make check
 }
 
 package() {
-  cd $pkgname-$pkgver
+  cd libarchive-$pkgver
   make DESTDIR="$pkgdir" install
   install -Dm644 COPYING "$pkgdir/usr/share/licenses/libarchive/COPYING"
 }
