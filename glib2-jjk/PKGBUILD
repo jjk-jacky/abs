@@ -3,14 +3,15 @@
 
 _pkgname=glib2
 pkgname=$_pkgname-jjk
-pkgver=2.56.2
+pkgver=2.58.0
 pkgrel=1
 pkgdesc="Common C routines used by GTK+ and other libs"
 url="http://www.gtk.org/"
 arch=(i686 x86_64)
 license=('LGPL')
 depends=('pcre' 'libffi' 'libutil-linux')
-makedepends=('util-linux' 'pkg-config' 'python' 'libxslt' 'docbook-xml')
+makedepends=('util-linux' 'pkg-config' 'python' 'libxslt' 'docbook-xml'
+             'gtk-doc')
 optdepends=('python2: for gdbus-codegen')
 provides=($_pkgname)
 conflicts=($_pkgname)
@@ -22,8 +23,8 @@ source=(https://ftp.gnome.org/pub/GNOME/sources/glib/${pkgver%.*}/glib-$pkgver.t
         noisy-glib-compile-schemas.diff
         0001-GRWLock-Tweak-doc-to-make-things-a-bit-clearer.patch
         0002-GRWLock-Tweak-re-blocking-on-g_rw_lock_reader_lock.patch)
-sha256sums=('d64abd16813501c956c4e123ae79f47f1b58de573df9fdd3b0795f1e2c1aa789'
-            '35c7e3ff01549c907e971c6a8922dfcc9cb9c1a37ab6c1b50b588c9bfe5a1a07'
+sha256sums=('c0f4ce0730b4f95c47b711613b5406a887c2ee13ea6d25930d72a4fa7fdb77f6'
+            '8445ec81975280aabdb2c0ef3bfcd69b45c7de31b9a3f7fa4b35118afac07050'
             'e1123a5d85d2445faac33f6dae1085fdd620d83279a4e130a83fe38db52b62b3'
             '5ba204a2686304b1454d401a39a9d27d09dd25e4529664e3fd565be3d439f8b6'
             '81a4df0b638730cffb7fa263c04841f7ca6b9c9578ee5045db6f30ff0c3fc531'
@@ -41,10 +42,11 @@ prepare() {
 build() {
   cd "glib-$pkgver"
 
-  ./configure --prefix=/usr --libdir=/usr/lib \
+  ./autogen.sh --prefix=/usr --libdir=/usr/lib \
       --sysconfdir=/etc \
       --with-pcre=system \
-      --disable-fam
+      --disable-fam \
+      --enable-gtk-doc
   make
 }
 
