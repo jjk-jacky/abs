@@ -3,9 +3,10 @@
 # Contributor: Georgij Kondratjev <smpuj@bk.ru>
 # Contributor: Daniel J Griffiths <ghost1227@archlinux.us>
 
-pkgname=netsurf
+_pkgname=netsurf
+pkgname=$_pkgname-jjk
 pkgver=3.8
-pkgrel=2
+pkgrel=1
 pkgdesc='Lightweight and fast web browser'
 arch=('x86_64')
 url='https://www.netsurf-browser.org/'
@@ -13,33 +14,26 @@ license=('MIT' 'GPL2')
 depends=('curl' 'gtk3' 'libhubbub' 'libjpeg-turbo' 'libnsutils>=0.0.5' 'libutf8proc>=2.1.1'
          'libwapcaplet')
 makedepends=('check' 'inetutils' 'libcss>=0.8.0' 'libdom>=0.3.3' 'libnsbmp>=0.1.5'
-             'libnsgif>=0.2.1' 'nsgenbind' 'perl-html-parser' 'setconf')
+             'libnsgif>=0.2.1' 'nsgenbind' 'perl-html-parser')
+conflicts=($_pkgname)
+provides=($_pkgname)
 source=("https://download.netsurf-browser.org/netsurf/releases/source-full/netsurf-all-$pkgver.tar.gz"
-        'netsurf.sh')
+        Makefile.config)
 sha256sums=('eb4864d4459d6f9958dd10a3301c272ea7f5df72667a7db0aad5bc5ae06c0e10'
-            '1f1b495af685e611fe4d121c6d48ed63d6dfe0c69bd5637c41cd71b42429fa85')
+            '4c6f338272eca832294d5c6b295da180675279fd048b03fa5273287132f776ea')
 
 prepare() {
-  cd "$pkgname-all-$pkgver/$pkgname"
+  cd "netsurf-all-$pkgver/netsurf"
+
+  cp "$srcdir"/Makefile.config .
 
   # Fix compilation issues
   sed -i 's:libutf8proc/::;s:UTF8PROC_CCC_VIRAMA:UTF8PROC_BIDI_CLASS_EN:' \
     utils/idna.c
-
-  # Use "netsurf" as the name of the executable in /usr/bin
-  setconf frontends/gtk/res/netsurf-gtk.desktop 'Exec=netsurf %u'
-
-  # Set build configuration in Makefile.defaults
-  for opt in \
-    NETSURF_UA_FORMAT_STRING='"NetSurf/%d.%d (%s; Arch Linux)"' \
-    NETSURF_USE_DUKTAPE=YES
-  do
-    setconf Makefile.defaults "$opt"
-  done
 }
 
 build() {
-  CFLAGS="$CFLAGS -w -Os -funroll-loops" make -C "$pkgname-all-$pkgver/$pkgname" \
+  CFLAGS="$CFLAGS -w -Os -funroll-loops" make -C "netsurf-all-$pkgver/netsurf" \
     NETSURF_GTK_MAJOR=3 \
     TARGET=gtk \
     LIBDIR=lib \
@@ -48,7 +42,7 @@ build() {
 }
 
 package() {
-  make -C "$pkgname-all-$pkgver/$pkgname" \
+  make -C "netsurf-all-$pkgver/netsurf" \
     TARGET=gtk \
     NETSURF_GTK_MAJOR=3 \
     LIBDIR=lib \
@@ -57,19 +51,17 @@ package() {
     PREFIX=/usr \
     install
 
-  # Launch script
-  install -Dm755 $pkgname.sh "$pkgdir/usr/bin/$pkgname"
+  cd "netsurf-all-$pkgver/netsurf"
 
-  cd "$pkgname-all-$pkgver/$pkgname"
-
+  ln -s netsurf-gtk3 "$pkgdir"/usr/bin/netsurf-gtk
   # Desktop icon and shortcut
-  install -Dm644 frontends/gtk/res/$pkgname.xpm \
-    "$pkgdir/usr/share/pixmaps/$pkgname.xpm"
-  install -Dm644 frontends/gtk/res/$pkgname-gtk.desktop \
-    "$pkgdir/usr/share/applications/$pkgname.desktop"
+  install -Dm644 frontends/gtk/res/netsurf.xpm \
+    "$pkgdir/usr/share/pixmaps/netsurf.xpm"
+  install -Dm644 frontends/gtk/res/netsurf-gtk.desktop \
+    "$pkgdir/usr/share/applications/netsurf.desktop"
 
   # License
-  install -Dm644 COPYING "$pkgdir/usr/share/licenses/$pkgname/COPYING"
+  install -Dm644 COPYING "$pkgdir/usr/share/licenses/netsurf/COPYING"
 }
 
 # vim: ts=2 sw=2 et:
